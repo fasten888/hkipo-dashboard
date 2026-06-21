@@ -192,9 +192,15 @@ export async function signOutCloud(session: CloudSession) {
 
 export async function fetchCloudSnapshot(session: CloudSession) {
   const currentSession = await ensureValidSession(session)
+  // Mobile in-app browsers can reuse old authenticated REST GET responses.
+  // Use a valid, changing PostgREST filter to force a fresh read without
+  // relying on unsupported arbitrary query params.
+  const cacheBustBefore = encodeURIComponent(
+    new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+  )
   const query = `/rest/v1/user_data?select=user_id,data,updated_at&user_id=eq.${encodeURIComponent(
     currentSession.user.id,
-  )}&order=updated_at.desc&limit=10`
+  )}&updated_at=lte.${cacheBustBefore}&order=updated_at.desc&limit=10`
   const response = await fetch(
     `${supabaseUrl}${query}`,
     {
