@@ -73,6 +73,7 @@ export function useCloudSync(
   const uploadTimerRef = useRef<number | null>(null)
   const retryTimerRef = useRef<number | null>(null)
   const uploadPromiseRef = useRef<Promise<void> | null>(null)
+  const queuedUploadDataRef = useRef<AppData | null>(null)
 
   useEffect(() => {
     dataRef.current = data
@@ -170,9 +171,13 @@ export function useCloudSync(
 
   const upload = useCallback(
     async (nextData: AppData, activeSession?: CloudSession) => {
-      if (uploadPromiseRef.current) return uploadPromiseRef.current
+      if (uploadPromiseRef.current) {
+        queuedUploadDataRef.current = nextData
+        return uploadPromiseRef.current
+      }
       const currentSession = activeSession ?? sessionRef.current
       if (!currentSession) return
+      let completed = false
       const task = (async () => {
         setStatus('syncing')
         setMessage('正在上传本机数据…')
@@ -263,6 +268,7 @@ export function useCloudSync(
           supabaseReturnedRows: 1,
           status: 'success',
         })
+        completed = true
       })()
       uploadPromiseRef.current = task
       try {
@@ -290,6 +296,15 @@ export function useCloudSync(
         throw error
       } finally {
         uploadPromiseRef.current = null
+      }
+      const queuedData = queuedUploadDataRef.current
+      queuedUploadDataRef.current = null
+      if (
+        completed &&
+        queuedData &&
+        hashAppData(queuedData) !== hashAppData(nextData)
+      ) {
+        await upload(queuedData, sessionRef.current ?? currentSession)
       }
     },
     [handleSyncError, saveMeta, updateRemoteSummary, updateSession],
@@ -659,95 +674,60 @@ export function useCloudSync(
     })
 
     try {
-      const now = new Date().toISOString()
-      const today = now.slice(0, 10)
-      const testIpo = {
-        id: testRecordId,
-        name: `同步测试-${now.slice(5, 16).replace('T', ' ')}`,
-        stockCode: 'SYNC',
-        issuePrice: 0.01,
-        lotSize: 1,
-        subscriptionDate: today,
-        listingDate: today,
-        industry: '同步诊断',
-        tags: undefined,
-        createdAt: now,
-        updatedAt: now,
-      }
-      const nextData: AppData = {
-        ...dataRef.current,
-        ipos: [testIpo, ...dataRef.current.ipos],
-      }
-
-      setData(nextData)
       updateDiagnostic({
-        name: '电脑新增测试记录',
+        name: '登录状态',
         status: 'success',
-        detail: `已新增测试新股记录，ID：${testRecordId}`,
+        detail: `当前用户ID：${currentSession.user.id}`,
       })
 
-      const saved = await saveCloudSnapshot(currentSession, nextData)
-      updateSession(saved.session)
-      updateRemoteSummary(saved.snapshot)
-      saveMeta(
-        saved.session.user.id,
-        saved.snapshot.updatedAt,
-        saved.snapshot.data,
-        'upload',
-      )
-      setLastSyncedAt(saved.snapshot.updatedAt)
-      updateDiagnostic({
-        name: '写入 Supabase',
-        status: saved.snapshot.data.ipos.some(
-          (item) => item.id === testRecordId,
-        )
-          ? 'success'
-          : 'failed',
-        detail: `表：${tableName}，字段：data.ipos，更新时间：${new Date(
-          saved.snapshot.updatedAt,
-        ).toLocaleString('zh-CN')}`,
-      })
-
-      const fetched = await fetchCloudSnapshot(saved.session)
+      const fetched = await fetchCloudSnapshot(currentSession)
+      updateSession(fetched.session)
       updateRemoteSummary(fetched.snapshot)
-      const remoteData = fetched.snapshot?.data
-      const found = remoteData?.ipos.some((item) => item.id === testRecordId)
+      const localData = dataRef.current
+      const localCounts = countAppData(localData)
+      const remoteData = fetched.snapshot?.data ?? null
+      const remoteCounts = remoteData ? countAppData(remoteData) : null
       const readDetail = formatCloudReadDebug(fetched.debug)
-      if (!remoteData || !found) {
+
+      if (!remoteData || !remoteCounts) {
         updateDiagnostic(
           {
-            name: '从 Supabase 读回测试记录',
+            name: '读取 Supabase',
             status: 'failed',
-            detail: `云端读回失败。${readDetail}。云端当前数量：${remoteData?.ipos.length ?? 0} 新股 / ${remoteData?.subscriptions.length ?? 0} 申购 / ${remoteData?.sales.length ?? 0} 卖出`,
+            detail: `云端没有读取到数据。${readDetail}`,
           },
           {
             completedAt: new Date().toISOString(),
-            lostAt: '从 Supabase 读回测试记录',
+            lostAt: '读取 Supabase',
           },
         )
-        throw new Error('测试记录已尝试写入，但从 Supabase 读回时不存在')
+        throw new Error('云端没有读取到数据')
       }
-      const confirmedRemoteData = remoteData
 
-      updateSession(fetched.session)
       updateDiagnostic({
-        name: '从 Supabase 读回测试记录',
+        name: '读取 Supabase',
         status: 'success',
-        detail: `已读到同一条测试记录。${readDetail}。云端当前数量：${confirmedRemoteData.ipos.length} 新股 / ${confirmedRemoteData.subscriptions.length} 申购 / ${confirmedRemoteData.sales.length} 卖出`,
+        detail: `${readDetail}。云端当前数量：${remoteCounts.ipos} 新股 / ${remoteCounts.subscriptions} 申购 / ${remoteCounts.allotments} 中签 / ${remoteCounts.sales} 卖出`,
       })
-      updateDiagnostic(
-        {
-          name: '手机端查询判断',
-          status: 'success',
-          detail:
-            '云端已存在该记录。手机若仍看不到，丢失点在手机端读取云端后没有覆盖本机旧缓存。',
-        },
-        { completedAt: new Date().toISOString() },
-      )
-      setConflict(null)
-      setPendingChanges(false)
+
+      const hashMatched = hashAppData(localData) === hashAppData(remoteData)
+      let detail = `本地：${localCounts.ipos} 新股 / ${localCounts.subscriptions} 申购 / ${localCounts.allotments} 中签 / ${localCounts.sales} 卖出；云端：${remoteCounts.ipos} 新股 / ${remoteCounts.subscriptions} 申购 / ${remoteCounts.allotments} 中签 / ${remoteCounts.sales} 卖出。`
+      if (hashMatched) {
+        detail += ' 本地与云端一致。'
+      } else if (localCounts.subscriptions > remoteCounts.subscriptions) {
+        detail += ' 本地申购更多，请在电脑端点击“上传本机数据”。'
+      } else if (localCounts.subscriptions < remoteCounts.subscriptions) {
+        detail += ' 云端申购更多，请点击“强制使用云端数据”。'
+      } else {
+        detail += ' 数量相同但内容不同，请核对后选择上传本机或使用云端。'
+      }
+      updateDiagnostic({
+        name: '本地/云端一致性',
+        status: 'success',
+        detail,
+      }, { completedAt: new Date().toISOString() })
       setStatus('synced')
-      setMessage('同步诊断完成，测试记录已写入并从云端读回')
+      setMessage('同步诊断完成，未修改云端数据')
     } catch (error) {
       handleSyncError(error)
       if (!steps.some((step) => step.status === 'failed')) {
@@ -764,7 +744,7 @@ export function useCloudSync(
         )
       }
     }
-  }, [handleSyncError, saveMeta, setData, updateRemoteSummary, updateSession])
+  }, [handleSyncError, updateRemoteSummary, updateSession])
 
   return {
     configured,
