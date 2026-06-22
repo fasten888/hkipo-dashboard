@@ -402,7 +402,7 @@ export function SalesPage() {
               const ipo = ipos.find((item) => item.id === subscription.ipoId)
               return (
                 <option key={subscription.id} value={subscription.id}>
-                  {ipo?.name ?? '-'} - {account?.name ?? '-'}
+                  {ipo?.name ?? '-'} - {formatAccountName(account)}
                 </option>
               )
             })}
@@ -547,7 +547,7 @@ export function SalesPage() {
                     )
                     return (
                       <option key={subscription.id} value={subscription.id}>
-                        {ipo?.name ?? '-'} - {account?.name ?? '-'}
+                        {ipo?.name ?? '-'} - {formatAccountName(account)}
                       </option>
                     )
                   })}

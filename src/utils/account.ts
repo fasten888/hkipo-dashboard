@@ -16,8 +16,19 @@ export function formatAccountName(
   const name = hideName
     ? `${account.name.slice(0, 1) || '账'}**`
     : account.name
-  const suffix = hideSuffix ? '****' : account.accountSuffix
+  const rawSuffix = account.accountSuffix?.trim() ?? ''
+  if (!rawSuffix) return name
+  const suffix = hideSuffix ? '****' : rawSuffix
   return `${name}（${suffix}）`
+}
+
+export function formatAccountNamePlain(
+  account: Pick<Account, 'name' | 'accountSuffix'> | undefined,
+) {
+  return formatAccountName(account, {
+    accountName: false,
+    accountSuffix: false,
+  })
 }
 
 export function formatAccountSuffix(value: string) {

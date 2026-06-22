@@ -1,4 +1,5 @@
 import type { AppData } from '../types/store'
+import { formatAccountNamePlain } from '../utils/account'
 import { getAccountStats, getSubscriptionMetrics } from '../utils/statistics'
 
 function escapeCell(value: unknown) {
@@ -38,7 +39,7 @@ export function exportAccountHistoryCsv(accountId: string, data: AppData) {
   const holdings = data.holdings.filter((item) => item.accountId === accountId)
 
   downloadCsv(`${account.name}-${account.accountSuffix}-账户历史.csv`, [
-    ['账户', `${account.name}（${account.accountSuffix}）`],
+    ['账户', formatAccountNamePlain(account)],
     ['参与次数', subscriptions.length],
     ['中签次数', subscriptions.filter((item) => item.status === 'won').length],
     [],
@@ -113,7 +114,7 @@ export function exportAccountHistoryCsv(accountId: string, data: AppData) {
 
 function accountName(data: AppData, id: string) {
   const account = data.accounts.find((item) => item.id === id)
-  return account ? `${account.name}（${account.accountSuffix}）` : ''
+  return account ? formatAccountNamePlain(account) : ''
 }
 
 function ipoName(data: AppData, id: string) {
@@ -321,7 +322,7 @@ export function exportCsv(type: ExportType, data: AppData) {
         data.withdrawals,
       )
       return [
-        `${account.name}（${account.accountSuffix}）`,
+        formatAccountNamePlain(account),
         stats.participationCount,
         stats.winCount,
         stats.winRate,

@@ -55,6 +55,27 @@ export function BatchSubscriptionForm({
     )
   }, [accounts, broker, search])
   const visibleIds = visibleAccounts.map((account) => account.id)
+  const selectedMethodStats = useMemo(() => {
+    return accountIds.reduce(
+      (stats, accountId) => {
+        const account = accounts.find((item) => item.id === accountId)
+        const method =
+          methods[accountId] ?? getAccountDefaultSubscriptionMethod(account)
+        if (method === 'cash') stats.cash += 1
+        else stats.financing += 1
+        return stats
+      },
+      { cash: 0, financing: 0 },
+    )
+  }, [accountIds, accounts, methods])
+
+  const updateSelectedMethods = (method: SubscriptionMethod) => {
+    if (accountIds.length === 0) return
+    setMethods((current) => ({
+      ...current,
+      ...Object.fromEntries(accountIds.map((accountId) => [accountId, method])),
+    }))
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -151,44 +172,73 @@ export function BatchSubscriptionForm({
               ))}
             </select>
           </div>
-          <div className="mb-2 flex gap-2">
-            <button
-              type="button"
-              className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"
-              onClick={() => {
-                setAccountIds((current) => [
-                  ...new Set([...current, ...visibleIds]),
-                ])
-                setMethods((current) => ({
-                  ...current,
-                  ...Object.fromEntries(
-                    visibleAccounts.map((account) => [
-                      account.id,
-                      current[account.id] ??
-                        getAccountDefaultSubscriptionMethod(account),
-                    ]),
-                  ),
-                }))
-              }}
-            >
-              全选
-            </button>
-            <button
-              type="button"
-              className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"
-              onClick={() =>
-                setAccountIds((current) => {
-                  const selected = new Set(current)
-                  visibleIds.forEach((id) => {
-                    if (selected.has(id)) selected.delete(id)
-                    else selected.add(id)
+          <div className="mb-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                onClick={() => {
+                  setAccountIds((current) => [
+                    ...new Set([...current, ...visibleIds]),
+                  ])
+                  setMethods((current) => ({
+                    ...current,
+                    ...Object.fromEntries(
+                      visibleAccounts.map((account) => [
+                        account.id,
+                        current[account.id] ??
+                          getAccountDefaultSubscriptionMethod(account),
+                      ]),
+                    ),
+                  }))
+                }}
+              >
+                全选
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                onClick={() =>
+                  setAccountIds((current) => {
+                    const selected = new Set(current)
+                    visibleIds.forEach((id) => {
+                      if (selected.has(id)) selected.delete(id)
+                      else selected.add(id)
+                    })
+                    return [...selected]
                   })
-                  return [...selected]
-                })
-              }
-            >
-              反选
-            </button>
+                }
+              >
+                反选
+              </button>
+              <div className="hidden h-5 w-px bg-slate-200 sm:block" />
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500">
+                  申购方式：
+                </span>
+                <button
+                  type="button"
+                  disabled={accountIds.length === 0}
+                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => updateSelectedMethods('cash')}
+                >
+                  全部现金
+                </button>
+                <button
+                  type="button"
+                  disabled={accountIds.length === 0}
+                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => updateSelectedMethods('10x')}
+                >
+                  全部10x融资
+                </button>
+              </div>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-slate-500">
+              <span>现金账户：{selectedMethodStats.cash}个</span>
+              <span>融资账户：{selectedMethodStats.financing}个</span>
+              <span className="text-slate-400">仅修改已选账户</span>
+            </div>
           </div>
           <div className="grid max-h-60 gap-2 overflow-y-auto rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
             {visibleAccounts.map((account) => (

@@ -1,5 +1,6 @@
 import type { AppData } from '../types/store'
 import type { HealthIssue, HealthRepairResult } from '../types/health'
+import { formatAccountNamePlain } from './account'
 import { getSubscriptionMetrics } from './statistics'
 
 export function inspectDataHealth(data: AppData): HealthIssue[] {
@@ -30,7 +31,9 @@ export function inspectDataHealth(data: AppData): HealthIssue[] {
     const soldShares = data.sales
       .filter((sale) => sale.subscriptionId === subscription.id)
       .reduce((total, sale) => total + sale.shares, 0)
-    const name = `${ipo?.name ?? '未知新股'} / ${account?.name ?? '未知账户'}`
+    const name = `${ipo?.name ?? '未知新股'} / ${
+      account ? formatAccountNamePlain(account) : '未知账户'
+    }`
     if (soldShares > subscription.allottedShares) {
       add(
         'oversold',
@@ -140,7 +143,7 @@ export function inspectDataHealth(data: AppData): HealthIssue[] {
       'duplicate-account',
       'medium',
       '重复账户',
-      `${account.name}（${account.accountSuffix}）`,
+      formatAccountNamePlain(account),
       account.name || '未命名账户',
       false,
     ),

@@ -36,6 +36,7 @@ import type {
 } from '../types/exchange'
 import type { Holding, HoldingInput } from '../types/holding'
 import { createId } from '../utils/id'
+import { formatAccountNamePlain } from '../utils/account'
 import { getSubscriptionMethod } from '../utils/subscriptionMethod'
 import type {
   CloudConflict,
@@ -306,7 +307,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             addOperationLog({
               action: '新增申购',
               objectType: '申购记录',
-              objectName: `${ipo?.name ?? '未知新股'} / ${account?.name ?? '未知账户'}`,
+              objectName: `${ipo?.name ?? '未知新股'} / ${
+                account ? formatAccountNamePlain(account) : '未知账户'
+              }`,
               after: subscription,
             })
           })
@@ -337,7 +340,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           addOperationLog({
             action: '修改申购',
             objectType: '申购记录',
-            objectName: `${ipo?.name ?? '未知新股'} / ${account?.name ?? '未知账户'}`,
+            objectName: `${ipo?.name ?? '未知新股'} / ${
+              account ? formatAccountNamePlain(account) : '未知账户'
+            }`,
             before,
             after,
           })
@@ -360,7 +365,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           addOperationLog({
             action: '删除申购',
             objectType: '申购记录',
-            objectName: `${ipo?.name ?? '未知新股'} / ${account?.name ?? '未知账户'}`,
+            objectName: `${ipo?.name ?? '未知新股'} / ${
+              account ? formatAccountNamePlain(account) : '未知账户'
+            }`,
             before,
           })
           return {
@@ -642,7 +649,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           addOperationLog({
             action: '新增换汇',
             objectType: '换汇记录',
-            objectName: account?.name ?? '未知账户',
+            objectName: account ? formatAccountNamePlain(account) : '未知账户',
             after,
           })
           return {
@@ -668,7 +675,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           addOperationLog({
             action: '编辑换汇',
             objectType: '换汇记录',
-            objectName: account?.name ?? '未知账户',
+            objectName: account ? formatAccountNamePlain(account) : '未知账户',
             before,
             after,
           })
