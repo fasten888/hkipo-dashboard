@@ -1,19 +1,31 @@
 import {
+  Activity,
+  AlertTriangle,
+  ArrowUpRight,
   CalendarDays,
-  ChevronRight,
+  CalendarClock,
   CircleDollarSign,
   Clock3,
   Gauge,
+  Layers,
   LineChart,
   PackageOpen,
+  PieChart,
   Sparkles,
   Target,
   TrendingUp,
   Trophy,
+  Wallet,
 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useAppData } from '../../hooks/useAppData'
 import { usePersistentState } from '../../hooks/usePersistentState'
+import { CountUpNumber } from '../../components/ui/CountUpNumber'
+import { getOperationLogs } from '../../services/audit'
+import type { Account } from '../../types/account'
+import type { OperationLog } from '../../types/audit'
+import type { Ipo } from '../../types/ipo'
+import type { Subscription } from '../../types/subscription'
 import { formatAccountName } from '../../utils/account'
 import { formatHKD, formatPercent } from '../../utils/currency'
 import { getProfitColor } from '../../utils/profit'
@@ -30,7 +42,8 @@ import {
 } from '../../utils/statistics'
 
 export function DashboardPage() {
-  const { accounts, ipos, subscriptions, sales, withdrawals } = useAppData()
+  const { accounts, ipos, subscriptions, sales, withdrawals, holdings } =
+    useAppData()
   const [trendPeriod, setTrendPeriod] = usePersistentState<TrendPeriod>(
     'dashboard-trend-period',
     'month',
@@ -49,6 +62,16 @@ export function DashboardPage() {
   const industryStats = getIndustryStats(subscriptions, ipos, sales)
   const trend = getProfitTrend(trendPeriod, subscriptions, ipos, sales)
   const today = new Date().toISOString().slice(0, 10)
+  const currentMonthProfit = trend[trend.length - 1]?.profit ?? 0
+  const previousMonthProfit = trend[trend.length - 2]?.profit ?? 0
+  const monthDelta =
+    previousMonthProfit !== 0
+      ? ((currentMonthProfit - previousMonthProfit) /
+          Math.abs(previousMonthProfit)) *
+        100
+      : currentMonthProfit > 0
+        ? 100
+        : 0
   const todayProfit = sales
     .filter((sale) => sale.date === today)
     .reduce((total, sale) => {
@@ -129,20 +152,76 @@ export function DashboardPage() {
     .slice()
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 5)
+  const upcomingIpos = ipos
+    .filter(
+      (ipo) =>
+        (ipo.subscriptionDate && ipo.subscriptionDate >= today) ||
+        (ipo.listingDate && ipo.listingDate >= today),
+    )
+    .sort((a, b) => {
+      const left = a.subscriptionDate || a.listingDate
+      const right = b.subscriptionDate || b.listingDate
+      return left.localeCompare(right)
+    })
+    .slice(0, 6)
+  const operationLogs = getOperationLogs().slice(0, 10)
+  const accountRanking = [...accountInsights]
+    .sort((left, right) => right.stats.totalProfit - left.stats.totalProfit)
+    .slice(0, 5)
+  const profitComposition = [
+    { label: '暗盘', value: Math.max(0, greyStats.profit), color: '#2563EB' },
+    { label: '首日', value: Math.max(0, firstDayStats.profit), color: '#8B5CF6' },
+    { label: '长期持有', value: Math.max(0, heldStats.profit), color: '#22C55E' },
+    { label: '手续费/融资费', value: Math.max(0, stats.totalCost), color: '#F59E0B' },
+  ]
+  const financingAmount = subscriptions
+    .filter((subscription) =>
+      getSubscriptionMethodLabel(subscription.method) === '10x融资',
+    )
+    .reduce((total, subscription) => total + subscription.subscriptionAmount, 0)
+  const cashAmount = subscriptions
+    .filter((subscription) =>
+      getSubscriptionMethodLabel(subscription.method) === '现金',
+    )
+    .reduce((total, subscription) => total + subscription.subscriptionAmount, 0)
+  const holdingMarketValue = holdings.reduce(
+    (total, holding) => total + holding.marketValue,
+    0,
+  )
+  const collateralCapacity = holdings.reduce(
+    (total, holding) => total + holding.marketValue * (holding.collateralRate / 100),
+    0,
+  )
+  const pendingReleaseAmount = subscriptions
+    .filter(
+      (subscription) =>
+        subscription.status === 'applied' || subscription.status === 'announced',
+    )
+    .reduce(
+      (total, subscription) =>
+        total + subscription.subscriptionAmount + subscription.fee,
+      0,
+    )
 
   return (
     <>
-      <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-          港股打新分析驾驶舱
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+            港股打新分析驾驶舱
+          </div>
+          <h1 className="text-3xl font-medium tracking-[-0.04em] text-slate-950 sm:text-5xl">
+            总览
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
+            先看赚了多少，再判断风险在哪里，最后决定下一步该做什么。
+          </p>
         </div>
-        <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-          总览
-        </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          先看赚了多少，再判断账户、融资、行业与卖出策略。
-        </p>
+        <div className="flex items-center gap-2 rounded-full border border-slate-900/[0.05] bg-white px-4 py-2 text-sm font-medium text-slate-500 shadow-sm">
+          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+          数据随申购、卖出和同步记录自动更新
+        </div>
       </div>
 
       <MobileQuickBoard
@@ -152,25 +231,22 @@ export function DashboardPage() {
         pendingIpoCount={pendingIpoCount}
       />
 
-      <section className="mt-7">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              核心表现
-            </p>
-            <h2 className="mt-1 text-lg font-bold text-slate-900">
-              打新资金与收益
-            </h2>
-          </div>
-          <p className="text-xs text-slate-400">数据随申购和卖出记录自动更新</p>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <section className="mt-8">
+        <SectionHeading
+          eyebrow="Core metrics"
+          title="赚了多少钱"
+          description="净收益已经扣除融资申购费和卖出佣金。"
+        />
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <HeroMetric
             label="总收益"
             value={formatHKD(stats.totalProfit, 'profit', 'dashboardKpi')}
+            countValue={stats.totalProfit}
+            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={stats.totalProfit}
             icon={CircleDollarSign}
             prominent
+            hint={`较上期 ${formatSignedDelta(monthDelta)}`}
           />
           <HeroMetric
             label="总收益率"
@@ -179,20 +255,35 @@ export function DashboardPage() {
               'profitRate',
               'dashboardKpi',
             )}
+            countValue={stats.profitRate}
+            formatter={(value) =>
+              formatPercent(value, 'profitRate', 'dashboardKpi')
+            }
             profit={stats.profitRate}
             icon={TrendingUp}
             prominent
+            hint="按累计投入资金计算"
           />
           <HeroMetric
             label="总成本"
             value={formatHKD(stats.totalCost, 'amount', 'dashboardKpi')}
+            countValue={stats.totalCost}
+            formatter={(value) => formatHKD(value, 'amount', 'dashboardKpi')}
             icon={PackageOpen}
+            hint="融资申购费 + 卖出佣金"
           />
           <HeroMetric
             label="总中签率"
             value={formatPercent(stats.winRate, 'rate', 'dashboardKpi')}
+            countValue={stats.winRate}
+            formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
             icon={Target}
+            hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
           />
+        </div>
+      </section>
+
+      <section className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <HeroMetric
             label="打新胜率"
             value={formatPercent(
@@ -200,7 +291,10 @@ export function DashboardPage() {
               'rate',
               'dashboardKpi',
             )}
+            countValue={performance.overallWinRate}
+            formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
             icon={Trophy}
+            tone="orange"
           />
           <HeroMetric
             label="本月收益"
@@ -209,14 +303,20 @@ export function DashboardPage() {
               'profit',
               'dashboardKpi',
             )}
+            countValue={performance.monthProfit}
+            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={performance.monthProfit}
             icon={CalendarDays}
+            tone="blue"
           />
           <HeroMetric
             label="暗盘收益"
             value={formatHKD(greyStats.profit, 'profit', 'dashboardKpi')}
+            countValue={greyStats.profit}
+            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={greyStats.profit}
             icon={Gauge}
+            tone="purple"
           />
           <HeroMetric
             label="首日收益"
@@ -225,215 +325,663 @@ export function DashboardPage() {
               'profit',
               'dashboardKpi',
             )}
+            countValue={firstDayStats.profit}
+            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={firstDayStats.profit}
             icon={Sparkles}
+            tone="emerald"
           />
-        </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <LineChart size={18} className="text-brand-600" />
-              <h2 className="font-bold text-slate-900">收益趋势分析</h2>
+      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.55fr)]">
+        <div className="os-card os-card-hover p-5 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <LineChart size={18} className="text-brand-600" />
+                <h2 className="font-medium text-slate-950">收益趋势</h2>
+              </div>
+              <p className="mt-1 text-sm text-slate-400">
+                红线为累计收益，蓝线为当期收益
+              </p>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
-              红线为累计收益，蓝线为当期收益
-            </p>
-          </div>
-          <div className="flex rounded-xl bg-slate-100 p-1">
-            {([
-              ['month', '按月'],
-              ['quarter', '按季度'],
-              ['year', '按年'],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                  trendPeriod === key
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500'
-                }`}
-                onClick={() => setTrendPeriod(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <ProfitTrendChart rows={trend} />
-      </section>
-
-      <section className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-bold text-slate-900">关键决策提示</h2>
-          <span className="text-xs text-slate-400">基于当前记录实时计算</span>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <Insight
-            label="最赚钱账户"
-            value={
-              bestAccount ? formatAccountName(bestAccount.account) : '暂无数据'
-            }
-            detail={
-              bestAccount
-                ? formatHKD(bestAccount.stats.totalProfit, 'profit')
-                : '等待收益记录'
-            }
-          />
-          <Insight
-            label="最欧账户"
-            value={
-              luckiestAccount
-                ? formatAccountName(luckiestAccount.account)
-                : '暂无数据'
-            }
-            detail={
-              luckiestAccount
-                ? `中签率 ${formatPercent(luckiestAccount.stats.winRate)}`
-                : '等待中签结果'
-            }
-          />
-          <Insight
-            label="最佳申购方式"
-            value={
-              bestFinancing
-                ? getSubscriptionMethodLabel(bestFinancing.method)
-                : '暂无数据'
-            }
-            detail={
-              bestFinancing
-                ? `平均收益率 ${formatPercent(
-                    bestFinancing.averageProfitRate,
-                    'profitRate',
-                  )}`
-                : '等待申购记录'
-            }
-          />
-          <Insight
-            label="最赚钱行业"
-            value={bestIndustry?.industry ?? '待补充行业'}
-            detail={
-              bestIndustry
-                ? formatHKD(bestIndustry.totalProfit, 'profit')
-                : '编辑新股即可填写'
-            }
-          />
-          <Insight
-            label="建议关注加资"
-            value={
-              capitalCandidate
-                ? formatAccountName(capitalCandidate.account)
-                : bestSaleType.label
-            }
-            detail={
-              capitalCandidate
-                ? `资金效率 ${formatPercent(
-                    (capitalCandidate.stats.totalProfit /
-                      capitalCandidate.account.initialDeposit) *
-                      100,
-                    'profitRate',
-                  )}`
-                : `${bestSaleType.label}收益领先`
-            }
-          />
-        </div>
-      </section>
-
-      <section className="mt-7 rounded-2xl border border-slate-200/80 bg-white shadow-card">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="font-bold text-slate-900">最近录入的申购</h2>
-        </div>
-        {recent.length === 0 ? (
-          <p className="px-6 py-14 text-center text-sm text-slate-400">
-            还没有申购记录
-          </p>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {recent.map((subscription) => {
-              const account = accounts.find(
-                (item) => item.id === subscription.accountId,
-              )
-              const ipo = ipos.find((item) => item.id === subscription.ipoId)
-              return (
-                <div
-                  key={subscription.id}
-                  className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+            <div className="flex rounded-2xl bg-slate-100 p-1">
+              {([
+                ['month', '按月'],
+                ['quarter', '按季度'],
+                ['year', '按年'],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+                    trendPeriod === key
+                      ? 'bg-white text-slate-950 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-950'
+                  }`}
+                  onClick={() => setTrendPeriod(key)}
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-slate-800">
-                      {ipo?.name ?? '已删除新股'}（{ipo?.stockCode ?? '-'}）
-                    </p>
-                    <p className="mt-1 truncate text-xs text-slate-400">
-                      {account ? formatAccountName(account) : '已删除账户'} ·{' '}
-                      {subscription.subscriptionDate}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 sm:shrink-0 sm:justify-end">
-                    <span className="text-sm font-semibold text-slate-700">
-                      {formatHKD(
-                        subscription.subscriptionAmount,
-                        'investment',
-                      )}
-                    </span>
-                    <ChevronRight size={15} className="text-slate-300" />
-                  </div>
-                </div>
-              )
-            })}
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+          <ProfitTrendChart rows={trend} />
+        </div>
+        <CompositionCard rows={profitComposition} total={stats.totalProfit} />
+      </section>
+
+      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
+        <AiAdvisor
+          upcomingCount={upcomingIpos.length}
+          pendingIpoCount={pendingIpoCount}
+          bestAccount={
+            capitalCandidate
+              ? formatAccountName(capitalCandidate.account)
+              : bestAccount
+                ? formatAccountName(bestAccount.account)
+                : '暂无账户'
+          }
+          bestFinancing={
+            bestFinancing
+              ? getSubscriptionMethodLabel(bestFinancing.method)
+              : '10x融资'
+          }
+          pendingReleaseAmount={pendingReleaseAmount}
+        />
+        <UpcomingIpoCard ipos={upcomingIpos} subscriptions={subscriptions} />
+      </section>
+
+      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.55fr)]">
+        <AccountCommandCard rows={accountRanking} />
+        <CapitalUsageCard
+          financingAmount={financingAmount}
+          cashAmount={cashAmount}
+          pendingReleaseAmount={pendingReleaseAmount}
+          holdingMarketValue={holdingMarketValue}
+          collateralCapacity={collateralCapacity}
+        />
+      </section>
+
+      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
+        <ActivityTimeline
+          logs={operationLogs}
+          fallbackSubscriptions={recent}
+          accounts={accounts}
+          ipos={ipos}
+        />
+        <DecisionStack
+          bestAccount={
+            bestAccount ? formatAccountName(bestAccount.account) : '暂无数据'
+          }
+          luckiestAccount={
+            luckiestAccount
+              ? formatAccountName(luckiestAccount.account)
+              : '暂无数据'
+          }
+          bestFinancing={
+            bestFinancing
+              ? getSubscriptionMethodLabel(bestFinancing.method)
+              : '暂无数据'
+          }
+          bestIndustry={bestIndustry?.industry ?? '待补充行业'}
+          bestSaleType={bestSaleType.label}
+          profit={bestAccount?.stats.totalProfit ?? 0}
+          winRate={luckiestAccount?.stats.winRate ?? 0}
+          financingRate={bestFinancing?.averageProfitRate ?? 0}
+          industryProfit={bestIndustry?.totalProfit ?? 0}
+          saleTypeProfit={bestSaleType.stats.profit}
+        />
       </section>
     </>
+  )
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1 text-xl font-medium tracking-[-0.02em] text-slate-950">
+          {title}
+        </h2>
+      </div>
+      <p className="max-w-lg text-sm leading-6 text-slate-400">{description}</p>
+    </div>
   )
 }
 
 function HeroMetric({
   label,
   value,
+  countValue,
+  formatter,
   profit,
   icon: Icon,
   prominent = false,
+  hint,
+  tone = 'slate',
 }: {
   label: string
   value: string
+  countValue?: number
+  formatter?: (value: number) => string
   profit?: number
   icon: typeof Trophy
   prominent?: boolean
+  hint?: string
+  tone?: 'slate' | 'blue' | 'purple' | 'emerald' | 'orange'
 }) {
   const color =
     profit === undefined ? 'text-slate-950' : getProfitColor(profit)
+  const toneClass = {
+    slate: prominent
+      ? 'bg-slate-950 text-white'
+      : 'bg-slate-100 text-slate-500',
+    blue: 'bg-blue-50 text-blue-600',
+    purple: 'bg-violet-50 text-violet-600',
+    emerald: 'bg-emerald-50 text-emerald-600',
+    orange: 'bg-amber-50 text-amber-600',
+  }[tone]
   return (
-    <div
-      className={`relative min-w-0 rounded-2xl border bg-white p-4 shadow-card transition-shadow hover:shadow-md sm:p-5 ${
-        prominent
-          ? 'border-slate-300 lg:p-6'
-          : 'border-slate-200/80'
-      }`}
-    >
-      <div className="flex items-center justify-between gap-1.5">
-        <p className="text-[11px] font-medium text-slate-400 sm:text-xs">{label}</p>
+    <div className="os-card os-card-hover relative min-w-0 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium text-slate-400">{label}</p>
         <div
-          className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 sm:rounded-xl ${
-            prominent
-              ? 'bg-slate-900 text-white'
-              : 'bg-slate-100 text-slate-500'
-          }`}
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${toneClass}`}
         >
-          <Icon size={15} />
+          <Icon size={18} />
         </div>
       </div>
       <p
-        className={`mt-5 break-words font-semibold leading-none tracking-[-0.025em] tabular-nums ${color} ${
+        className={`mt-7 whitespace-normal break-words font-semibold leading-[0.95] tracking-[-0.04em] tabular-nums ${color} ${
           prominent
-            ? 'text-[clamp(1.35rem,6vw,2.25rem)]'
-            : 'text-[clamp(1.2rem,5.4vw,1.875rem)]'
+            ? 'text-[clamp(2rem,5vw,3.25rem)]'
+            : 'text-[clamp(1.65rem,4vw,2.4rem)]'
         }`}
       >
-        {value}
+        {countValue === undefined || !formatter ? (
+          value
+        ) : (
+          <CountUpNumber value={countValue} format={formatter} />
+        )}
       </p>
+      {hint && (
+        <p className="mt-4 text-sm font-medium leading-6 text-slate-400">
+          {hint}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function CompositionCard({
+  rows,
+  total,
+}: {
+  rows: Array<{ label: string; value: number; color: string }>
+  total: number
+}) {
+  const totalWeight = rows.reduce((sum, row) => sum + Math.abs(row.value), 0)
+  let cursor = 0
+  const gradient =
+    totalWeight > 0
+      ? rows
+          .map((row) => {
+            const start = cursor
+            const size = (Math.abs(row.value) / totalWeight) * 100
+            cursor += size
+            return `${row.color} ${start}% ${cursor}%`
+          })
+          .join(', ')
+      : '#E2E8F0 0% 100%'
+
+  return (
+    <div className="os-card os-card-hover p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <PieChart size={18} className="text-violet-500" />
+        <h2 className="font-medium text-slate-950">收益构成</h2>
+      </div>
+      <p className="mt-1 text-sm text-slate-400">
+        看清楚钱从哪里来，也看清成本吃掉了多少。
+      </p>
+      <div className="mt-8 grid place-items-center">
+        <div
+          className="relative grid h-44 w-44 place-items-center rounded-full"
+          style={{ background: `conic-gradient(${gradient})` }}
+        >
+          <div className="grid h-28 w-28 place-items-center rounded-full bg-white text-center shadow-inner">
+            <div>
+              <p className="text-[11px] font-medium text-slate-400">
+                净收益
+              </p>
+              <p
+                className={`mt-1 text-lg font-semibold tracking-tight ${getProfitColor(total)}`}
+              >
+                {formatHKD(total, 'profit', 'dashboardKpi')}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-7 space-y-3">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: row.color }}
+              />
+              <span className="text-sm font-medium text-slate-500">
+                {row.label}
+              </span>
+            </div>
+            <span className="text-sm font-semibold tabular-nums text-slate-900">
+              {formatHKD(row.value, row.label.includes('费') ? 'amount' : 'profit')}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AiAdvisor({
+  upcomingCount,
+  pendingIpoCount,
+  bestAccount,
+  bestFinancing,
+  pendingReleaseAmount,
+}: {
+  upcomingCount: number
+  pendingIpoCount: number
+  bestAccount: string
+  bestFinancing: string
+  pendingReleaseAmount: number
+}) {
+  const rows = [
+    `未来窗口内有 ${upcomingCount} 只新股需要关注。`,
+    `仍有 ${pendingIpoCount} 只新股等待公布结果。`,
+    `优先考虑 ${bestAccount}，当前建议方式为 ${bestFinancing}。`,
+    `预计待释放资金 ${formatHKD(pendingReleaseAmount, 'amount')}。`,
+  ]
+  return (
+    <div className="relative overflow-hidden rounded-[28px] border border-blue-500/10 bg-slate-950 p-5 text-white shadow-[0_18px_50px_rgba(15,23,42,.18)] sm:p-6">
+      <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="relative">
+        <div className="flex items-center gap-2 text-sm font-medium text-blue-200">
+          <Sparkles size={18} />
+          AI 建议预留
+        </div>
+        <h2 className="mt-4 text-2xl font-medium tracking-[-0.03em]">
+          下一步应该做什么
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-300">
+          这里先提供基于规则的建议，后续可接入 AI 分析。
+        </p>
+        <div className="mt-6 space-y-3">
+          {rows.map((row) => (
+            <div
+              key={row}
+              className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-sm leading-6 text-slate-100"
+            >
+              <ArrowUpRight size={16} className="mt-1 shrink-0 text-blue-300" />
+              <span>{row}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function UpcomingIpoCard({
+  ipos,
+  subscriptions,
+}: {
+  ipos: Ipo[]
+  subscriptions: Subscription[]
+}) {
+  return (
+    <div className="os-card os-card-hover p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <CalendarClock size={18} className="text-amber-500" />
+            <h2 className="font-medium text-slate-950">Upcoming IPO</h2>
+          </div>
+          <p className="mt-1 text-sm text-slate-400">
+            最近可申购、上市和资金释放节点。
+          </p>
+        </div>
+        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
+          {ipos.length} 只
+        </span>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {ipos.length === 0 ? (
+          <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-400 md:col-span-2">
+            暂无未来日期的新股。录入申购日或上市日后会自动出现。
+          </div>
+        ) : (
+          ipos.map((ipo) => {
+            const participants = subscriptions.filter(
+              (subscription) => subscription.ipoId === ipo.id,
+            ).length
+            return (
+              <div
+                key={ipo.id}
+                className="rounded-2xl border border-slate-900/[0.05] bg-slate-50/70 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-slate-950">
+                      {ipo.name}（{ipo.stockCode || '-'}）
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {ipo.industry || '未分类'} · {participants} 个账户
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 shadow-sm">
+                    {ipo.subscriptionDate || ipo.listingDate}
+                  </span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                  <DatePill label="申购" value={ipo.subscriptionDate || '-'} />
+                  <DatePill label="上市" value={ipo.listingDate || '-'} />
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DatePill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-white px-3 py-2 shadow-sm">
+      <p className="text-[10px] font-medium text-slate-400">{label}</p>
+      <p className="mt-1 font-medium text-slate-700">{value}</p>
+    </div>
+  )
+}
+
+function AccountCommandCard({
+  rows,
+}: {
+  rows: Array<{
+    account: Account
+    stats: ReturnType<typeof getAccountStats>
+  }>
+}) {
+  return (
+    <div className="os-card os-card-hover p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Trophy size={18} className="text-amber-500" />
+            <h2 className="font-medium text-slate-950">账户 Command Center</h2>
+          </div>
+          <p className="mt-1 text-sm text-slate-400">
+            卡片化 Top5，不再把排行榜做成冷冰冰的表格。
+          </p>
+        </div>
+        <span className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 sm:inline-flex">
+          收益最高
+        </span>
+      </div>
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        {rows.map((row, index) => (
+          <div
+            key={row.account.id}
+            className="rounded-[22px] border border-slate-900/[0.05] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="grid h-10 w-10 place-items-center rounded-2xl text-sm font-semibold text-white"
+                style={{ background: accountAvatarColor(index) }}
+              >
+                {row.account.name.slice(0, 1) || '账'}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-slate-950">
+                  {formatAccountName(row.account)}
+                </p>
+                <p className="mt-0.5 truncate text-xs text-slate-400">
+                  {row.account.brokerName || '未填写券商'}
+                </p>
+              </div>
+            </div>
+            <p
+              className={`mt-5 text-xl font-semibold tracking-[-0.03em] ${getProfitColor(row.stats.totalProfit)}`}
+            >
+              {formatHKD(row.stats.totalProfit, 'profit')}
+            </p>
+            <div className="mt-4 flex items-center justify-between text-xs font-medium text-slate-400">
+              <span>{row.stats.winCount} 次中签</span>
+              <span>{formatPercent(row.stats.profitRate, 'profitRate')}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CapitalUsageCard({
+  financingAmount,
+  cashAmount,
+  pendingReleaseAmount,
+  holdingMarketValue,
+  collateralCapacity,
+}: {
+  financingAmount: number
+  cashAmount: number
+  pendingReleaseAmount: number
+  holdingMarketValue: number
+  collateralCapacity: number
+}) {
+  const rows = [
+    { label: '融资申购金额', value: financingAmount, icon: Layers },
+    { label: '现金申购金额', value: cashAmount, icon: Wallet },
+    { label: '待释放资金', value: pendingReleaseAmount, icon: Clock3 },
+    { label: '持仓市值', value: holdingMarketValue, icon: Activity },
+    { label: '可抵押额度', value: collateralCapacity, icon: Target },
+  ]
+  return (
+    <div className="os-card os-card-hover p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <Wallet size={18} className="text-emerald-500" />
+        <h2 className="font-medium text-slate-950">资金占用</h2>
+      </div>
+      <p className="mt-1 text-sm text-slate-400">
+        看清当前资金在哪里，以及还能释放多少打新能力。
+      </p>
+      <div className="mt-5 space-y-3">
+        {rows.map((row) => {
+          const Icon = row.icon
+          return (
+            <div
+              key={row.label}
+              className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
+                  <Icon size={16} />
+                </span>
+                <span className="text-sm font-medium text-slate-500">
+                  {row.label}
+                </span>
+              </div>
+              <span className="text-sm font-semibold tabular-nums text-slate-950">
+                {formatHKD(row.value, 'amount')}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ActivityTimeline({
+  logs,
+  fallbackSubscriptions,
+  accounts,
+  ipos,
+}: {
+  logs: OperationLog[]
+  fallbackSubscriptions: Subscription[]
+  accounts: Account[]
+  ipos: Ipo[]
+}) {
+  const fallback = fallbackSubscriptions.map((subscription) => {
+    const account = accounts.find((item) => item.id === subscription.accountId)
+    const ipo = ipos.find((item) => item.id === subscription.ipoId)
+    return {
+      id: subscription.id,
+      createdAt: subscription.createdAt,
+      title: '新增申购',
+      detail: `${ipo?.name ?? '已删除新股'} · ${
+        account ? formatAccountName(account) : '已删除账户'
+      }`,
+    }
+  })
+  const rows =
+    logs.length > 0
+      ? logs.map((log) => ({
+          id: log.id,
+          createdAt: log.createdAt,
+          title: log.action,
+          detail: log.objectName || log.objectType,
+        }))
+      : fallback
+
+  return (
+    <div className="os-card os-card-hover p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <Activity size={18} className="text-blue-500" />
+        <h2 className="font-medium text-slate-950">最近动态</h2>
+      </div>
+      <p className="mt-1 text-sm text-slate-400">
+        最近 10 条关键操作，像投资系统的 Activity Timeline。
+      </p>
+      <div className="mt-6 space-y-4">
+        {rows.length === 0 ? (
+          <p className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-400">
+            暂无动态。新增申购、中签、卖出后会自动出现。
+          </p>
+        ) : (
+          rows.slice(0, 10).map((row) => (
+            <div key={row.id} className="flex gap-3">
+              <div className="mt-1 flex flex-col items-center">
+                <span className="h-2.5 w-2.5 rounded-full bg-brand-600" />
+                <span className="mt-2 h-full min-h-8 w-px bg-slate-100" />
+              </div>
+              <div className="min-w-0 flex-1 pb-2">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="truncate text-sm font-medium text-slate-950">
+                    {row.title}
+                  </p>
+                  <span className="text-xs font-medium text-slate-400">
+                    {formatDateTime(row.createdAt)}
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-sm text-slate-400">
+                  {row.detail}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DecisionStack({
+  bestAccount,
+  luckiestAccount,
+  bestFinancing,
+  bestIndustry,
+  bestSaleType,
+  profit,
+  winRate,
+  financingRate,
+  industryProfit,
+  saleTypeProfit,
+}: {
+  bestAccount: string
+  luckiestAccount: string
+  bestFinancing: string
+  bestIndustry: string
+  bestSaleType: string
+  profit: number
+  winRate: number
+  financingRate: number
+  industryProfit: number
+  saleTypeProfit: number
+}) {
+  const rows = [
+    {
+      label: '哪个账户最赚钱',
+      value: bestAccount,
+      detail: formatHKD(profit, 'profit'),
+    },
+    {
+      label: '哪个账户最欧',
+      value: luckiestAccount,
+      detail: `中签率 ${formatPercent(winRate)}`,
+    },
+    {
+      label: '哪种融资方式最好',
+      value: bestFinancing,
+      detail: `平均收益率 ${formatPercent(financingRate, 'profitRate')}`,
+    },
+    {
+      label: '哪个行业最赚钱',
+      value: bestIndustry,
+      detail: formatHKD(industryProfit, 'profit'),
+    },
+    {
+      label: '哪种卖出策略最好',
+      value: bestSaleType,
+      detail: formatHKD(saleTypeProfit, 'profit'),
+    },
+  ]
+  return (
+    <div className="os-card os-card-hover p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <AlertTriangle size={18} className="text-amber-500" />
+        <h2 className="font-medium text-slate-950">风险与机会</h2>
+      </div>
+      <div className="mt-5 space-y-3">
+        {rows.map((row) => (
+          <div key={row.label} className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-[11px] font-medium text-slate-400">
+              {row.label}
+            </p>
+            <p className="mt-2 text-sm font-medium text-slate-950">
+              {row.value}
+            </p>
+            <p className="mt-1 text-xs font-medium text-slate-500">
+              {row.detail}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -577,24 +1125,29 @@ function ProfitTrendChart({
   )
 }
 
-function Insight({
-  label,
-  value,
-  detail,
-}: {
-  label: string
-  value: string
-  detail: string
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-card">
-      <p className="text-[11px] font-medium text-slate-400">{label}</p>
-      <p className="mt-2 break-words text-sm font-bold text-slate-800">
-        {value}
-      </p>
-      <p className="mt-1 break-words text-xs font-medium leading-5 text-slate-500">
-        {detail}
-      </p>
-    </div>
-  )
+function formatSignedDelta(value: number) {
+  if (!Number.isFinite(value) || value === 0) return '0.0%'
+  return `${value > 0 ? '↑' : '↓'}${Math.abs(value).toFixed(1)}%`
+}
+
+function accountAvatarColor(index: number) {
+  const colors = [
+    'linear-gradient(135deg, #2563EB, #8B5CF6)',
+    'linear-gradient(135deg, #0EA5E9, #2563EB)',
+    'linear-gradient(135deg, #F59E0B, #EF4444)',
+    'linear-gradient(135deg, #22C55E, #14B8A6)',
+    'linear-gradient(135deg, #8B5CF6, #EC4899)',
+  ]
+  return colors[index % colors.length]
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
 }

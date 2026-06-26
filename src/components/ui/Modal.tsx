@@ -47,19 +47,19 @@ export function Modal({
       <button
         type="button"
         aria-label="关闭弹窗"
-        className="absolute inset-0 bg-slate-950/45 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/45 backdrop-blur-md"
         onClick={onClose}
       />
       <div
-        className={`relative w-full overflow-y-auto bg-white shadow-modal sm:max-h-[94vh] sm:max-w-2xl sm:rounded-3xl ${
+        className={`relative w-full overflow-y-auto border border-white/70 bg-white shadow-modal sm:max-h-[94vh] sm:max-w-2xl sm:rounded-[28px] ${
           fullScreenOnMobile
             ? 'h-[100dvh] max-h-[100dvh] rounded-none'
             : 'max-h-[94vh] rounded-t-3xl'
         }`}
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-7 sm:py-5">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-5 backdrop-blur sm:px-8 sm:py-6">
           <div>
-            <h2 id="modal-title" className="text-lg font-bold text-slate-900">
+            <h2 id="modal-title" className="text-xl font-medium tracking-[-0.025em] text-slate-950">
               {title}
             </h2>
             {description && (

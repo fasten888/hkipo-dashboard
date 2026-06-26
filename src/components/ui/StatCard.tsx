@@ -31,18 +31,15 @@ export function StatCard({
     profitValue === undefined ? undefined : getProfitColor(profitValue)
 
   return (
-    <div
-      className="group relative min-w-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-card sm:p-5"
-      title={tooltip}
-    >
+    <div className="group os-card os-card-hover relative min-w-0 p-5 sm:p-6" title={tooltip}>
       <div className="flex items-start justify-between gap-2 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="text-sm font-medium text-slate-500">{label}</p>
+            <p className="text-sm font-medium text-slate-400">{label}</p>
             {tooltip && <Info size={13} className="text-slate-300" />}
           </div>
           <p
-            className={`mt-2 break-words text-[clamp(1.25rem,5.8vw,1.75rem)] font-semibold leading-tight tracking-tight tabular-nums ${
+            className={`mt-4 break-words text-[clamp(1.45rem,5.8vw,2.25rem)] font-semibold leading-tight tracking-[-0.035em] tabular-nums ${
               profitClass ?? 'text-slate-900'
             }`}
           >
@@ -52,7 +49,7 @@ export function StatCard({
             {hint}
           </p>
         </div>
-        <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-11 sm:w-11 sm:rounded-2xl ${toneStyles[tone]}`}>
+        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl sm:h-11 sm:w-11 ${toneStyles[tone]}`}>
           <Icon size={19} />
         </div>
       </div>
