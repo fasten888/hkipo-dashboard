@@ -33,6 +33,7 @@ export interface SystemStats {
   winCount: number
   winRate: number
   totalInvestment: number
+  totalCost: number
   totalProfit: number
   profitRate: number
 }
@@ -227,6 +228,9 @@ export function getSystemStats(
     (total, item) => total + item.subscriptionAmount + item.fee,
     0,
   )
+  const totalCost =
+    subscriptions.reduce((total, item) => total + item.fee, 0) +
+    sales.reduce((total, item) => total + (item.commission ?? 0), 0)
 
   return {
     accountCount: accounts.length,
@@ -239,6 +243,7 @@ export function getSystemStats(
           100
         : 0,
     totalInvestment,
+    totalCost,
     totalProfit,
     profitRate:
       totalInvestment > 0 ? (totalProfit / totalInvestment) * 100 : 0,

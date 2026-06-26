@@ -184,6 +184,11 @@ export function DashboardPage() {
             prominent
           />
           <HeroMetric
+            label="总成本"
+            value={formatHKD(stats.totalCost, 'amount', 'dashboardKpi')}
+            icon={PackageOpen}
+          />
+          <HeroMetric
             label="总中签率"
             value={formatPercent(stats.winRate, 'rate', 'dashboardKpi')}
             icon={Target}
