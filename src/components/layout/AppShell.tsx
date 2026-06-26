@@ -150,7 +150,7 @@ export function AppShell({
       )}
 
       <main className="min-w-0 flex-1 lg:ml-[17.5rem]">
-        <div className="sticky top-0 z-20 hidden h-20 items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F7F9FC]/85 px-10 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
+        <div className="sticky top-0 z-20 hidden h-[72px] items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F7F9FC]/85 px-10 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
               港新账本 · Personal Investment OS

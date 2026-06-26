@@ -7,6 +7,7 @@
     color: #0f172a;
     background: #f7f9fc;
     font-synthesis: none;
+    font-variant-numeric: tabular-nums;
     text-rendering: optimizeLegibility;
   }
 
@@ -23,7 +24,8 @@
       radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.08), transparent 30rem),
       linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(247, 249, 252, 0) 18rem),
       #f7f9fc;
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 1.55;
   }
 
   button,
@@ -128,6 +130,29 @@
   .page-enter {
     animation: fade-slide-up 360ms ease-out both;
   }
+
+  .amount-line {
+    @apply inline-flex max-w-full items-baseline gap-1 whitespace-nowrap tabular-nums;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .amount-prefix {
+    @apply shrink-0 text-[clamp(1rem,1.2vw,1.125rem)] font-medium tracking-[-0.01em] text-slate-400;
+  }
+
+  .amount-number {
+    @apply min-w-0 shrink text-[clamp(2.25rem,2.7vw,2.625rem)] font-semibold leading-none tracking-[-0.04em];
+    font-size: clamp(1.9rem, 2.55vw, 2.625rem);
+  }
+
+  .amount-number-compact {
+    font-size: clamp(1.65rem, 2.2vw, 2.25rem);
+  }
+
+  .rate-number {
+    @apply whitespace-nowrap text-[clamp(2rem,2.7vw,2.5rem)] font-semibold leading-none tracking-[-0.04em] text-slate-950 tabular-nums;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @keyframes fade-slide-up {
@@ -152,8 +177,12 @@
   }
 }
 
-@media (min-width: 640px) {
-  body {
-    font-size: 14px;
+@media (max-width: 420px) {
+  .amount-number {
+    font-size: clamp(1.65rem, 8vw, 2.1rem);
+  }
+
+  .rate-number {
+    font-size: clamp(1.75rem, 8vw, 2.15rem);
   }
 }

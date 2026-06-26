@@ -21,6 +21,7 @@ import { useMemo } from 'react'
 import { useAppData } from '../../hooks/useAppData'
 import { usePersistentState } from '../../hooks/usePersistentState'
 import { CountUpNumber } from '../../components/ui/CountUpNumber'
+import { MetricValueText } from '../../components/ui/MetricValueText'
 import { getOperationLogs } from '../../services/audit'
 import type { Account } from '../../types/account'
 import type { OperationLog } from '../../types/audit'
@@ -214,7 +215,7 @@ export function DashboardPage() {
           <h1 className="text-3xl font-medium tracking-[-0.04em] text-slate-950 sm:text-5xl">
             总览
           </h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
             先看赚了多少，再判断风险在哪里，最后决定下一步该做什么。
           </p>
         </div>
@@ -452,11 +453,13 @@ function SectionHeading({
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
           {eyebrow}
         </p>
-        <h2 className="mt-1 text-xl font-medium tracking-[-0.02em] text-slate-950">
+        <h2 className="mt-1 text-[28px] font-medium leading-tight tracking-[-0.035em] text-slate-950">
           {title}
         </h2>
       </div>
-      <p className="max-w-lg text-sm leading-6 text-slate-400">{description}</p>
+      <p className="max-w-lg text-[13px] leading-6 text-slate-400">
+        {description}
+      </p>
     </div>
   )
 }
@@ -482,8 +485,6 @@ function HeroMetric({
   hint?: string
   tone?: 'slate' | 'blue' | 'purple' | 'emerald' | 'orange'
 }) {
-  const color =
-    profit === undefined ? 'text-slate-950' : getProfitColor(profit)
   const toneClass = {
     slate: prominent
       ? 'bg-slate-950 text-white'
@@ -503,21 +504,21 @@ function HeroMetric({
           <Icon size={18} />
         </div>
       </div>
-      <p
-        className={`mt-7 whitespace-normal break-words font-semibold leading-[0.95] tracking-[-0.04em] tabular-nums ${color} ${
-          prominent
-            ? 'text-[clamp(2rem,5vw,3.25rem)]'
-            : 'text-[clamp(1.65rem,4vw,2.4rem)]'
-        }`}
-      >
+      <p className="mt-8 min-w-0 overflow-hidden">
         {countValue === undefined || !formatter ? (
-          value
+          <MetricValueText value={value} numericValue={profit} />
         ) : (
-          <CountUpNumber value={countValue} format={formatter} />
+          <CountUpNumber
+            value={countValue}
+            format={formatter}
+            render={(formatted) => (
+              <MetricValueText value={formatted} numericValue={profit} />
+            )}
+          />
         )}
       </p>
       {hint && (
-        <p className="mt-4 text-sm font-medium leading-6 text-slate-400">
+        <p className="mt-5 text-[13px] font-medium leading-6 text-slate-400">
           {hint}
         </p>
       )}

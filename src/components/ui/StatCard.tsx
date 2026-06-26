@@ -1,5 +1,5 @@
 import { Info, type LucideIcon } from 'lucide-react'
-import { getProfitColor } from '../../utils/profit'
+import { MetricValueText } from './MetricValueText'
 
 interface StatCardProps {
   label: string
@@ -27,9 +27,6 @@ export function StatCard({
   profitValue,
   tooltip,
 }: StatCardProps) {
-  const profitClass =
-    profitValue === undefined ? undefined : getProfitColor(profitValue)
-
   return (
     <div className="group os-card os-card-hover relative min-w-0 p-5 sm:p-6" title={tooltip}>
       <div className="flex items-start justify-between gap-2 sm:gap-4">
@@ -38,14 +35,10 @@ export function StatCard({
             <p className="text-sm font-medium text-slate-400">{label}</p>
             {tooltip && <Info size={13} className="text-slate-300" />}
           </div>
-          <p
-            className={`mt-4 break-words text-[clamp(1.45rem,5.8vw,2.25rem)] font-semibold leading-tight tracking-[-0.035em] tabular-nums ${
-              profitClass ?? 'text-slate-900'
-            }`}
-          >
-            {value}
+          <p className="mt-5 min-w-0 overflow-hidden">
+            <MetricValueText value={value} numericValue={profitValue} />
           </p>
-          <p className="mt-2 text-xs leading-5 text-slate-400">
+          <p className="mt-3 text-[13px] leading-5 text-slate-400">
             {hint}
           </p>
         </div>

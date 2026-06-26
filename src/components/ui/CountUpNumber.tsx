@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 interface CountUpNumberProps {
   value: number
   format: (value: number) => string
+  render?: (formatted: string, value: number) => ReactNode
   className?: string
   duration?: number
 }
@@ -10,6 +11,7 @@ interface CountUpNumberProps {
 export function CountUpNumber({
   value,
   format,
+  render,
   className,
   duration = 650,
 }: CountUpNumberProps) {
@@ -41,5 +43,9 @@ export function CountUpNumber({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration])
 
-  return <span className={className}>{format(displayValue)}</span>
+  return (
+    <span className={className}>
+      {render ? render(format(displayValue), displayValue) : format(displayValue)}
+    </span>
+  )
 }

@@ -22,7 +22,7 @@ export function formatHKD(
   ) {
     return 'HK$ ••••••'
   }
-  return hkdFormatter.format(value).replace('HK$', 'HK$ ')
+  return hkdFormatter.format(value).replace('HK$', 'HK$\u00A0')
 }
 
 export function formatSignedHKD(
