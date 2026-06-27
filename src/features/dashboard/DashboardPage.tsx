@@ -1,5 +1,4 @@
 import {
-  Activity,
   ArrowRight,
   CalendarDays,
   CircleDollarSign,
@@ -11,17 +10,17 @@ import {
   Trophy,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { useAppData } from '../../hooks/useAppData'
-import { usePersistentState } from '../../hooks/usePersistentState'
-import { CountUpNumber } from '../../components/ui/CountUpNumber'
-import { getOperationLogs } from '../../services/audit'
-import type { Account } from '../../types/account'
-import type { OperationLog } from '../../types/audit'
-import type { Ipo } from '../../types/ipo'
-import type { Subscription } from '../../types/subscription'
-import { formatAccountName } from '../../utils/account'
+import { useAppData }          from '../../hooks/useAppData'
+import { usePersistentState }  from '../../hooks/usePersistentState'
+import { CountUpNumber }       from '../../components/ui/CountUpNumber'
+import { getOperationLogs }    from '../../services/audit'
+import type { Account }        from '../../types/account'
+import type { OperationLog }   from '../../types/audit'
+import type { Ipo }            from '../../types/ipo'
+import type { Subscription }   from '../../types/subscription'
+import { formatAccountName }   from '../../utils/account'
 import { formatHKD, formatPercent } from '../../utils/currency'
-import { getProfitColor } from '../../utils/profit'
+import { getProfitColor }      from '../../utils/profit'
 import { getSubscriptionMethodLabel } from '../../utils/subscriptionMethod'
 import {
   getAccountStats,
@@ -33,23 +32,41 @@ import {
   type TrendPeriod,
 } from '../../utils/statistics'
 
-// ─────────────────────────────────────────────
-// Main page
-// ─────────────────────────────────────────────
+/* ════════════════════════════════════════
+   Design token shortcuts
+   ════════════════════════════════════════ */
+const C = {
+  brand:   '#2563EB',
+  success: '#22C55E',
+  danger:  '#EF4444',
+  warning: '#F59E0B',
+  info:    '#8B5CF6',
+  neutral: '#64748B',
+  text1:   '#111827',
+  text2:   '#6B7280',
+  text3:   '#9CA3AF',
+  border:  '#EEF2F7',
+  bg:      '#F8FAFC',
+}
+
+/* ════════════════════════════════════════
+   Main page
+   ════════════════════════════════════════ */
 export function DashboardPage() {
   const { accounts, ipos, subscriptions, sales, withdrawals } = useAppData()
   const [trendPeriod, setTrendPeriod] = usePersistentState<TrendPeriod>('dashboard-trend-period', 'month')
 
-  const stats = getSystemStats(accounts, subscriptions, ipos, sales)
-  const performance = getPerformanceSummary(subscriptions, ipos, sales)
-  const greyStats = getSaleTypeStats('grey_market', subscriptions, ipos, sales)
-  const firstDayStats = getSaleTypeStats('first_day', subscriptions, ipos, sales)
-  const heldStats = getSaleTypeStats('held_sale', subscriptions, ipos, sales)
+  /* ── computed stats ── */
+  const stats         = getSystemStats(accounts, subscriptions, ipos, sales)
+  const performance   = getPerformanceSummary(subscriptions, ipos, sales)
+  const greyStats     = getSaleTypeStats('grey_market', subscriptions, ipos, sales)
+  const firstDayStats = getSaleTypeStats('first_day',   subscriptions, ipos, sales)
+  const heldStats     = getSaleTypeStats('held_sale',   subscriptions, ipos, sales)
   const financingStats = getFinancingStats(subscriptions, ipos, sales, accounts)
-  const trend = getProfitTrend(trendPeriod, subscriptions, ipos, sales)
-  const today = new Date().toISOString().slice(0, 10)
+  const trend          = getProfitTrend(trendPeriod, subscriptions, ipos, sales)
+  const today          = new Date().toISOString().slice(0, 10)
 
-  const currentMonthProfit = trend[trend.length - 1]?.profit ?? 0
+  const currentMonthProfit  = trend[trend.length - 1]?.profit ?? 0
   const previousMonthProfit = trend[trend.length - 2]?.profit ?? 0
   const monthDelta =
     previousMonthProfit !== 0
@@ -57,667 +74,527 @@ export function DashboardPage() {
       : currentMonthProfit > 0 ? 100 : 0
 
   const pendingIpoCount = new Set(
-    subscriptions
-      .filter((s) => s.status === 'applied' || s.status === 'announced')
-      .map((s) => s.ipoId),
+    subscriptions.filter((s) => s.status === 'applied' || s.status === 'announced').map((s) => s.ipoId),
   ).size
 
   const accountInsights = useMemo(
-    () => accounts.map((account) => ({ account, stats: getAccountStats(account, subscriptions, ipos, sales, withdrawals) })),
+    () => accounts.map((a) => ({ account: a, stats: getAccountStats(a, subscriptions, ipos, sales, withdrawals) })),
     [accounts, ipos, sales, subscriptions, withdrawals],
   )
 
-  const capitalCandidate = [...accountInsights]
-    .filter((r) => r.account.initialDeposit > 0)
+  const capitalCandidate = [...accountInsights].filter((r) => r.account.initialDeposit > 0)
     .sort((a, b) => b.stats.totalProfit / b.account.initialDeposit - a.stats.totalProfit / a.account.initialDeposit)[0]
-  const bestFinancing = [...financingStats]
-    .filter((r) => r.participationCount > 0)
-    .sort((a, b) => b.averageProfitRate - a.averageProfitRate)[0]
+  const bestFinancing    = [...financingStats].filter((r) => r.participationCount > 0).sort((a, b) => b.averageProfitRate - a.averageProfitRate)[0]
 
-  const recent = subscriptions
-    .slice()
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 5)
+  const recent = subscriptions.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5)
 
   const upcomingIpos = ipos
-    .filter((ipo) => (ipo.subscriptionDate && ipo.subscriptionDate >= today) || (ipo.listingDate && ipo.listingDate >= today))
-    .sort((a, b) => {
-      const l = a.subscriptionDate || a.listingDate
-      const r = b.subscriptionDate || b.listingDate
-      return l.localeCompare(r)
-    })
+    .filter((i) => (i.subscriptionDate && i.subscriptionDate >= today) || (i.listingDate && i.listingDate >= today))
+    .sort((a, b) => (a.subscriptionDate || a.listingDate).localeCompare(b.subscriptionDate || b.listingDate))
     .slice(0, 6)
 
   const operationLogs = getOperationLogs().slice(0, 5)
 
+  /* ── composition chart data ── */
   const profitComposition = [
-    { label: '首日收益', value: Math.max(0, firstDayStats.profit), color: '#EF4444' },
-    { label: '暗盘收益', value: Math.max(0, greyStats.profit), color: '#8B5CF6' },
-    { label: '长期持有', value: Math.max(0, heldStats.profit), color: '#3B82F6' },
-    { label: '手续费', value: Math.max(0, stats.totalCost * 0.5), color: '#F59E0B' },
-    { label: '融资费', value: Math.max(0, stats.totalCost * 0.5), color: '#22C55E' },
+    { label: '首日收益', value: Math.max(0, firstDayStats.profit), color: C.danger },
+    { label: '暗盘收益', value: Math.max(0, greyStats.profit),     color: C.info   },
+    { label: '长期持有', value: Math.max(0, heldStats.profit),      color: C.brand  },
+    { label: '手续费',   value: Math.max(0, stats.totalCost * 0.5), color: C.warning },
+    { label: '融资费',   value: Math.max(0, stats.totalCost * 0.5), color: C.success },
   ]
 
   const pendingReleaseAmount = subscriptions
     .filter((s) => s.status === 'applied' || s.status === 'announced')
     .reduce((t, s) => t + s.subscriptionAmount + s.fee, 0)
 
-  // Build upcoming tasks from upcomingIpos
+  /* ── upcoming tasks from IPO data ── */
   const upcomingTasks = upcomingIpos.slice(0, 5).map((ipo) => {
     const badge = getIpoBadge(ipo, today)
-    const badgeColor =
-      badge === '今日可申购' ? { bg: '#FEE2E2', text: '#EF4444' }
-      : badge === '即将上市' ? { bg: '#FEF3C7', text: '#D97706' }
-      : badge === '今日上市' ? { bg: '#FEF3C7', text: '#D97706' }
+    const style =
+      badge.includes('今日') && badge.includes('申购') ? { bg: '#FEE2E2', text: C.danger }
+      : badge.includes('申购') ? { bg: '#FEE2E2', text: C.danger }
+      : badge.includes('上市') ? { bg: '#FEF3C7', text: '#D97706' }
       : { bg: '#DCFCE7', text: '#16A34A' }
-
-    const dateStr = ipo.listingDate || ipo.subscriptionDate || '-'
-    const timeStr = '16:00'
-    return { ipo, badge, badgeColor, dateStr, timeStr }
+    return { ipo, badge, style }
   })
 
+  /* ── AI rows ── */
   const aiRows = [
     {
-      icon: '🔔',
-      bg: '#EEF2FF',
+      bg:    '#EFF6FF',
+      emoji: '🔔',
       title: `未来 3 天内有 ${upcomingIpos.length} 只新股可申购`,
-      desc: `预计需要资金 HK$ ${formatHKD(pendingReleaseAmount * 0.3, 'amount')}`,
+      desc:  `预计需要资金 HK$ ${formatHKD(pendingReleaseAmount * 0.3, 'amount').replace('HK$ ', '')}`,
     },
     {
-      icon: '💡',
-      bg: '#F0FDF4',
-      title: `建议：${
-        capitalCandidate ? formatAccountName(capitalCandidate.account) : '暂无账户'
-      } 使用 ${bestFinancing ? getSubscriptionMethodLabel(bestFinancing.method) : '融资'} 申购`,
-      desc: `${pendingIpoCount > 0 ? `敲 (${pendingIpoCount}) 使用 现金 申购` : '当前暂无待公布新股'}`,
+      bg:    '#F0FDF4',
+      emoji: '💡',
+      title: `建议：${capitalCandidate ? formatAccountName(capitalCandidate.account) : '—'} 使用 ${bestFinancing ? getSubscriptionMethodLabel(bestFinancing.method) : '融资'} 申购`,
+      desc:  `${pendingIpoCount > 0 ? `同时有 ${pendingIpoCount} 只等待结果` : '当前暂无待公布新股'}`,
     },
     {
-      icon: '💰',
-      bg: '#FFF7ED',
-      title: `预计资金释放：${new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })} 17:00`,
-      desc: `可释放资金约 HK$ ${formatHKD(pendingReleaseAmount, 'amount')}`,
+      bg:    '#FFF7ED',
+      emoji: '💰',
+      title: `预计资金释放: ${new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })} 17:00`,
+      desc:  `可释放资金约 HK$ ${formatHKD(pendingReleaseAmount, 'amount').replace('HK$ ', '')}`,
     },
   ]
 
   return (
-    <div className="space-y-5">
-      {/* ── Row 1: KPI large cards ── */}
+    /* 区块间距 24px */
+    <div className="flex flex-col gap-6">
+
+      {/* ══ Row 1: 4 large KPI cards ══ */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
+        <KpiLarge
           label="累计收益"
-          prefix="HK$"
           value={stats.totalProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
-          colorClass="text-[#EF4444]"
+          color={C.danger}
           iconBg="#FEE2E2"
-          icon={<CircleDollarSign size={20} className="text-[#EF4444]" />}
+          icon={<CircleDollarSign size={20} color={C.danger} />}
           hint={`较上月 ${formatSignedDelta(monthDelta)}`}
-          hintUp={monthDelta >= 0}
+          hintPositive={monthDelta >= 0}
+          showHKPrefix
         />
-        <KpiCard
+        <KpiLarge
           label="收益率"
           value={stats.profitRate}
           formatter={(v) => formatPercent(v, 'profitRate', 'dashboardKpi')}
-          colorClass="text-[#8B5CF6]"
-          iconBg="#F3E8FF"
-          icon={<TrendingUp size={20} className="text-[#8B5CF6]" />}
+          color={C.info}
+          iconBg="#EDE9FE"
+          icon={<TrendingUp size={20} color={C.info} />}
           hint="较上月 ↑ 3.2%"
-          hintUp
+          hintPositive
         />
-        <KpiCard
+        <KpiLarge
           label="累计成本"
-          prefix="HK$"
           value={stats.totalCost}
           formatter={(v) => formatHKD(v, 'amount', 'dashboardKpi')}
-          colorClass="text-[#10B981]"
+          color={C.success}
           iconBg="#DCFCE7"
-          icon={<Layers size={20} className="text-[#10B981]" />}
+          icon={<Layers size={20} color={C.success} />}
           hint="较上月 ↓ 4.1%"
-          hintUp={false}
+          hintPositive={false}
+          showHKPrefix
         />
-        <KpiCard
-          label="总中签率"
+        <KpiLarge
+          label="中签率"
           value={stats.winRate}
           formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
-          colorClass="text-[#F59E0B]"
+          color={C.warning}
           iconBg="#FEF3C7"
-          icon={<Target size={20} className="text-[#F59E0B]" />}
+          icon={<Target size={20} color={C.warning} />}
           hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
         />
       </div>
 
-      {/* ── Row 2: KPI small cards ── */}
+      {/* ══ Row 2: 4 small KPI cards ══ */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCardSmall
+        <KpiSmall
           label="打新胜率"
           value={performance.overallWinRate}
           formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
-          colorClass="text-slate-800"
-          icon={<Trophy size={18} className="text-[#4F6EF7]" />}
-          iconBg="#EEF2FF"
+          color={C.text1}
+          iconBg="#EFF6FF"
+          icon={<Trophy size={16} color={C.brand} />}
           hint="较上月 ↑ 2.3%"
-          hintUp
+          hintPositive
         />
-        <KpiCardSmall
+        <KpiSmall
           label="本月收益"
-          prefix="HK$"
           value={performance.monthProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
-          colorClass="text-[#EF4444]"
-          icon={<CalendarDays size={18} className="text-[#4F6EF7]" />}
-          iconBg="#EEF2FF"
-          hint="较上月 ↑ 12.6%"
-          hintUp
+          color={C.danger}
+          iconBg="#EFF6FF"
+          icon={<CalendarDays size={16} color={C.brand} />}
+          hint="较上月 ↑ 118%"
+          hintPositive
+          showHKPrefix
         />
-        <KpiCardSmall
+        <KpiSmall
           label="暗盘收益"
-          prefix="HK$"
           value={greyStats.profit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
-          colorClass="text-[#EF4444]"
-          icon={<Moon size={18} className="text-[#8B5CF6]" />}
-          iconBg="#F3E8FF"
+          color={C.danger}
+          iconBg="#FEE2E2"
+          icon={<Moon size={16} color={C.danger} />}
           hint="较上月 ↑ 15.3%"
-          hintUp
+          hintPositive
+          showHKPrefix
         />
-        <KpiCardSmall
+        <KpiSmall
           label="首日收益"
-          prefix="HK$"
           value={firstDayStats.profit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
-          colorClass="text-[#EF4444]"
-          icon={<Sun size={18} className="text-[#F59E0B]" />}
+          color={C.danger}
           iconBg="#FEF3C7"
+          icon={<Sun size={16} color={C.warning} />}
           hint="较上月 ↑ 19.8%"
-          hintUp
+          hintPositive
+          showHKPrefix
         />
       </div>
 
-      {/* ── Row 3: Chart + Composition ── */}
-      <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
-        {/* Trend chart */}
-        <div className="os-card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-[#1a1a2e]">收益趋势</h2>
-            <div className="flex items-center gap-3">
-              {/* Legend */}
-              <div className="flex items-center gap-4 text-[12px] text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-5 rounded bg-[#EF4444]" />
-                  累计收益（HK$）
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-5 rounded bg-[#8B5CF6]" style={{ borderBottom: '2px dashed #8B5CF6', background: 'none' }} />
-                  收益率（%）
-                </span>
-              </div>
-              {/* Period selector */}
-              <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden text-[12px]">
-                {([['month', '近12个月'], ['quarter', '按季度'], ['year', '按年']] as const).map(([key, label]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`px-3 py-1.5 font-medium transition ${
-                      trendPeriod === key
-                        ? 'bg-[#4F6EF7] text-white'
-                        : 'text-slate-500 hover:bg-slate-50'
-                    }`}
-                    onClick={() => setTrendPeriod(key)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <ProfitTrendChart rows={trend} />
-        </div>
-
-        {/* Composition donut */}
+      {/* ══ Row 3: Trend chart + Composition ══ */}
+      <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
+        <TrendCard trend={trend} trendPeriod={trendPeriod} onPeriodChange={setTrendPeriod} />
         <CompositionCard rows={profitComposition} total={stats.totalProfit} />
       </div>
 
-      {/* ── Row 4: Activity + Tasks + AI ── */}
-      <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr]">
-        {/* Recent activity */}
-        <div className="os-card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[14px] font-bold text-[#1a1a2e]">最近动态</h2>
-          </div>
-          <ActivityList logs={operationLogs} fallback={recent} accounts={accounts} ipos={ipos} />
-          <button
-            type="button"
-            className="mt-4 flex items-center gap-1 text-[12px] font-medium text-[#4F6EF7] hover:text-indigo-700"
-          >
-            查看全部动态 <ArrowRight size={13} />
-          </button>
-        </div>
-
-        {/* Upcoming tasks */}
-        <div className="os-card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[14px] font-bold text-[#1a1a2e]">近期任务</h2>
-            <button type="button" className="flex items-center gap-1 text-[12px] font-medium text-[#4F6EF7] hover:text-indigo-700">
-              查看全部 <ArrowRight size={12} />
-            </button>
-          </div>
-          {upcomingTasks.length === 0 ? (
-            <p className="rounded-xl bg-slate-50 p-4 text-[13px] text-slate-400">
-              暂无近期任务。录入申购日或上市日后自动生成。
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {upcomingTasks.map(({ ipo, badge, badgeColor, dateStr, timeStr }) => (
-                <div key={ipo.id} className="flex items-center gap-3 rounded-xl py-1.5">
-                  {/* Badge */}
-                  <span
-                    className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap"
-                    style={{ background: badgeColor.bg, color: badgeColor.text }}
-                  >
-                    {badge}
-                  </span>
-                  {/* Name */}
-                  <span className="flex-1 min-w-0 truncate text-[13px] font-medium text-slate-800">
-                    {ipo.name}
-                  </span>
-                  {/* Date info */}
-                  <div className="shrink-0 text-right">
-                    <p className="text-[11px] text-slate-400">
-                      {badge.includes('申购') ? `申购截止：${timeStr}` : `暗盘：${timeStr}`}
-                    </p>
-                    <p className="text-[11px] font-medium text-slate-600">{dateStr}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* AI suggestions */}
-        <div className="os-card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[14px] font-bold text-[#1a1a2e]">AI 智能建议</h2>
-            <span className="rounded-full bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#7C3AED]">Beta</span>
-          </div>
-          <div className="space-y-4">
-            {aiRows.map((row, i) => (
-              <div key={i} className="flex gap-3">
-                <span
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-base"
-                  style={{ background: row.bg }}
-                >
-                  {row.icon}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-[12px] font-semibold leading-5 text-slate-800">{row.title}</p>
-                  <p className="mt-0.5 text-[11px] leading-4 text-slate-400">{row.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="mt-5 flex items-center gap-1 text-[12px] font-medium text-[#4F6EF7] hover:text-indigo-700"
-          >
-            查看 AI 详细建议 <ArrowRight size={13} />
-          </button>
-        </div>
+      {/* ══ Row 4: Activity | Tasks | AI ══ */}
+      <div className="grid gap-4 xl:grid-cols-3">
+        <ActivityCard logs={operationLogs} fallback={recent} accounts={accounts} ipos={ipos} />
+        <TasksCard tasks={upcomingTasks} />
+        <AiCard rows={aiRows} />
       </div>
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
-// KPI Card — large (row 1)
-// ─────────────────────────────────────────────
-function KpiCard({
-  label,
-  prefix,
-  value,
-  formatter,
-  colorClass,
-  iconBg,
-  icon,
-  hint,
-  hintUp,
+/* ════════════════════════════════════════
+   KPI Large card (row 1)
+   ════════════════════════════════════════ */
+function KpiLarge({
+  label, value, formatter, color, iconBg, icon, hint, hintPositive, showHKPrefix,
 }: {
   label: string
-  prefix?: string
   value: number
   formatter: (v: number) => string
-  colorClass: string
+  color: string
   iconBg: string
   icon: React.ReactNode
   hint?: string
-  hintUp?: boolean
-}) {
-  return (
-    <div className="os-card os-card-hover min-h-[140px]">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-[13px] font-medium text-slate-500">{label}</span>
-        <span
-          className="grid h-10 w-10 place-items-center rounded-xl"
-          style={{ background: iconBg }}
-        >
-          {icon}
-        </span>
-      </div>
-      <CountUpNumber
-        value={value}
-        format={formatter}
-        render={(formatted) => {
-          // Split HK$ prefix from number
-          const hasPrefix = formatted.startsWith('HK$') || formatted.startsWith('HK')
-          const numPart = hasPrefix ? formatted.replace(/^HK\$?\s*/, '') : formatted
-          const showPrefix = prefix || hasPrefix
-          return (
-            <div className={`flex items-baseline gap-1 ${colorClass}`}>
-              {showPrefix && (
-                <span className="text-[15px] font-bold leading-none">HK$</span>
-              )}
-              <span
-                className="font-extrabold leading-none tracking-[-0.04em] tabular-nums"
-                style={{ fontSize: 'clamp(1.5rem, 1.8vw, 2rem)' }}
-              >
-                {hasPrefix ? numPart : formatted}
-              </span>
-            </div>
-          )
-        }}
-      />
-      {hint && (
-        <p className="mt-3 text-[12px] font-medium text-slate-400">
-          {hintUp !== undefined ? (
-            <>
-              <span className={hintUp ? 'text-[#EF4444]' : 'text-[#10B981]'}>
-                {hintUp ? '↑' : '↓'}
-              </span>{' '}
-              {hint.replace(/^[↑↓]\s*/, '')}
-            </>
-          ) : (
-            hint
-          )}
-        </p>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// KPI Card — small (row 2)
-// ─────────────────────────────────────────────
-function KpiCardSmall({
-  label,
-  prefix,
-  value,
-  formatter,
-  colorClass,
-  iconBg,
-  icon,
-  hint,
-  hintUp,
-}: {
-  label: string
-  prefix?: string
-  value: number
-  formatter: (v: number) => string
-  colorClass: string
-  iconBg: string
-  icon: React.ReactNode
-  hint?: string
-  hintUp?: boolean
+  hintPositive?: boolean
+  showHKPrefix?: boolean
 }) {
   return (
     <div className="os-card os-card-hover">
-      <div className="flex items-center gap-3">
-        <span
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl"
-          style={{ background: iconBg }}
-        >
+      {/* Header row */}
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <span className="text-[13px] font-medium" style={{ color: C.text2 }}>{label}</span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px]" style={{ background: iconBg }}>
           {icon}
         </span>
-        <span className="text-[13px] font-medium text-slate-500">{label}</span>
       </div>
+
+      {/* Value */}
       <CountUpNumber
         value={value}
         format={formatter}
         render={(formatted) => {
-          const hasPrefix = formatted.startsWith('HK$') || formatted.startsWith('HK')
-          const numPart = hasPrefix ? formatted.replace(/^HK\$?\s*/, '') : formatted
+          const isHK    = formatted.startsWith('HK')
+          const numPart = isHK ? formatted.replace(/^HK\$?\s*/, '') : formatted
           return (
-            <div className={`mt-3 flex items-baseline gap-1 ${colorClass}`}>
-              {(prefix || hasPrefix) && (
-                <span className="text-[13px] font-bold leading-none">HK$</span>
+            <div className="flex items-baseline gap-1" style={{ color }}>
+              {(showHKPrefix || isHK) && (
+                <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>HK$</span>
               )}
-              <span
-                className="font-extrabold leading-none tracking-[-0.04em] tabular-nums"
-                style={{ fontSize: 'clamp(1.25rem, 1.5vw, 1.65rem)' }}
-              >
-                {hasPrefix ? numPart : formatted}
+              <span style={{
+                fontSize: 'clamp(1.65rem, 2vw, 2.1rem)',
+                fontWeight: 700,
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {isHK ? numPart : formatted}
               </span>
             </div>
           )
         }}
       />
+
+      {/* Hint */}
       {hint && (
-        <p className="mt-2 text-[12px] font-medium text-slate-400">
-          {hintUp !== undefined ? (
+        <p className="mt-3 text-[12px] font-medium" style={{ color: C.text3 }}>
+          {hintPositive !== undefined ? (
             <>
-              <span className={hintUp ? 'text-[#EF4444]' : 'text-[#10B981]'}>
-                {hintUp ? '↑' : '↓'}
+              <span style={{ color: hintPositive ? C.danger : C.success }}>
+                {hintPositive ? '↑' : '↓'}
               </span>{' '}
-              {hint.replace(/^[↑↓]\s*/, '')}
+              {hint.replace(/^[↑↓\s]+/, '')}
             </>
-          ) : (
-            hint
-          )}
+          ) : hint}
         </p>
       )}
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
-// Profit Trend Chart — with axes + legend dots
-// ─────────────────────────────────────────────
+/* ════════════════════════════════════════
+   KPI Small card (row 2)
+   ════════════════════════════════════════ */
+function KpiSmall({
+  label, value, formatter, color, iconBg, icon, hint, hintPositive, showHKPrefix,
+}: {
+  label: string
+  value: number
+  formatter: (v: number) => string
+  color: string
+  iconBg: string
+  icon: React.ReactNode
+  hint?: string
+  hintPositive?: boolean
+  showHKPrefix?: boolean
+}) {
+  return (
+    <div className="os-card os-card-hover">
+      {/* Icon + label row */}
+      <div className="mb-3 flex items-center gap-2.5">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px]" style={{ background: iconBg }}>
+          {icon}
+        </span>
+        <span className="text-[13px] font-medium" style={{ color: C.text2 }}>{label}</span>
+      </div>
+
+      {/* Value */}
+      <CountUpNumber
+        value={value}
+        format={formatter}
+        render={(formatted) => {
+          const isHK    = formatted.startsWith('HK')
+          const numPart = isHK ? formatted.replace(/^HK\$?\s*/, '') : formatted
+          return (
+            <div className="flex items-baseline gap-1" style={{ color }}>
+              {(showHKPrefix || isHK) && (
+                <span style={{ fontSize: 13, fontWeight: 700 }}>HK$</span>
+              )}
+              <span style={{
+                fontSize: 'clamp(1.35rem, 1.6vw, 1.75rem)',
+                fontWeight: 700,
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {isHK ? numPart : formatted}
+              </span>
+            </div>
+          )
+        }}
+      />
+
+      {hint && (
+        <p className="mt-2 text-[12px] font-medium" style={{ color: C.text3 }}>
+          {hintPositive !== undefined ? (
+            <>
+              <span style={{ color: hintPositive ? C.danger : C.success }}>
+                {hintPositive ? '↑' : '↓'}
+              </span>{' '}
+              {hint.replace(/^[↑↓\s]+/, '')}
+            </>
+          ) : hint}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════
+   Trend chart card
+   ════════════════════════════════════════ */
+function TrendCard({
+  trend, trendPeriod, onPeriodChange,
+}: {
+  trend: ReturnType<typeof getProfitTrend>
+  trendPeriod: TrendPeriod
+  onPeriodChange: (p: TrendPeriod) => void
+}) {
+  const periods: [TrendPeriod, string][] = [['month', '近12个月'], ['quarter', '按季度'], ['year', '按年']]
+
+  return (
+    <div className="os-card">
+      {/* Header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[15px] font-semibold" style={{ color: C.text1 }}>收益趋势</h2>
+        <div className="flex items-center gap-4">
+          {/* Legend */}
+          <div className="flex items-center gap-3 text-[11px]" style={{ color: C.text3 }}>
+            <span className="flex items-center gap-1.5">
+              <svg width="20" height="2"><line x1="0" y1="1" x2="20" y2="1" stroke={C.danger} strokeWidth="2" /></svg>
+              累计收益（HK$）
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg width="20" height="2"><line x1="0" y1="1" x2="20" y2="1" stroke={C.info} strokeWidth="2" strokeDasharray="3 2" /></svg>
+              收益率（%）
+            </span>
+          </div>
+          {/* Period selector */}
+          <div className="flex overflow-hidden rounded-[8px] border border-[#EEF2F7] text-[11px]">
+            {periods.map(([key, label]) => (
+              <button key={key} type="button"
+                onClick={() => onPeriodChange(key)}
+                className={['px-3 py-1.5 font-medium transition',
+                  trendPeriod === key ? 'bg-[#2563EB] text-white' : 'bg-white text-[#6B7280] hover:bg-[#F8FAFC]',
+                ].join(' ')}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <ProfitTrendChart rows={trend} />
+    </div>
+  )
+}
+
+/* ── Chart internals ── */
 function ProfitTrendChart({ rows }: { rows: ReturnType<typeof getProfitTrend> }) {
   if (rows.length === 0) {
     return (
-      <div className="grid h-56 place-items-center text-sm text-slate-400">
+      <div className="grid h-52 place-items-center text-[13px]" style={{ color: C.text3 }}>
         录入卖出记录后将自动生成收益趋势
       </div>
     )
   }
 
-  const W = 100      // viewBox width unit
-  const H = 80       // viewBox height unit
-
+  const H = 100
   const profits = rows.map((r) => r.cumulativeProfit)
-  const rates = rows.map((r) => r.profit)
+  const rates   = rows.map((r) => r.profit)
+  const pMin = Math.min(...profits, 0), pMax = Math.max(...profits, 1), pRange = pMax - pMin || 1
+  const rMin = Math.min(...rates,   0), rMax = Math.max(...rates,   1), rRange = rMax - rMin || 1
 
-  const pMin = Math.min(...profits, 0)
-  const pMax = Math.max(...profits, 1)
-  const pRange = pMax - pMin || 1
+  const px  = (i: number) => rows.length === 1 ? 50 : (i / (rows.length - 1)) * 100
+  const pyP = (v: number) => H - ((v - pMin) / pRange) * H
+  const pyR = (v: number) => H - ((v - rMin) / rRange) * H
 
-  const rMin = Math.min(...rates, 0)
-  const rMax = Math.max(...rates, 1)
-  const rRange = rMax - rMin || 1
+  const pPts = rows.map((r, i) => ({ x: px(i), y: pyP(r.cumulativeProfit) }))
+  const rPts = rows.map((r, i) => ({ x: px(i), y: pyR(r.profit) }))
 
-  const px = (i: number) =>
-    rows.length === 1 ? 50 : (i / (rows.length - 1)) * W
-  const py = (v: number, min: number, range: number) =>
-    H - ((v - min) / range) * H
+  const areaStr = pPts.length > 0
+    ? [`0,${H}`, ...pPts.map(({ x, y }) => `${x},${y}`), `100,${H}`].join(' ')
+    : ''
 
-  const profitPts = rows.map((r, i) => ({ x: px(i), y: py(r.cumulativeProfit, pMin, pRange) }))
-  const ratePts = rows.map((r, i) => ({ x: px(i), y: py(r.profit, rMin, rRange) }))
-
-  const yTicks = 5
-  const ySteps = Array.from({ length: yTicks }, (_, i) => {
-    const v = pMin + (pRange / (yTicks - 1)) * i
-    return { v, y: py(v, pMin, pRange) }
-  })
-
-  const rTicks = Array.from({ length: yTicks }, (_, i) => {
-    const v = rMin + (rRange / (yTicks - 1)) * i
-    return { v, y: py(v, rMin, rRange) }
-  })
-
-  // Area under profit line
-  const areaPoints =
-    profitPts.length > 0
-      ? [`0,${H}`, ...profitPts.map(({ x, y }) => `${x},${y}`), `${W},${H}`].join(' ')
-      : ''
-
-  const formatK = (v: number) => {
-    if (Math.abs(v) >= 1000) return `${(v / 1000).toFixed(0)}K`
-    return v.toFixed(0)
-  }
+  const formatK = (v: number) => Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(0)}K` : v.toFixed(0)
+  const ySteps  = 5
+  const yLabels = Array.from({ length: ySteps }, (_, i) => ({
+    v: pMin + (pRange / (ySteps - 1)) * i,
+    y: pyP(pMin + (pRange / (ySteps - 1)) * i),
+  }))
+  const rLabels = Array.from({ length: ySteps }, (_, i) => ({
+    v: rMin + (rRange / (ySteps - 1)) * i,
+    y: pyR(rMin + (rRange / (ySteps - 1)) * i),
+  }))
 
   return (
     <div className="overflow-x-auto">
-      <div className="relative" style={{ minWidth: 520 }}>
-        {/* Main SVG chart */}
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          className="w-full"
-          style={{ height: 220, display: 'block' }}
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="trend-area-grad" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#EF4444" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-
-          {/* Grid lines */}
-          {ySteps.map(({ y }, i) => (
-            <line key={i} x1="0" x2={W} y1={y} y2={y} stroke="#E8EAF0" strokeWidth="0.4" vectorEffect="non-scaling-stroke" />
-          ))}
-
-          {/* Area */}
-          <polygon points={areaPoints} fill="url(#trend-area-grad)" />
-
-          {/* Rate line (purple dashed) */}
-          <polyline
-            points={ratePts.map(({ x, y }) => `${x},${y}`).join(' ')}
-            fill="none"
-            stroke="#8B5CF6"
-            strokeWidth="1.4"
-            strokeDasharray="2.5 1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {/* Profit line (red solid) */}
-          <polyline
-            points={profitPts.map(({ x, y }) => `${x},${y}`).join(' ')}
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-
-          {/* Dots on profit line */}
-          {profitPts.map(({ x, y }, i) => (
-            <circle key={i} cx={x} cy={y} r="1.2" fill="#EF4444" vectorEffect="non-scaling-stroke" />
-          ))}
-
-          {/* Dots on rate line */}
-          {ratePts.map(({ x, y }, i) => (
-            <circle key={i} cx={x} cy={y} r="1" fill="#8B5CF6" vectorEffect="non-scaling-stroke" />
-          ))}
-        </svg>
-
-        {/* X-axis labels */}
-        <div
-          className="mt-1 grid"
-          style={{ gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))` }}
-        >
-          {rows.map((row) => (
-            <div key={row.label} className="text-center text-[10px] text-slate-400">
-              {row.label}
-            </div>
-          ))}
+      <div className="relative" style={{ minWidth: 480 }}>
+        {/* Left Y axis labels */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 pr-1">
+          <svg viewBox={`0 0 40 ${H}`} className="h-[200px] w-full" preserveAspectRatio="none">
+            {[...yLabels].reverse().map(({ v, y }, i) => (
+              <text key={i} x="38" y={y + 3} textAnchor="end" fontSize="6" fill={C.text3}>{formatK(v)}</text>
+            ))}
+          </svg>
         </div>
 
-        {/* Left Y-axis (absolute, overlaid) */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex flex-col justify-between pb-6 pt-0">
-          {[...ySteps].reverse().map(({ v }, i) => (
-            <span key={i} className="text-[9px] tabular-nums text-slate-400">{formatK(v)}</span>
-          ))}
+        {/* Main chart */}
+        <div className="mx-10">
+          <svg viewBox={`0 0 100 ${H}`} className="h-[200px] w-full" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="area-grad-v3" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%"   stopColor={C.danger} stopOpacity="0.12" />
+                <stop offset="100%" stopColor={C.danger} stopOpacity="0.01" />
+              </linearGradient>
+            </defs>
+            {/* Grid */}
+            {yLabels.map(({ y }, i) => (
+              <line key={i} x1="0" x2="100" y1={y} y2={y} stroke="#EEF2F7" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+            ))}
+            {/* Area */}
+            <polygon points={areaStr} fill="url(#area-grad-v3)" />
+            {/* Rate line */}
+            <polyline
+              points={rPts.map(({ x, y }) => `${x},${y}`).join(' ')}
+              fill="none" stroke={C.info} strokeWidth="1.5"
+              strokeDasharray="2.5 1.5" strokeLinecap="round" strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+            {rPts.map(({ x, y }, i) => (
+              <circle key={i} cx={x} cy={y} r="1" fill={C.info} vectorEffect="non-scaling-stroke" />
+            ))}
+            {/* Profit line */}
+            <polyline
+              points={pPts.map(({ x, y }) => `${x},${y}`).join(' ')}
+              fill="none" stroke={C.danger} strokeWidth="1.8"
+              strokeLinecap="round" strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+            {pPts.map(({ x, y }, i) => (
+              <circle key={i} cx={x} cy={y} r="1.2" fill={C.danger} vectorEffect="non-scaling-stroke" />
+            ))}
+          </svg>
+          {/* X labels */}
+          <div className="mt-1 grid" style={{ gridTemplateColumns: `repeat(${rows.length}, 1fr)` }}>
+            {rows.map((r) => (
+              <div key={r.label} className="text-center text-[10px]" style={{ color: C.text3 }}>{r.label}</div>
+            ))}
+          </div>
         </div>
 
-        {/* Right Y-axis */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex flex-col justify-between pb-6 pt-0 text-right">
-          {[...rTicks].reverse().map(({ v }, i) => (
-            <span key={i} className="text-[9px] tabular-nums text-slate-400">{v.toFixed(0)}%</span>
-          ))}
+        {/* Right Y axis labels */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 pl-1">
+          <svg viewBox={`0 0 40 ${H}`} className="h-[200px] w-full" preserveAspectRatio="none">
+            {[...rLabels].reverse().map(({ v, y }, i) => (
+              <text key={i} x="2" y={y + 3} textAnchor="start" fontSize="6" fill={C.text3}>{v.toFixed(0)}%</text>
+            ))}
+          </svg>
         </div>
       </div>
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
-// Composition donut
-// ─────────────────────────────────────────────
+/* ════════════════════════════════════════
+   Composition donut card
+   ════════════════════════════════════════ */
 function CompositionCard({
-  rows,
-  total,
+  rows, total,
 }: {
   rows: Array<{ label: string; value: number; color: string }>
   total: number
 }) {
-  const totalWeight = rows.reduce((s, r) => s + Math.abs(r.value), 0)
-  let cursor = 0
-  const gradient =
-    totalWeight > 0
-      ? rows.map((r) => {
-          const start = cursor
-          const size = (Math.abs(r.value) / totalWeight) * 100
-          cursor += size
-          return `${r.color} ${start}% ${cursor}%`
-        }).join(', ')
-      : '#E2E8F0 0% 100%'
+  const tw = rows.reduce((s, r) => s + Math.abs(r.value), 0)
+  let cur = 0
+  const grad = tw > 0
+    ? rows.map((r) => { const s = cur; cur += (Math.abs(r.value) / tw) * 100; return `${r.color} ${s}% ${cur}%` }).join(', ')
+    : '#EEF2F7 0% 100%'
+
+  const totalStr = formatHKD(total, 'profit').replace('HK$ ', '')
 
   return (
     <div className="os-card">
-      <h2 className="mb-4 text-[15px] font-bold text-[#1a1a2e]">收益构成</h2>
-      <div className="flex items-center gap-6">
+      <h2 className="mb-4 text-[15px] font-semibold" style={{ color: C.text1 }}>收益构成</h2>
+      <div className="flex items-center gap-5">
         {/* Donut */}
         <div className="shrink-0">
-          <div
-            className="relative grid h-[160px] w-[160px] place-items-center rounded-full"
-            style={{ background: `conic-gradient(${gradient})` }}
-          >
-            <div className="grid h-[98px] w-[98px] place-items-center rounded-full bg-white text-center shadow-sm">
+          <div className="relative grid h-[150px] w-[150px] place-items-center rounded-full"
+            style={{ background: `conic-gradient(${grad})` }}>
+            <div className="grid h-[92px] w-[92px] place-items-center rounded-full bg-white text-center shadow-sm">
               <div>
-                <p className="text-[10px] text-slate-400">总收益</p>
-                <p className="mt-0.5 text-[13px] font-bold leading-tight text-slate-800">HK$</p>
-                <p className={`text-[15px] font-extrabold leading-tight tracking-[-0.03em] ${getProfitColor(total)}`}>
-                  {formatHKD(total, 'profit').replace('HK$ ', '')}
+                <p className="text-[10px] font-medium" style={{ color: C.text3 }}>总收益</p>
+                <p className="text-[11px] font-bold" style={{ color: C.text1 }}>HK$</p>
+                <p className="text-[14px] font-extrabold leading-tight tracking-tight" style={{ color: getProfitColor(total) === 'text-red-500' ? C.danger : C.success }}>
+                  {totalStr}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Legend table */}
-        <div className="flex-1 space-y-3">
-          {rows.map((row) => {
-            const pct = totalWeight > 0 ? (Math.abs(row.value) / totalWeight) * 100 : 0
+        {/* Legend */}
+        <div className="flex-1 space-y-2.5">
+          {rows.map((r) => {
+            const pct = tw > 0 ? (Math.abs(r.value) / tw) * 100 : 0
             return (
-              <div key={row.label} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-2">
-                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: row.color }} />
-                <span className="truncate text-[12px] text-slate-600">{row.label}</span>
-                <span className="text-[12px] font-semibold tabular-nums text-slate-800">
-                  {formatHKD(row.value, 'amount')}
+              <div key={r.label} className="grid items-center gap-2" style={{ gridTemplateColumns: 'auto 1fr auto auto' }}>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.color }} />
+                <span className="truncate text-[12px]" style={{ color: C.text2 }}>{r.label}</span>
+                <span className="text-[12px] font-semibold tabular-nums" style={{ color: C.text1 }}>
+                  {formatHKD(r.value, 'amount')}
                 </span>
-                <span className="w-10 text-right text-[12px] tabular-nums text-slate-400">
+                <span className="w-10 text-right text-[11px] tabular-nums" style={{ color: C.text3 }}>
                   {pct.toFixed(1)}%
                 </span>
               </div>
@@ -729,90 +606,171 @@ function CompositionCard({
   )
 }
 
-// ─────────────────────────────────────────────
-// Activity list
-// ─────────────────────────────────────────────
-function ActivityList({
-  logs,
-  fallback,
-  accounts,
-  ipos,
+/* ════════════════════════════════════════
+   Activity card
+   ════════════════════════════════════════ */
+function ActivityCard({
+  logs, fallback, accounts, ipos,
 }: {
   logs: OperationLog[]
   fallback: Subscription[]
   accounts: Account[]
   ipos: Ipo[]
 }) {
-  const items =
-    logs.length > 0
-      ? logs.map((log) => ({
-          id: log.id,
-          createdAt: log.createdAt,
-          title: log.action,
-          detail: log.objectName || log.objectType,
-          colorClass: 'bg-[#EEF2FF]',
-          textClass: 'text-[#4F6EF7]',
-        }))
-      : fallback.map((s) => {
-          const account = accounts.find((a) => a.id === s.accountId)
-          const ipo = ipos.find((i) => i.id === s.ipoId)
-          return {
-            id: s.id,
-            createdAt: s.createdAt,
-            title: '新增申购',
-            detail: `${ipo?.name ?? '已删除新股'} · ${account ? formatAccountName(account) : '已删除账户'}`,
-            colorClass: 'bg-[#DCFCE7]',
-            textClass: 'text-[#16A34A]',
-          }
-        })
+  const items = logs.length > 0
+    ? logs.map((l) => ({ id: l.id, createdAt: l.createdAt, title: l.action, detail: l.objectName || l.objectType, dot: C.brand }))
+    : fallback.map((s) => {
+        const acct = accounts.find((a) => a.id === s.accountId)
+        const ipo  = ipos.find((i) => i.id === s.ipoId)
+        return { id: s.id, createdAt: s.createdAt, title: '新增申购', detail: `${ipo?.name ?? '已删除新股'} · ${acct ? formatAccountName(acct) : '已删除账户'}`, dot: C.success }
+      })
+
+  const dotColors = [C.danger, C.success, C.brand, C.warning, C.info]
 
   return (
-    <div className="space-y-3">
+    <div className="os-card">
+      <h2 className="mb-4 text-[14px] font-semibold" style={{ color: C.text1 }}>最近动态</h2>
       {items.length === 0 ? (
-        <p className="rounded-xl bg-slate-50 p-4 text-[12px] text-slate-400">
+        <p className="rounded-[10px] p-4 text-[12px]" style={{ background: C.bg, color: C.text3 }}>
           暂无动态。新增申购、中签、卖出后会自动出现。
         </p>
       ) : (
-        items.map((row) => (
-          <div key={row.id} className="flex items-center gap-3 rounded-xl py-0.5">
-            <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${row.colorClass}`}>
-              <Activity size={13} className={row.textClass} />
-            </span>
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-              <p className="truncate text-[12px] font-medium text-slate-800">{row.title}</p>
-              <span className="shrink-0 text-[11px] text-slate-400">{formatRelativeTime(row.createdAt)}</span>
+        <div className="space-y-3">
+          {items.map((row, i) => (
+            <div key={row.id} className="flex items-start gap-3">
+              {/* Color icon dot */}
+              <span className="mt-1 grid h-6 w-6 shrink-0 place-items-center rounded-lg"
+                style={{ background: dotColors[i % dotColors.length] + '1A' }}>
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: dotColors[i % dotColors.length] }} />
+              </span>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-[12px] font-medium" style={{ color: C.text1 }}>{row.title}</p>
+                  <p className="truncate text-[11px]" style={{ color: C.text3 }}>{row.detail}</p>
+                </div>
+                <span className="shrink-0 text-[11px]" style={{ color: C.text3 }}>{formatRelativeTime(row.createdAt)}</span>
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
+      )}
+      <button type="button" className="mt-4 flex items-center gap-1 text-[12px] font-medium transition hover:opacity-70" style={{ color: C.brand }}>
+        查看全部动态 <ArrowRight size={12} />
+      </button>
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════
+   Tasks card (近期任务)
+   ════════════════════════════════════════ */
+function TasksCard({
+  tasks,
+}: {
+  tasks: Array<{ ipo: Ipo; badge: string; style: { bg: string; text: string } }>
+}) {
+  return (
+    <div className="os-card">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-[14px] font-semibold" style={{ color: C.text1 }}>近期任务</h2>
+        <button type="button" className="flex items-center gap-1 text-[12px] font-medium" style={{ color: C.brand }}>
+          查看全部 <ArrowRight size={12} />
+        </button>
+      </div>
+      {tasks.length === 0 ? (
+        <p className="rounded-[10px] p-4 text-[12px]" style={{ background: C.bg, color: C.text3 }}>
+          暂无近期任务。录入申购日或上市日后自动生成。
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {tasks.map(({ ipo, badge, style }) => {
+            const dateStr = ipo.listingDate || ipo.subscriptionDate || '-'
+            const timeLabel = badge.includes('申购') ? '申购截止：16:00' : badge.includes('上市') ? '暗盘：16:15' : '预计释放：17:00'
+            return (
+              <div key={ipo.id} className="flex items-center gap-3 py-0.5">
+                {/* Badge */}
+                <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap"
+                  style={{ background: style.bg, color: style.text }}>
+                  {badge}
+                </span>
+                {/* Name */}
+                <span className="flex-1 min-w-0 truncate text-[12px] font-medium" style={{ color: C.text1 }}>
+                  {ipo.name}
+                </span>
+                {/* Date */}
+                <div className="shrink-0 text-right">
+                  <p className="text-[10px]" style={{ color: C.text3 }}>{timeLabel}</p>
+                  <p className="text-[11px] font-medium" style={{ color: C.text2 }}>{dateStr}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
-function formatSignedDelta(value: number) {
-  if (!Number.isFinite(value) || value === 0) return '0.0%'
-  return `${value > 0 ? '↑' : '↓'}${Math.abs(value).toFixed(1)}%`
+/* ════════════════════════════════════════
+   AI card
+   ════════════════════════════════════════ */
+function AiCard({
+  rows,
+}: {
+  rows: Array<{ bg: string; emoji: string; title: string; desc: string }>
+}) {
+  return (
+    <div className="os-card">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-[14px] font-semibold" style={{ color: C.text1 }}>AI 智能建议</h2>
+        <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: '#F5F3FF', color: '#7C3AED' }}>
+          Beta
+        </span>
+      </div>
+      <div className="space-y-4">
+        {rows.map((row, i) => (
+          <div key={i} className="flex gap-3">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] text-[16px]"
+              style={{ background: row.bg }}>
+              {row.emoji}
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold leading-5" style={{ color: C.text1 }}>{row.title}</p>
+              <p className="mt-0.5 text-[11px] leading-4" style={{ color: C.text3 }}>{row.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="mt-5 flex items-center gap-1 text-[12px] font-medium" style={{ color: C.brand }}>
+        查看 AI 详细建议 <ArrowRight size={12} />
+      </button>
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════
+   Helpers
+   ════════════════════════════════════════ */
+function formatSignedDelta(v: number) {
+  if (!Number.isFinite(v) || v === 0) return '0.0%'
+  return `${v > 0 ? '↑' : '↓'} ${Math.abs(v).toFixed(1)}%`
 }
 
 function formatRelativeTime(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  const diff = Date.now() - date.getTime()
-  const mins = Math.floor(diff / 60000)
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return value
+  const diff  = Date.now() - d.getTime()
+  const mins  = Math.floor(diff / 60000)
   if (mins < 60) return `${mins || 1} 分钟前`
   const hours = Math.floor(mins / 60)
   if (hours < 24) return `${hours} 小时前`
-  const days = Math.floor(hours / 24)
-  return days === 1 ? '昨天' : `${days} 天前`
+  return `${Math.floor(hours / 24)} 天前`
 }
 
 function getIpoBadge(ipo: Ipo, today: string) {
   if (ipo.subscriptionDate === today) return '今日可申购'
-  if (ipo.listingDate === today) return '今日上市'
+  if (ipo.listingDate       === today) return '今日上市'
   if (ipo.subscriptionDate && ipo.subscriptionDate > today) return '即将申购'
-  if (ipo.listingDate && ipo.listingDate > today) return '即将上市'
+  if (ipo.listingDate       && ipo.listingDate       > today) return '即将上市'
   return '资金释放'
 }
