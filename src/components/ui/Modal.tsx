@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   open: boolean
@@ -37,9 +38,9 @@ export function Modal({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6"
+      className="fixed inset-0 z-[1000] flex items-end justify-center sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -53,7 +54,7 @@ export function Modal({
       <div
         className={`relative w-full overflow-y-auto border border-white/70 bg-white shadow-modal sm:max-h-[94vh] sm:max-w-2xl sm:rounded-[28px] ${
           fullScreenOnMobile
-            ? 'h-[100dvh] max-h-[100dvh] rounded-none'
+            ? 'h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[94vh]'
             : 'max-h-[94vh] rounded-t-3xl'
         }`}
       >
@@ -77,6 +78,7 @@ export function Modal({
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
