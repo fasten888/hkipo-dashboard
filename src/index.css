@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    color: #111827;
-    background: #f8fafc;
+    color: #1a1a2e;
+    background: #F0F2F8;
     font-synthesis: none;
     font-variant-numeric: tabular-nums;
     text-rendering: optimizeLegibility;
@@ -22,13 +22,9 @@
     min-width: 320px;
     min-height: 100vh;
     overflow-x: hidden;
-    background:
-      radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.055), transparent 30rem),
-      radial-gradient(circle at 8% 80%, rgba(139, 92, 246, 0.03), transparent 24rem),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.70), rgba(248, 250, 252, 0) 16rem),
-      #f8fafc;
+    background: #F0F2F8;
     font-size: 14px;
-    line-height: 1.55;
+    line-height: 1.5;
   }
 
   button,
@@ -39,7 +35,7 @@
   }
 
   button {
-    min-height: 44px;
+    min-height: unset;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
@@ -47,13 +43,8 @@
   input:not([type='checkbox']):not([type='radio']),
   select,
   textarea {
-    min-height: 44px;
-  }
-
-  input:not([type='checkbox']):not([type='radio']),
-  select,
-  textarea {
-    border-radius: 14px;
+    min-height: 40px;
+    border-radius: 10px;
   }
 
   img,
@@ -83,130 +74,124 @@
   }
 
   tbody tr {
-    transition:
-      background-color 180ms ease,
-      transform 180ms ease;
+    transition: background-color 150ms ease;
   }
 
   tbody tr:hover {
-    background: rgba(248, 250, 252, 0.82);
+    background: rgba(240, 242, 248, 0.8);
   }
 }
 
 @layer components {
+  /* ── Cards ── */
+  .os-card {
+    @apply rounded-2xl border border-white/60 bg-white p-5 shadow-sm;
+  }
+
+  .os-card-hover {
+    @apply transition duration-150 hover:shadow-md;
+  }
+
+  /* ── Buttons ── */
+  .os-button-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-[#4F6EF7] px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-indigo-500/20 transition hover:bg-indigo-600 active:scale-95;
+  }
+
+  .os-button-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50;
+  }
+
+  .os-button-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800;
+  }
+
+  .os-button-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-600;
+  }
+
+  /* ── Input ── */
+  .os-input {
+    @apply rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10;
+  }
+
+  /* ── Page transition ── */
+  .page-enter {
+    animation: fade-slide-up 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* ── KPI number display ── */
+  .kpi-prefix {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: inherit;
+  }
+
+  .kpi-number {
+    font-size: clamp(1.6rem, 2vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kpi-number-sm {
+    font-size: clamp(1.3rem, 1.6vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Amount line ── */
+  .amount-line {
+    @apply inline-flex max-w-full items-baseline gap-1 whitespace-nowrap tabular-nums;
+  }
+
+  .amount-prefix {
+    @apply shrink-0 text-[16px] font-bold tracking-[-0.01em];
+  }
+
+  .amount-number {
+    @apply min-w-0 shrink font-extrabold leading-none tracking-[-0.04em] text-[#111827];
+    font-size: clamp(1.6rem, 2vw, 2.1rem);
+  }
+
+  .amount-number-compact {
+    font-size: clamp(1.3rem, 1.6vw, 1.75rem);
+  }
+
+  .rate-number {
+    @apply whitespace-nowrap font-extrabold leading-none tracking-[-0.04em] tabular-nums;
+    font-size: clamp(1.6rem, 2vw, 2.1rem);
+  }
+
+  /* ── Focus ring ── */
   .focus-ring {
-    @apply outline-none ring-brand-500/20 transition focus:border-brand-500 focus:ring-4;
+    @apply outline-none ring-indigo-500/20 transition focus:border-indigo-500 focus:ring-4;
   }
 
   .mobile-safe-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
-
-  /* ── Card system ── */
-  .os-card {
-    @apply rounded-[24px] border border-slate-900/[0.05] bg-white p-7 shadow-card;
-  }
-
-  /* Subtle inner-gradient lift on cards */
-  .os-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0) 60%);
-    pointer-events: none;
-  }
-
-  .os-card {
-    position: relative;
-  }
-
-  .os-card-hover {
-    @apply transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_16px_42px_rgba(15,23,42,.09)];
-  }
-
-  /* ── Buttons ── */
-  .os-button-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] px-4 text-sm font-medium text-white shadow-sm shadow-blue-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-card active:translate-y-0;
-  }
-
-  .os-button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] border border-slate-900/[0.08] bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-card active:translate-y-0;
-  }
-
-  .os-button-ghost {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] px-4 text-sm font-medium text-slate-500 transition duration-200 hover:bg-slate-100 hover:text-slate-950;
-  }
-
-  .os-button-danger {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-red-500 px-4 text-sm font-medium text-white shadow-sm shadow-red-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-card active:translate-y-0;
-  }
-
-  /* ── Input ── */
-  .os-input {
-    @apply min-h-11 rounded-[14px] border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15;
-  }
-
-  /* ── Page transition ── */
-  .page-enter {
-    animation: fade-slide-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
-  /* ── Amount display ── */
-  .amount-line {
-    @apply inline-flex max-w-full items-baseline gap-1 whitespace-nowrap tabular-nums;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .amount-prefix {
-    @apply shrink-0 text-[18px] font-medium tracking-[-0.01em] text-slate-400;
-  }
-
-  /* Slightly tighter clamp so numbers don't overflow on 1280px screens */
-  .amount-number {
-    @apply min-w-0 shrink font-bold leading-none tracking-[-0.04em] text-[#111827];
-    font-size: clamp(2rem, 2.4vw, 2.5rem);
-  }
-
-  .amount-number-compact {
-    font-size: clamp(1.75rem, 2vw, 2.125rem);
-  }
-
-  .rate-number {
-    @apply whitespace-nowrap font-bold leading-none tracking-[-0.04em] text-[#111827] tabular-nums;
-    font-size: clamp(2rem, 2.4vw, 2.5rem);
-    font-variant-numeric: tabular-nums;
-  }
 }
 
 @keyframes fade-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
   }
 }
 
 @media (max-width: 420px) {
-  .amount-number {
-    font-size: clamp(1.55rem, 7.5vw, 2rem);
-  }
-
-  .rate-number {
-    font-size: clamp(1.65rem, 7.5vw, 2rem);
-  }
+  .amount-number { font-size: clamp(1.3rem, 7vw, 1.7rem); }
+  .rate-number   { font-size: clamp(1.3rem, 7vw, 1.7rem); }
 }

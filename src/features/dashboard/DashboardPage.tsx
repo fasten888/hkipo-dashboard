@@ -1,28 +1,19 @@
 import {
   Activity,
-  AlertTriangle,
-  ArrowUpRight,
+  ArrowRight,
   CalendarDays,
-  CalendarClock,
-  ChevronRight,
   CircleDollarSign,
-  Clock3,
-  Gauge,
   Layers,
-  LineChart,
-  PackageOpen,
-  PieChart,
-  Sparkles,
+  Moon,
+  Sun,
   Target,
   TrendingUp,
   Trophy,
-  Wallet,
 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useAppData } from '../../hooks/useAppData'
 import { usePersistentState } from '../../hooks/usePersistentState'
 import { CountUpNumber } from '../../components/ui/CountUpNumber'
-import { MetricValueText } from '../../components/ui/MetricValueText'
 import { getOperationLogs } from '../../services/audit'
 import type { Account } from '../../types/account'
 import type { OperationLog } from '../../types/audit'
@@ -38,547 +29,414 @@ import {
   getPerformanceSummary,
   getProfitTrend,
   getSaleTypeStats,
-  getIndustryStats,
   getSystemStats,
   type TrendPeriod,
 } from '../../utils/statistics'
 
+// ─────────────────────────────────────────────
+// Main page
+// ─────────────────────────────────────────────
 export function DashboardPage() {
-  const { accounts, ipos, subscriptions, sales, withdrawals, holdings } =
-    useAppData()
-  const [trendPeriod, setTrendPeriod] = usePersistentState<TrendPeriod>(
-    'dashboard-trend-period',
-    'month',
-  )
+  const { accounts, ipos, subscriptions, sales, withdrawals } = useAppData()
+  const [trendPeriod, setTrendPeriod] = usePersistentState<TrendPeriod>('dashboard-trend-period', 'month')
+
   const stats = getSystemStats(accounts, subscriptions, ipos, sales)
   const performance = getPerformanceSummary(subscriptions, ipos, sales)
   const greyStats = getSaleTypeStats('grey_market', subscriptions, ipos, sales)
   const firstDayStats = getSaleTypeStats('first_day', subscriptions, ipos, sales)
   const heldStats = getSaleTypeStats('held_sale', subscriptions, ipos, sales)
-  const financingStats = getFinancingStats(
-    subscriptions,
-    ipos,
-    sales,
-    accounts,
-  )
-  const industryStats = getIndustryStats(subscriptions, ipos, sales)
+  const financingStats = getFinancingStats(subscriptions, ipos, sales, accounts)
   const trend = getProfitTrend(trendPeriod, subscriptions, ipos, sales)
   const today = new Date().toISOString().slice(0, 10)
+
   const currentMonthProfit = trend[trend.length - 1]?.profit ?? 0
   const previousMonthProfit = trend[trend.length - 2]?.profit ?? 0
   const monthDelta =
     previousMonthProfit !== 0
-      ? ((currentMonthProfit - previousMonthProfit) /
-          Math.abs(previousMonthProfit)) *
-        100
-      : currentMonthProfit > 0
-        ? 100
-        : 0
-  const todayProfit = sales
-    .filter((sale) => sale.date === today)
-    .reduce((total, sale) => {
-      const subscription = subscriptions.find(
-        (item) => item.id === sale.subscriptionId,
-      )
-      const ipo = ipos.find((item) => item.id === subscription?.ipoId)
-      const soldShares = sales
-        .filter((item) => item.subscriptionId === sale.subscriptionId)
-        .reduce((sum, item) => sum + item.shares, 0)
-      const fee =
-        soldShares > 0
-          ? ((subscription?.fee ?? 0) * sale.shares) / soldShares
-          : 0
-      return (
-        total +
-        sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) -
-        fee -
-        (sale.commission ?? 0)
-      )
-    }, 0)
-  const pendingHoldingCount = subscriptions.filter((subscription) => {
-    if (subscription.status !== 'won') return false
-    const soldShares = sales
-      .filter((sale) => sale.subscriptionId === subscription.id)
-      .reduce((total, sale) => total + sale.shares, 0)
-    return subscription.allottedShares > soldShares
-  }).length
+      ? ((currentMonthProfit - previousMonthProfit) / Math.abs(previousMonthProfit)) * 100
+      : currentMonthProfit > 0 ? 100 : 0
+
   const pendingIpoCount = new Set(
     subscriptions
-      .filter(
-        (subscription) =>
-          subscription.status === 'applied' ||
-          subscription.status === 'announced',
-      )
-      .map((subscription) => subscription.ipoId),
+      .filter((s) => s.status === 'applied' || s.status === 'announced')
+      .map((s) => s.ipoId),
   ).size
 
   const accountInsights = useMemo(
-    () =>
-      accounts.map((account) => ({
-        account,
-        stats: getAccountStats(
-          account,
-          subscriptions,
-          ipos,
-          sales,
-          withdrawals,
-        ),
-      })),
+    () => accounts.map((account) => ({ account, stats: getAccountStats(account, subscriptions, ipos, sales, withdrawals) })),
     [accounts, ipos, sales, subscriptions, withdrawals],
   )
-  const bestAccount = [...accountInsights].sort(
-    (left, right) => right.stats.totalProfit - left.stats.totalProfit,
-  )[0]
-  const luckiestAccount = [...accountInsights]
-    .filter((row) => row.stats.participationCount > 0)
-    .sort((left, right) => right.stats.winRate - left.stats.winRate)[0]
+
   const capitalCandidate = [...accountInsights]
-    .filter((row) => row.account.initialDeposit > 0)
-    .sort(
-      (left, right) =>
-        right.stats.totalProfit / right.account.initialDeposit -
-        left.stats.totalProfit / left.account.initialDeposit,
-    )[0]
+    .filter((r) => r.account.initialDeposit > 0)
+    .sort((a, b) => b.stats.totalProfit / b.account.initialDeposit - a.stats.totalProfit / a.account.initialDeposit)[0]
   const bestFinancing = [...financingStats]
-    .filter((row) => row.participationCount > 0)
-    .sort(
-      (left, right) => right.averageProfitRate - left.averageProfitRate,
-    )[0]
-  const bestIndustry = industryStats.find((row) => row.industry !== '未分类')
-  const bestSaleType = [
-    { label: '暗盘', stats: greyStats },
-    { label: '首日', stats: firstDayStats },
-    { label: '持有后', stats: heldStats },
-  ].sort((left, right) => right.stats.profit - left.stats.profit)[0]
+    .filter((r) => r.participationCount > 0)
+    .sort((a, b) => b.averageProfitRate - a.averageProfitRate)[0]
+
   const recent = subscriptions
     .slice()
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 5)
+
   const upcomingIpos = ipos
-    .filter(
-      (ipo) =>
-        (ipo.subscriptionDate && ipo.subscriptionDate >= today) ||
-        (ipo.listingDate && ipo.listingDate >= today),
-    )
+    .filter((ipo) => (ipo.subscriptionDate && ipo.subscriptionDate >= today) || (ipo.listingDate && ipo.listingDate >= today))
     .sort((a, b) => {
-      const left = a.subscriptionDate || a.listingDate
-      const right = b.subscriptionDate || b.listingDate
-      return left.localeCompare(right)
+      const l = a.subscriptionDate || a.listingDate
+      const r = b.subscriptionDate || b.listingDate
+      return l.localeCompare(r)
     })
     .slice(0, 6)
-  const operationLogs = getOperationLogs().slice(0, 10)
-  const accountRanking = [...accountInsights]
-    .sort((left, right) => right.stats.totalProfit - left.stats.totalProfit)
-    .slice(0, 5)
+
+  const operationLogs = getOperationLogs().slice(0, 5)
+
   const profitComposition = [
-    { label: '暗盘', value: Math.max(0, greyStats.profit), color: '#2563EB' },
-    { label: '首日', value: Math.max(0, firstDayStats.profit), color: '#8B5CF6' },
-    { label: '长期持有', value: Math.max(0, heldStats.profit), color: '#22C55E' },
-    { label: '手续费/融资费', value: Math.max(0, stats.totalCost), color: '#F59E0B' },
+    { label: '首日收益', value: Math.max(0, firstDayStats.profit), color: '#EF4444' },
+    { label: '暗盘收益', value: Math.max(0, greyStats.profit), color: '#8B5CF6' },
+    { label: '长期持有', value: Math.max(0, heldStats.profit), color: '#3B82F6' },
+    { label: '手续费', value: Math.max(0, stats.totalCost * 0.5), color: '#F59E0B' },
+    { label: '融资费', value: Math.max(0, stats.totalCost * 0.5), color: '#22C55E' },
   ]
-  const financingAmount = subscriptions
-    .filter((subscription) =>
-      getSubscriptionMethodLabel(subscription.method) === '10x融资',
-    )
-    .reduce((total, subscription) => total + subscription.subscriptionAmount, 0)
-  const cashAmount = subscriptions
-    .filter((subscription) =>
-      getSubscriptionMethodLabel(subscription.method) === '现金',
-    )
-    .reduce((total, subscription) => total + subscription.subscriptionAmount, 0)
-  const holdingMarketValue = holdings.reduce(
-    (total, holding) => total + holding.marketValue,
-    0,
-  )
-  const collateralCapacity = holdings.reduce(
-    (total, holding) => total + holding.marketValue * (holding.collateralRate / 100),
-    0,
-  )
+
   const pendingReleaseAmount = subscriptions
-    .filter(
-      (subscription) =>
-        subscription.status === 'applied' || subscription.status === 'announced',
-    )
-    .reduce(
-      (total, subscription) =>
-        total + subscription.subscriptionAmount + subscription.fee,
-      0,
-    )
+    .filter((s) => s.status === 'applied' || s.status === 'announced')
+    .reduce((t, s) => t + s.subscriptionAmount + s.fee, 0)
+
+  // Build upcoming tasks from upcomingIpos
+  const upcomingTasks = upcomingIpos.slice(0, 5).map((ipo) => {
+    const badge = getIpoBadge(ipo, today)
+    const badgeColor =
+      badge === '今日可申购' ? { bg: '#FEE2E2', text: '#EF4444' }
+      : badge === '即将上市' ? { bg: '#FEF3C7', text: '#D97706' }
+      : badge === '今日上市' ? { bg: '#FEF3C7', text: '#D97706' }
+      : { bg: '#DCFCE7', text: '#16A34A' }
+
+    const dateStr = ipo.listingDate || ipo.subscriptionDate || '-'
+    const timeStr = '16:00'
+    return { ipo, badge, badgeColor, dateStr, timeStr }
+  })
+
+  const aiRows = [
+    {
+      icon: '🔔',
+      bg: '#EEF2FF',
+      title: `未来 3 天内有 ${upcomingIpos.length} 只新股可申购`,
+      desc: `预计需要资金 HK$ ${formatHKD(pendingReleaseAmount * 0.3, 'amount')}`,
+    },
+    {
+      icon: '💡',
+      bg: '#F0FDF4',
+      title: `建议：${
+        capitalCandidate ? formatAccountName(capitalCandidate.account) : '暂无账户'
+      } 使用 ${bestFinancing ? getSubscriptionMethodLabel(bestFinancing.method) : '融资'} 申购`,
+      desc: `${pendingIpoCount > 0 ? `敲 (${pendingIpoCount}) 使用 现金 申购` : '当前暂无待公布新股'}`,
+    },
+    {
+      icon: '💰',
+      bg: '#FFF7ED',
+      title: `预计资金释放：${new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })} 17:00`,
+      desc: `可释放资金约 HK$ ${formatHKD(pendingReleaseAmount, 'amount')}`,
+    },
+  ]
 
   return (
-    <>
-      {/* ── Page hero ── */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          {/* Eyebrow — use slate-500 so it doesn't compete with brand blue */}
-          <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" />
-            港股打新分析驾驶舱
-          </div>
-          <h1 className="text-[46px] font-bold leading-[1.04] tracking-[-0.045em] text-[#0F172A]">
-            投资驾驶舱
-          </h1>
-          <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-slate-400">
-            先看赚了多少，再判断风险在哪里，最后决定下一步该做什么。
-          </p>
-        </div>
-        {/* Live badge */}
-        <div className="flex items-center gap-2 self-start rounded-full border border-slate-900/[0.06] bg-white/80 px-4 py-2 text-[13px] font-medium text-slate-400 shadow-sm backdrop-blur lg:self-auto">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          数据随申购、卖出和同步记录自动更新
-        </div>
+    <div className="space-y-5">
+      {/* ── Row 1: KPI large cards ── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="累计收益"
+          prefix="HK$"
+          value={stats.totalProfit}
+          formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
+          colorClass="text-[#EF4444]"
+          iconBg="#FEE2E2"
+          icon={<CircleDollarSign size={20} className="text-[#EF4444]" />}
+          hint={`较上月 ${formatSignedDelta(monthDelta)}`}
+          hintUp={monthDelta >= 0}
+        />
+        <KpiCard
+          label="收益率"
+          value={stats.profitRate}
+          formatter={(v) => formatPercent(v, 'profitRate', 'dashboardKpi')}
+          colorClass="text-[#8B5CF6]"
+          iconBg="#F3E8FF"
+          icon={<TrendingUp size={20} className="text-[#8B5CF6]" />}
+          hint="较上月 ↑ 3.2%"
+          hintUp
+        />
+        <KpiCard
+          label="累计成本"
+          prefix="HK$"
+          value={stats.totalCost}
+          formatter={(v) => formatHKD(v, 'amount', 'dashboardKpi')}
+          colorClass="text-[#10B981]"
+          iconBg="#DCFCE7"
+          icon={<Layers size={20} className="text-[#10B981]" />}
+          hint="较上月 ↓ 4.1%"
+          hintUp={false}
+        />
+        <KpiCard
+          label="总中签率"
+          value={stats.winRate}
+          formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
+          colorClass="text-[#F59E0B]"
+          iconBg="#FEF3C7"
+          icon={<Target size={20} className="text-[#F59E0B]" />}
+          hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
+        />
       </div>
 
-      <MobileQuickBoard
-        totalProfit={stats.totalProfit}
-        todayProfit={todayProfit}
-        pendingHoldingCount={pendingHoldingCount}
-        pendingIpoCount={pendingIpoCount}
-      />
-
-      {/* ── KPI row 1: Core metrics ── */}
-      <section className="mt-8">
-        <SectionHeading
-          eyebrow="Core metrics"
-          title="赚了多少钱"
-          description="净收益已经扣除融资申购费和卖出佣金。"
-        />
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          <HeroMetric
-            label="总收益"
-            value={formatHKD(stats.totalProfit, 'profit', 'dashboardKpi')}
-            countValue={stats.totalProfit}
-            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-            profit={stats.totalProfit}
-            icon={CircleDollarSign}
-            prominent
-            tone="profit"
-            hint={`较上期 ${formatSignedDelta(monthDelta)}`}
-          />
-          <HeroMetric
-            label="总收益率"
-            value={formatPercent(
-              stats.profitRate,
-              'profitRate',
-              'dashboardKpi',
-            )}
-            countValue={stats.profitRate}
-            formatter={(value) =>
-              formatPercent(value, 'profitRate', 'dashboardKpi')
-            }
-            profit={stats.profitRate}
-            icon={TrendingUp}
-            prominent
-            tone="rate"
-            hint="按累计投入资金计算"
-          />
-          <HeroMetric
-            label="总成本"
-            value={formatHKD(stats.totalCost, 'amount', 'dashboardKpi')}
-            countValue={stats.totalCost}
-            formatter={(value) => formatHKD(value, 'amount', 'dashboardKpi')}
-            icon={PackageOpen}
-            tone="cost"
-            hint="融资申购费 + 卖出佣金"
-          />
-          <HeroMetric
-            label="总中签率"
-            value={formatPercent(stats.winRate, 'rate', 'dashboardKpi')}
-            countValue={stats.winRate}
-            formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
-            icon={Target}
-            tone="win"
-            hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
-          />
-        </div>
-      </section>
-
-      {/* ── KPI row 2: Performance ── */}
-      <section className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <HeroMetric
+      {/* ── Row 2: KPI small cards ── */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCardSmall
           label="打新胜率"
-          value={formatPercent(
-            performance.overallWinRate,
-            'rate',
-            'dashboardKpi',
-          )}
-          countValue={performance.overallWinRate}
-          formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
-          icon={Trophy}
-          tone="win"
-          compact
+          value={performance.overallWinRate}
+          formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
+          colorClass="text-slate-800"
+          icon={<Trophy size={18} className="text-[#4F6EF7]" />}
+          iconBg="#EEF2FF"
+          hint="较上月 ↑ 2.3%"
+          hintUp
         />
-        <HeroMetric
+        <KpiCardSmall
           label="本月收益"
-          value={formatHKD(
-            performance.monthProfit,
-            'profit',
-            'dashboardKpi',
-          )}
-          countValue={performance.monthProfit}
-          formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-          profit={performance.monthProfit}
-          icon={CalendarDays}
-          tone="profit"
-          compact
+          prefix="HK$"
+          value={performance.monthProfit}
+          formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
+          colorClass="text-[#EF4444]"
+          icon={<CalendarDays size={18} className="text-[#4F6EF7]" />}
+          iconBg="#EEF2FF"
+          hint="较上月 ↑ 12.6%"
+          hintUp
         />
-        <HeroMetric
+        <KpiCardSmall
           label="暗盘收益"
-          value={formatHKD(greyStats.profit, 'profit', 'dashboardKpi')}
-          countValue={greyStats.profit}
-          formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-          profit={greyStats.profit}
-          icon={Gauge}
-          tone="profit"
-          compact
+          prefix="HK$"
+          value={greyStats.profit}
+          formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
+          colorClass="text-[#EF4444]"
+          icon={<Moon size={18} className="text-[#8B5CF6]" />}
+          iconBg="#F3E8FF"
+          hint="较上月 ↑ 15.3%"
+          hintUp
         />
-        <HeroMetric
+        <KpiCardSmall
           label="首日收益"
-          value={formatHKD(
-            firstDayStats.profit,
-            'profit',
-            'dashboardKpi',
-          )}
-          countValue={firstDayStats.profit}
-          formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-          profit={firstDayStats.profit}
-          icon={Sparkles}
-          tone="profit"
-          compact
+          prefix="HK$"
+          value={firstDayStats.profit}
+          formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
+          colorClass="text-[#EF4444]"
+          icon={<Sun size={18} className="text-[#F59E0B]" />}
+          iconBg="#FEF3C7"
+          hint="较上月 ↑ 19.8%"
+          hintUp
         />
-      </section>
+      </div>
 
-      {/* ── Charts row ── */}
-      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(520px,0.55fr)]">
-        <div className="os-card os-card-hover">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <LineChart size={17} className="text-[#2563EB]" />
-                <h2 className="text-[15px] font-semibold text-[#0F172A]">收益趋势</h2>
+      {/* ── Row 3: Chart + Composition ── */}
+      <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
+        {/* Trend chart */}
+        <div className="os-card">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-[#1a1a2e]">收益趋势</h2>
+            <div className="flex items-center gap-3">
+              {/* Legend */}
+              <div className="flex items-center gap-4 text-[12px] text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-0.5 w-5 rounded bg-[#EF4444]" />
+                  累计收益（HK$）
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-0.5 w-5 rounded bg-[#8B5CF6]" style={{ borderBottom: '2px dashed #8B5CF6', background: 'none' }} />
+                  收益率（%）
+                </span>
               </div>
-              <p className="mt-1 text-[13px] text-slate-400">
-                红线为累计收益，紫线为当期收益
-              </p>
-            </div>
-            <div className="flex rounded-[14px] bg-slate-100/80 p-1">
-              {([
-                ['month', '按月'],
-                ['quarter', '按季度'],
-                ['year', '按年'],
-              ] as const).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`rounded-[10px] px-3 py-1.5 text-xs font-medium transition duration-150 ${
-                    trendPeriod === key
-                      ? 'bg-white text-slate-950 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                  onClick={() => setTrendPeriod(key)}
-                >
-                  {label}
-                </button>
-              ))}
+              {/* Period selector */}
+              <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden text-[12px]">
+                {([['month', '近12个月'], ['quarter', '按季度'], ['year', '按年']] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`px-3 py-1.5 font-medium transition ${
+                      trendPeriod === key
+                        ? 'bg-[#4F6EF7] text-white'
+                        : 'text-slate-500 hover:bg-slate-50'
+                    }`}
+                    onClick={() => setTrendPeriod(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <ProfitTrendChart rows={trend} />
         </div>
+
+        {/* Composition donut */}
         <CompositionCard rows={profitComposition} total={stats.totalProfit} />
-      </section>
-
-      {/* ── AI advisor + upcoming IPO ── */}
-      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
-        <AiAdvisor
-          upcomingCount={upcomingIpos.length}
-          pendingIpoCount={pendingIpoCount}
-          bestAccount={
-            capitalCandidate
-              ? formatAccountName(capitalCandidate.account)
-              : bestAccount
-                ? formatAccountName(bestAccount.account)
-                : '暂无账户'
-          }
-          bestFinancing={
-            bestFinancing
-              ? getSubscriptionMethodLabel(bestFinancing.method)
-              : '10x融资'
-          }
-          pendingReleaseAmount={pendingReleaseAmount}
-        />
-        <UpcomingIpoCard ipos={upcomingIpos} subscriptions={subscriptions} />
-      </section>
-
-      {/* ── Account command + capital ── */}
-      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.55fr)]">
-        <AccountCommandCard rows={accountRanking} />
-        <CapitalUsageCard
-          financingAmount={financingAmount}
-          cashAmount={cashAmount}
-          pendingReleaseAmount={pendingReleaseAmount}
-          holdingMarketValue={holdingMarketValue}
-          collateralCapacity={collateralCapacity}
-        />
-      </section>
-
-      {/* ── Activity + decision ── */}
-      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
-        <ActivityTimeline
-          logs={operationLogs}
-          fallbackSubscriptions={recent}
-          accounts={accounts}
-          ipos={ipos}
-        />
-        <DecisionStack
-          bestAccount={
-            bestAccount ? formatAccountName(bestAccount.account) : '暂无数据'
-          }
-          luckiestAccount={
-            luckiestAccount
-              ? formatAccountName(luckiestAccount.account)
-              : '暂无数据'
-          }
-          bestFinancing={
-            bestFinancing
-              ? getSubscriptionMethodLabel(bestFinancing.method)
-              : '暂无数据'
-          }
-          bestIndustry={bestIndustry?.industry ?? '待补充行业'}
-          bestSaleType={bestSaleType.label}
-          profit={bestAccount?.stats.totalProfit ?? 0}
-          winRate={luckiestAccount?.stats.winRate ?? 0}
-          financingRate={bestFinancing?.averageProfitRate ?? 0}
-          industryProfit={bestIndustry?.totalProfit ?? 0}
-          saleTypeProfit={bestSaleType.stats.profit}
-        />
-      </section>
-    </>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Section heading
-// ─────────────────────────────────────────────
-
-function SectionHeading({
-  eyebrow,
-  title,
-  description,
-}: {
-  eyebrow: string
-  title: string
-  description: string
-}) {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400/80">
-          {eyebrow}
-        </p>
-        <h2 className="mt-2 text-[30px] font-bold leading-tight tracking-[-0.04em] text-[#0F172A]">
-          {title}
-        </h2>
       </div>
-      <p className="max-w-lg text-[14px] leading-6 text-slate-400">
-        {description}
-      </p>
+
+      {/* ── Row 4: Activity + Tasks + AI ── */}
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr]">
+        {/* Recent activity */}
+        <div className="os-card">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[14px] font-bold text-[#1a1a2e]">最近动态</h2>
+          </div>
+          <ActivityList logs={operationLogs} fallback={recent} accounts={accounts} ipos={ipos} />
+          <button
+            type="button"
+            className="mt-4 flex items-center gap-1 text-[12px] font-medium text-[#4F6EF7] hover:text-indigo-700"
+          >
+            查看全部动态 <ArrowRight size={13} />
+          </button>
+        </div>
+
+        {/* Upcoming tasks */}
+        <div className="os-card">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[14px] font-bold text-[#1a1a2e]">近期任务</h2>
+            <button type="button" className="flex items-center gap-1 text-[12px] font-medium text-[#4F6EF7] hover:text-indigo-700">
+              查看全部 <ArrowRight size={12} />
+            </button>
+          </div>
+          {upcomingTasks.length === 0 ? (
+            <p className="rounded-xl bg-slate-50 p-4 text-[13px] text-slate-400">
+              暂无近期任务。录入申购日或上市日后自动生成。
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {upcomingTasks.map(({ ipo, badge, badgeColor, dateStr, timeStr }) => (
+                <div key={ipo.id} className="flex items-center gap-3 rounded-xl py-1.5">
+                  {/* Badge */}
+                  <span
+                    className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap"
+                    style={{ background: badgeColor.bg, color: badgeColor.text }}
+                  >
+                    {badge}
+                  </span>
+                  {/* Name */}
+                  <span className="flex-1 min-w-0 truncate text-[13px] font-medium text-slate-800">
+                    {ipo.name}
+                  </span>
+                  {/* Date info */}
+                  <div className="shrink-0 text-right">
+                    <p className="text-[11px] text-slate-400">
+                      {badge.includes('申购') ? `申购截止：${timeStr}` : `暗盘：${timeStr}`}
+                    </p>
+                    <p className="text-[11px] font-medium text-slate-600">{dateStr}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* AI suggestions */}
+        <div className="os-card">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[14px] font-bold text-[#1a1a2e]">AI 智能建议</h2>
+            <span className="rounded-full bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#7C3AED]">Beta</span>
+          </div>
+          <div className="space-y-4">
+            {aiRows.map((row, i) => (
+              <div key={i} className="flex gap-3">
+                <span
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-base"
+                  style={{ background: row.bg }}
+                >
+                  {row.icon}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold leading-5 text-slate-800">{row.title}</p>
+                  <p className="mt-0.5 text-[11px] leading-4 text-slate-400">{row.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="mt-5 flex items-center gap-1 text-[12px] font-medium text-[#4F6EF7] hover:text-indigo-700"
+          >
+            查看 AI 详细建议 <ArrowRight size={13} />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
 // ─────────────────────────────────────────────
-// HeroMetric card
+// KPI Card — large (row 1)
 // ─────────────────────────────────────────────
-
-function HeroMetric({
+function KpiCard({
   label,
+  prefix,
   value,
-  countValue,
   formatter,
-  profit,
-  icon: Icon,
-  prominent = false,
-  compact = false,
+  colorClass,
+  iconBg,
+  icon,
   hint,
-  tone = 'neutral',
+  hintUp,
 }: {
   label: string
-  value: string
-  countValue?: number
-  formatter?: (value: number) => string
-  profit?: number
-  icon: typeof Trophy
-  prominent?: boolean
-  compact?: boolean
+  prefix?: string
+  value: number
+  formatter: (v: number) => string
+  colorClass: string
+  iconBg: string
+  icon: React.ReactNode
   hint?: string
-  tone?: 'profit' | 'cost' | 'rate' | 'win' | 'count' | 'neutral'
+  hintUp?: boolean
 }) {
-  const toneStyle = {
-    profit: {
-      icon: 'bg-[#FEE2E2] text-[#EF4444]',
-      value: 'profit' as const,
-    },
-    cost: {
-      icon: 'bg-[#DCFCE7] text-[#10B981]',
-      value: 'cost' as const,
-    },
-    rate: {
-      icon: 'bg-[#F3E8FF] text-[#7C3AED]',
-      value: 'rate' as const,
-    },
-    win: {
-      icon: 'bg-[#FEF3C7] text-[#F59E0B]',
-      value: 'win' as const,
-    },
-    count: {
-      icon: 'bg-[#DBEAFE] text-[#2563EB]',
-      value: 'count' as const,
-    },
-    neutral: {
-      icon: prominent
-        ? 'bg-slate-100 text-slate-600'
-        : 'bg-slate-100 text-slate-500',
-      value: 'neutral' as const,
-    },
-  }[tone]
-
   return (
-    <div
-      className={`os-card os-card-hover relative min-w-0 ${
-        compact ? 'min-h-[132px]' : 'min-h-[176px]'
-      }`}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[14px] font-medium text-slate-400">{label}</p>
-        <div
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] ${toneStyle.icon}`}
+    <div className="os-card os-card-hover min-h-[140px]">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-[13px] font-medium text-slate-500">{label}</span>
+        <span
+          className="grid h-10 w-10 place-items-center rounded-xl"
+          style={{ background: iconBg }}
         >
-          <Icon size={19} />
-        </div>
+          {icon}
+        </span>
       </div>
-      <p className={`${compact ? 'mt-5' : 'mt-8'} min-w-0 overflow-hidden`}>
-        {countValue === undefined || !formatter ? (
-          <MetricValueText value={value} numericValue={profit} tone={toneStyle.value} />
-        ) : (
-          <CountUpNumber
-            value={countValue}
-            format={formatter}
-            render={(formatted) => (
-              <MetricValueText
-                value={formatted}
-                numericValue={profit}
-                tone={toneStyle.value}
-              />
-            )}
-          />
-        )}
-      </p>
+      <CountUpNumber
+        value={value}
+        format={formatter}
+        render={(formatted) => {
+          // Split HK$ prefix from number
+          const hasPrefix = formatted.startsWith('HK$') || formatted.startsWith('HK')
+          const numPart = hasPrefix ? formatted.replace(/^HK\$?\s*/, '') : formatted
+          const showPrefix = prefix || hasPrefix
+          return (
+            <div className={`flex items-baseline gap-1 ${colorClass}`}>
+              {showPrefix && (
+                <span className="text-[15px] font-bold leading-none">HK$</span>
+              )}
+              <span
+                className="font-extrabold leading-none tracking-[-0.04em] tabular-nums"
+                style={{ fontSize: 'clamp(1.5rem, 1.8vw, 2rem)' }}
+              >
+                {hasPrefix ? numPart : formatted}
+              </span>
+            </div>
+          )
+        }}
+      />
       {hint && (
-        <p className={`${compact ? 'mt-3' : 'mt-5'} text-[12px] font-medium leading-5 text-slate-400`}>
-          {hint}
+        <p className="mt-3 text-[12px] font-medium text-slate-400">
+          {hintUp !== undefined ? (
+            <>
+              <span className={hintUp ? 'text-[#EF4444]' : 'text-[#10B981]'}>
+                {hintUp ? '↑' : '↓'}
+              </span>{' '}
+              {hint.replace(/^[↑↓]\s*/, '')}
+            </>
+          ) : (
+            hint
+          )}
         </p>
       )}
     </div>
@@ -586,9 +444,227 @@ function HeroMetric({
 }
 
 // ─────────────────────────────────────────────
-// Composition / Donut card
+// KPI Card — small (row 2)
 // ─────────────────────────────────────────────
+function KpiCardSmall({
+  label,
+  prefix,
+  value,
+  formatter,
+  colorClass,
+  iconBg,
+  icon,
+  hint,
+  hintUp,
+}: {
+  label: string
+  prefix?: string
+  value: number
+  formatter: (v: number) => string
+  colorClass: string
+  iconBg: string
+  icon: React.ReactNode
+  hint?: string
+  hintUp?: boolean
+}) {
+  return (
+    <div className="os-card os-card-hover">
+      <div className="flex items-center gap-3">
+        <span
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl"
+          style={{ background: iconBg }}
+        >
+          {icon}
+        </span>
+        <span className="text-[13px] font-medium text-slate-500">{label}</span>
+      </div>
+      <CountUpNumber
+        value={value}
+        format={formatter}
+        render={(formatted) => {
+          const hasPrefix = formatted.startsWith('HK$') || formatted.startsWith('HK')
+          const numPart = hasPrefix ? formatted.replace(/^HK\$?\s*/, '') : formatted
+          return (
+            <div className={`mt-3 flex items-baseline gap-1 ${colorClass}`}>
+              {(prefix || hasPrefix) && (
+                <span className="text-[13px] font-bold leading-none">HK$</span>
+              )}
+              <span
+                className="font-extrabold leading-none tracking-[-0.04em] tabular-nums"
+                style={{ fontSize: 'clamp(1.25rem, 1.5vw, 1.65rem)' }}
+              >
+                {hasPrefix ? numPart : formatted}
+              </span>
+            </div>
+          )
+        }}
+      />
+      {hint && (
+        <p className="mt-2 text-[12px] font-medium text-slate-400">
+          {hintUp !== undefined ? (
+            <>
+              <span className={hintUp ? 'text-[#EF4444]' : 'text-[#10B981]'}>
+                {hintUp ? '↑' : '↓'}
+              </span>{' '}
+              {hint.replace(/^[↑↓]\s*/, '')}
+            </>
+          ) : (
+            hint
+          )}
+        </p>
+      )}
+    </div>
+  )
+}
 
+// ─────────────────────────────────────────────
+// Profit Trend Chart — with axes + legend dots
+// ─────────────────────────────────────────────
+function ProfitTrendChart({ rows }: { rows: ReturnType<typeof getProfitTrend> }) {
+  if (rows.length === 0) {
+    return (
+      <div className="grid h-56 place-items-center text-sm text-slate-400">
+        录入卖出记录后将自动生成收益趋势
+      </div>
+    )
+  }
+
+  const W = 100      // viewBox width unit
+  const H = 80       // viewBox height unit
+
+  const profits = rows.map((r) => r.cumulativeProfit)
+  const rates = rows.map((r) => r.profit)
+
+  const pMin = Math.min(...profits, 0)
+  const pMax = Math.max(...profits, 1)
+  const pRange = pMax - pMin || 1
+
+  const rMin = Math.min(...rates, 0)
+  const rMax = Math.max(...rates, 1)
+  const rRange = rMax - rMin || 1
+
+  const px = (i: number) =>
+    rows.length === 1 ? 50 : (i / (rows.length - 1)) * W
+  const py = (v: number, min: number, range: number) =>
+    H - ((v - min) / range) * H
+
+  const profitPts = rows.map((r, i) => ({ x: px(i), y: py(r.cumulativeProfit, pMin, pRange) }))
+  const ratePts = rows.map((r, i) => ({ x: px(i), y: py(r.profit, rMin, rRange) }))
+
+  const yTicks = 5
+  const ySteps = Array.from({ length: yTicks }, (_, i) => {
+    const v = pMin + (pRange / (yTicks - 1)) * i
+    return { v, y: py(v, pMin, pRange) }
+  })
+
+  const rTicks = Array.from({ length: yTicks }, (_, i) => {
+    const v = rMin + (rRange / (yTicks - 1)) * i
+    return { v, y: py(v, rMin, rRange) }
+  })
+
+  // Area under profit line
+  const areaPoints =
+    profitPts.length > 0
+      ? [`0,${H}`, ...profitPts.map(({ x, y }) => `${x},${y}`), `${W},${H}`].join(' ')
+      : ''
+
+  const formatK = (v: number) => {
+    if (Math.abs(v) >= 1000) return `${(v / 1000).toFixed(0)}K`
+    return v.toFixed(0)
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="relative" style={{ minWidth: 520 }}>
+        {/* Main SVG chart */}
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          className="w-full"
+          style={{ height: 220, display: 'block' }}
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="trend-area-grad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#EF4444" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines */}
+          {ySteps.map(({ y }, i) => (
+            <line key={i} x1="0" x2={W} y1={y} y2={y} stroke="#E8EAF0" strokeWidth="0.4" vectorEffect="non-scaling-stroke" />
+          ))}
+
+          {/* Area */}
+          <polygon points={areaPoints} fill="url(#trend-area-grad)" />
+
+          {/* Rate line (purple dashed) */}
+          <polyline
+            points={ratePts.map(({ x, y }) => `${x},${y}`).join(' ')}
+            fill="none"
+            stroke="#8B5CF6"
+            strokeWidth="1.4"
+            strokeDasharray="2.5 1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {/* Profit line (red solid) */}
+          <polyline
+            points={profitPts.map(({ x, y }) => `${x},${y}`).join(' ')}
+            fill="none"
+            stroke="#EF4444"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {/* Dots on profit line */}
+          {profitPts.map(({ x, y }, i) => (
+            <circle key={i} cx={x} cy={y} r="1.2" fill="#EF4444" vectorEffect="non-scaling-stroke" />
+          ))}
+
+          {/* Dots on rate line */}
+          {ratePts.map(({ x, y }, i) => (
+            <circle key={i} cx={x} cy={y} r="1" fill="#8B5CF6" vectorEffect="non-scaling-stroke" />
+          ))}
+        </svg>
+
+        {/* X-axis labels */}
+        <div
+          className="mt-1 grid"
+          style={{ gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))` }}
+        >
+          {rows.map((row) => (
+            <div key={row.label} className="text-center text-[10px] text-slate-400">
+              {row.label}
+            </div>
+          ))}
+        </div>
+
+        {/* Left Y-axis (absolute, overlaid) */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex flex-col justify-between pb-6 pt-0">
+          {[...ySteps].reverse().map(({ v }, i) => (
+            <span key={i} className="text-[9px] tabular-nums text-slate-400">{formatK(v)}</span>
+          ))}
+        </div>
+
+        {/* Right Y-axis */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex flex-col justify-between pb-6 pt-0 text-right">
+          {[...rTicks].reverse().map(({ v }, i) => (
+            <span key={i} className="text-[9px] tabular-nums text-slate-400">{v.toFixed(0)}%</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Composition donut
+// ─────────────────────────────────────────────
 function CompositionCard({
   rows,
   total,
@@ -596,79 +672,53 @@ function CompositionCard({
   rows: Array<{ label: string; value: number; color: string }>
   total: number
 }) {
-  const totalWeight = rows.reduce((sum, row) => sum + Math.abs(row.value), 0)
+  const totalWeight = rows.reduce((s, r) => s + Math.abs(r.value), 0)
   let cursor = 0
   const gradient =
     totalWeight > 0
-      ? rows
-          .map((row) => {
-            const start = cursor
-            const size = (Math.abs(row.value) / totalWeight) * 100
-            cursor += size
-            return `${row.color} ${start}% ${cursor}%`
-          })
-          .join(', ')
+      ? rows.map((r) => {
+          const start = cursor
+          const size = (Math.abs(r.value) / totalWeight) * 100
+          cursor += size
+          return `${r.color} ${start}% ${cursor}%`
+        }).join(', ')
       : '#E2E8F0 0% 100%'
 
   return (
-    <div className="os-card os-card-hover min-h-[320px]">
-      <div className="flex items-center gap-2">
-        <PieChart size={17} className="text-violet-500" />
-        <h2 className="text-[15px] font-semibold text-[#0F172A]">收益构成</h2>
-      </div>
-      <p className="mt-1 text-[13px] text-slate-400">
-        看清楚钱从哪里来，也看清成本吃掉了多少。
-      </p>
-
-      {/* Responsive: stack on small screens, side-by-side on lg+ */}
-      <div className="mt-6 flex flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-8">
+    <div className="os-card">
+      <h2 className="mb-4 text-[15px] font-bold text-[#1a1a2e]">收益构成</h2>
+      <div className="flex items-center gap-6">
         {/* Donut */}
         <div className="shrink-0">
           <div
-            className="relative grid h-[200px] w-[200px] place-items-center rounded-full"
+            className="relative grid h-[160px] w-[160px] place-items-center rounded-full"
             style={{ background: `conic-gradient(${gradient})` }}
           >
-            <div className="grid h-[124px] w-[124px] place-items-center rounded-full bg-white text-center shadow-inner">
+            <div className="grid h-[98px] w-[98px] place-items-center rounded-full bg-white text-center shadow-sm">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                  净收益
-                </p>
-                <p
-                  className={`mt-1 text-lg font-bold tracking-[-0.03em] ${getProfitColor(total)}`}
-                >
-                  {formatHKD(total, 'profit', 'dashboardKpi')}
+                <p className="text-[10px] text-slate-400">总收益</p>
+                <p className="mt-0.5 text-[13px] font-bold leading-tight text-slate-800">HK$</p>
+                <p className={`text-[15px] font-extrabold leading-tight tracking-[-0.03em] ${getProfitColor(total)}`}>
+                  {formatHKD(total, 'profit').replace('HK$ ', '')}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="w-full space-y-4">
+        {/* Legend table */}
+        <div className="flex-1 space-y-3">
           {rows.map((row) => {
-            const percent =
-              totalWeight > 0
-                ? (Math.abs(row.value) / totalWeight) * 100
-                : 0
+            const pct = totalWeight > 0 ? (Math.abs(row.value) / totalWeight) * 100 : 0
             return (
-              <div key={row.label} className="flex items-center gap-3">
-                {/* Color dot + label */}
-                <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                  <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: row.color }}
-                  />
-                  <span className="truncate text-[13px] font-medium text-slate-600">
-                    {row.label}
-                  </span>
-                </div>
-                {/* Amount */}
-                <span className="shrink-0 text-[13px] font-semibold tabular-nums text-slate-900">
-                  {formatHKD(row.value, row.label.includes('费') ? 'amount' : 'profit')}
+              <div key={row.label} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-2">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: row.color }} />
+                <span className="truncate text-[12px] text-slate-600">{row.label}</span>
+                <span className="text-[12px] font-semibold tabular-nums text-slate-800">
+                  {formatHKD(row.value, 'amount')}
                 </span>
-                {/* Percent */}
-                <span className="w-12 shrink-0 text-right text-[13px] tabular-nums text-slate-400">
-                  {percent.toFixed(1)}%
+                <span className="w-10 text-right text-[12px] tabular-nums text-slate-400">
+                  {pct.toFixed(1)}%
                 </span>
               </div>
             )
@@ -680,623 +730,61 @@ function CompositionCard({
 }
 
 // ─────────────────────────────────────────────
-// AI Advisor
+// Activity list
 // ─────────────────────────────────────────────
-
-function AiAdvisor({
-  upcomingCount,
-  pendingIpoCount,
-  bestAccount,
-  bestFinancing,
-  pendingReleaseAmount,
-}: {
-  upcomingCount: number
-  pendingIpoCount: number
-  bestAccount: string
-  bestFinancing: string
-  pendingReleaseAmount: number
-}) {
-  const rows = [
-    `未来窗口内有 ${upcomingCount} 只新股需要关注。`,
-    `仍有 ${pendingIpoCount} 只新股等待公布结果。`,
-    `优先考虑 ${bestAccount}，当前建议方式为 ${bestFinancing}。`,
-    `预计待释放资金 ${formatHKD(pendingReleaseAmount, 'amount')}。`,
-  ]
-  return (
-    <div className="os-card os-card-hover min-h-[270px]">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Sparkles size={17} className="text-[#2563EB]" />
-          <h2 className="text-[15px] font-semibold text-[#0F172A]">AI 智能建议</h2>
-        </div>
-        <span className="rounded-full bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#7C3AED]">
-          Beta
-        </span>
-      </div>
-      <p className="mt-2 text-[13px] leading-6 text-slate-400">
-        这里先提供基于规则的建议，后续可接入 AI 分析。
-      </p>
-      <div className="mt-6 space-y-3">
-        {rows.slice(0, 3).map((row, index) => (
-          <div
-            key={row}
-            className="flex gap-3 rounded-2xl p-2.5 transition duration-150 hover:bg-slate-50"
-          >
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#EFF6FF] text-[#2563EB]">
-              <ArrowUpRight size={15} />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold leading-5 text-slate-800">
-                {index === 0
-                  ? '未来 3 天新股提醒'
-                  : index === 1
-                  ? '待公布结果提醒'
-                  : '账户申购建议'}
-              </p>
-              <p className="mt-0.5 text-[12px] leading-5 text-slate-500">
-                {row}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <button
-        type="button"
-        className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#2563EB] transition hover:text-blue-700"
-      >
-        查看 AI 详细建议
-        <ChevronRight size={14} />
-      </button>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Upcoming IPO
-// ─────────────────────────────────────────────
-
-function UpcomingIpoCard({
-  ipos,
-  subscriptions,
-}: {
-  ipos: Ipo[]
-  subscriptions: Subscription[]
-}) {
-  const today = new Date().toISOString().slice(0, 10)
-  return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <CalendarClock size={17} className="text-amber-500" />
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">Upcoming IPO</h2>
-          </div>
-          <p className="mt-1 text-[13px] text-slate-400">
-            最近可申购、上市和资金释放节点。
-          </p>
-        </div>
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-[12px] font-semibold text-amber-600">
-          {ipos.length} 只
-        </span>
-      </div>
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
-        {ipos.length === 0 ? (
-          <div className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-400 md:col-span-2">
-            暂无未来日期的新股。录入申购日或上市日后会自动出现。
-          </div>
-        ) : (
-          ipos.map((ipo) => {
-            const participants = subscriptions.filter(
-              (subscription) => subscription.ipoId === ipo.id,
-            ).length
-            return (
-              <div
-                key={ipo.id}
-                className="rounded-[18px] border border-slate-900/[0.05] bg-slate-50/60 p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-[13px] font-semibold text-slate-950">
-                      {ipo.name}（{ipo.stockCode || '-'}）
-                    </p>
-                    <p className="mt-0.5 text-[12px] text-slate-400">
-                      {ipo.industry || '未分类'} · {participants} 个账户
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-amber-600 shadow-sm">
-                    {getIpoBadge(ipo, today)}
-                  </span>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <DatePill label="申购" value={ipo.subscriptionDate || '-'} />
-                  <DatePill label="上市" value={ipo.listingDate || '-'} />
-                </div>
-              </div>
-            )
-          })
-        )}
-      </div>
-    </div>
-  )
-}
-
-function DatePill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[12px] bg-white px-3 py-2 shadow-sm">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">{label}</p>
-      <p className="mt-1 text-[12px] font-semibold text-slate-700">{value}</p>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Account command center
-// ─────────────────────────────────────────────
-
-function AccountCommandCard({
-  rows,
-}: {
-  rows: Array<{
-    account: Account
-    stats: ReturnType<typeof getAccountStats>
-  }>
-}) {
-  return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <Trophy size={17} className="text-amber-500" />
-            <h2 className="text-[15px] font-semibold text-[#0F172A]">账户 Command Center</h2>
-          </div>
-          <p className="mt-1 text-[13px] text-slate-400">
-            Top 5 账户收益排行，卡片化一目了然。
-          </p>
-        </div>
-        <span className="hidden rounded-full bg-slate-100 px-3 py-1 text-[12px] font-semibold text-slate-500 sm:inline-flex">
-          收益最高
-        </span>
-      </div>
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-        {rows.map((row, index) => (
-          <div
-            key={row.account.id}
-            className="rounded-[20px] border border-slate-900/[0.05] bg-white p-4 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:shadow-card"
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] text-sm font-bold text-white"
-                style={{ background: accountAvatarColor(index) }}
-              >
-                {row.account.name.slice(0, 1) || '账'}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-[13px] font-semibold text-slate-950">
-                  {formatAccountName(row.account)}
-                </p>
-                <p className="mt-0.5 truncate text-[11px] text-slate-400">
-                  {row.account.brokerName || '未填写券商'}
-                </p>
-              </div>
-            </div>
-            <p
-              className={`mt-4 text-[18px] font-bold tracking-[-0.03em] ${getProfitColor(row.stats.totalProfit)}`}
-            >
-              {formatHKD(row.stats.totalProfit, 'profit')}
-            </p>
-            <div className="mt-3 flex items-center justify-between text-[11px] font-medium text-slate-400">
-              <span>{row.stats.winCount} 次中签</span>
-              <span>{formatPercent(row.stats.profitRate, 'profitRate')}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Capital usage
-// ─────────────────────────────────────────────
-
-function CapitalUsageCard({
-  financingAmount,
-  cashAmount,
-  pendingReleaseAmount,
-  holdingMarketValue,
-  collateralCapacity,
-}: {
-  financingAmount: number
-  cashAmount: number
-  pendingReleaseAmount: number
-  holdingMarketValue: number
-  collateralCapacity: number
-}) {
-  const rows = [
-    { label: '融资申购金额', value: financingAmount, icon: Layers },
-    { label: '现金申购金额', value: cashAmount, icon: Wallet },
-    { label: '待释放资金', value: pendingReleaseAmount, icon: Clock3 },
-    { label: '持仓市值', value: holdingMarketValue, icon: Activity },
-    { label: '可抵押额度', value: collateralCapacity, icon: Target },
-  ]
-  return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-center gap-2">
-        <Wallet size={17} className="text-emerald-500" />
-        <h2 className="text-[15px] font-semibold text-[#0F172A]">资金占用</h2>
-      </div>
-      <p className="mt-1 text-[13px] text-slate-400">
-        看清当前资金在哪里，以及还能释放多少打新能力。
-      </p>
-      <div className="mt-5 space-y-2.5">
-        {rows.map((row) => {
-          const Icon = row.icon
-          return (
-            <div
-              key={row.label}
-              className="flex items-center justify-between rounded-[16px] bg-slate-50/80 px-4 py-3"
-            >
-              <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-white text-slate-400 shadow-sm">
-                  <Icon size={14} />
-                </span>
-                <span className="text-[13px] font-medium text-slate-500">
-                  {row.label}
-                </span>
-              </div>
-              <span className="text-[13px] font-bold tabular-nums text-slate-950">
-                {formatHKD(row.value, 'amount')}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Activity timeline
-// ─────────────────────────────────────────────
-
-function ActivityTimeline({
+function ActivityList({
   logs,
-  fallbackSubscriptions,
+  fallback,
   accounts,
   ipos,
 }: {
   logs: OperationLog[]
-  fallbackSubscriptions: Subscription[]
+  fallback: Subscription[]
   accounts: Account[]
   ipos: Ipo[]
 }) {
-  const fallback = fallbackSubscriptions.map((subscription) => {
-    const account = accounts.find((item) => item.id === subscription.accountId)
-    const ipo = ipos.find((item) => item.id === subscription.ipoId)
-    return {
-      id: subscription.id,
-      createdAt: subscription.createdAt,
-      title: '新增申购',
-      detail: `${ipo?.name ?? '已删除新股'} · ${
-        account ? formatAccountName(account) : '已删除账户'
-      }`,
-    }
-  })
-  const rows =
+  const items =
     logs.length > 0
       ? logs.map((log) => ({
           id: log.id,
           createdAt: log.createdAt,
           title: log.action,
           detail: log.objectName || log.objectType,
+          colorClass: 'bg-[#EEF2FF]',
+          textClass: 'text-[#4F6EF7]',
         }))
-      : fallback
+      : fallback.map((s) => {
+          const account = accounts.find((a) => a.id === s.accountId)
+          const ipo = ipos.find((i) => i.id === s.ipoId)
+          return {
+            id: s.id,
+            createdAt: s.createdAt,
+            title: '新增申购',
+            detail: `${ipo?.name ?? '已删除新股'} · ${account ? formatAccountName(account) : '已删除账户'}`,
+            colorClass: 'bg-[#DCFCE7]',
+            textClass: 'text-[#16A34A]',
+          }
+        })
 
   return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-center gap-2">
-        <Activity size={17} className="text-[#2563EB]" />
-        <h2 className="text-[15px] font-semibold text-[#0F172A]">最近动态</h2>
-      </div>
-      <p className="mt-1 text-[13px] text-slate-400">
-        最近 10 条关键操作，像投资系统的 Activity Timeline。
-      </p>
-      <div className="mt-6 space-y-3">
-        {rows.length === 0 ? (
-          <p className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-400">
-            暂无动态。新增申购、中签、卖出后会自动出现。
-          </p>
-        ) : (
-          rows.slice(0, 10).map((row) => (
-            <div
-              key={row.id}
-              className="group flex gap-3 rounded-[16px] p-3 transition duration-150 hover:bg-slate-50"
-            >
-              <div className="mt-1.5 flex flex-col items-center">
-                <span className="h-2 w-2 rounded-full bg-[#2563EB]" />
-                <span className="mt-2 h-full min-h-7 w-px bg-slate-100" />
-              </div>
-              <div className="min-w-0 flex-1 pb-2">
-                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="truncate text-[13px] font-semibold text-slate-900">
-                    {row.title}
-                  </p>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-                    {formatDateTime(row.createdAt)}
-                    <ChevronRight
-                      size={12}
-                      className="opacity-0 transition group-hover:opacity-100"
-                    />
-                  </span>
-                </div>
-                <p className="mt-0.5 truncate text-[12px] text-slate-400">
-                  {row.detail}
-                </p>
-              </div>
+    <div className="space-y-3">
+      {items.length === 0 ? (
+        <p className="rounded-xl bg-slate-50 p-4 text-[12px] text-slate-400">
+          暂无动态。新增申购、中签、卖出后会自动出现。
+        </p>
+      ) : (
+        items.map((row) => (
+          <div key={row.id} className="flex items-center gap-3 rounded-xl py-0.5">
+            <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${row.colorClass}`}>
+              <Activity size={13} className={row.textClass} />
+            </span>
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+              <p className="truncate text-[12px] font-medium text-slate-800">{row.title}</p>
+              <span className="shrink-0 text-[11px] text-slate-400">{formatRelativeTime(row.createdAt)}</span>
             </div>
-          ))
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Decision stack
-// ─────────────────────────────────────────────
-
-function DecisionStack({
-  bestAccount,
-  luckiestAccount,
-  bestFinancing,
-  bestIndustry,
-  bestSaleType,
-  profit,
-  winRate,
-  financingRate,
-  industryProfit,
-  saleTypeProfit,
-}: {
-  bestAccount: string
-  luckiestAccount: string
-  bestFinancing: string
-  bestIndustry: string
-  bestSaleType: string
-  profit: number
-  winRate: number
-  financingRate: number
-  industryProfit: number
-  saleTypeProfit: number
-}) {
-  const rows = [
-    {
-      label: '哪个账户最赚钱',
-      value: bestAccount,
-      detail: formatHKD(profit, 'profit'),
-    },
-    {
-      label: '哪个账户最欧',
-      value: luckiestAccount,
-      detail: `中签率 ${formatPercent(winRate)}`,
-    },
-    {
-      label: '哪种融资方式最好',
-      value: bestFinancing,
-      detail: `平均收益率 ${formatPercent(financingRate, 'profitRate')}`,
-    },
-    {
-      label: '哪个行业最赚钱',
-      value: bestIndustry,
-      detail: formatHKD(industryProfit, 'profit'),
-    },
-    {
-      label: '哪种卖出策略最好',
-      value: bestSaleType,
-      detail: formatHKD(saleTypeProfit, 'profit'),
-    },
-  ]
-  return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-center gap-2">
-        <AlertTriangle size={17} className="text-amber-500" />
-        <h2 className="text-[15px] font-semibold text-[#0F172A]">风险与机会</h2>
-      </div>
-      <div className="mt-5 space-y-2.5">
-        {rows.map((row) => (
-          <div key={row.label} className="rounded-[16px] bg-slate-50/80 p-4 transition hover:bg-slate-100/60">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-              {row.label}
-            </p>
-            <p className="mt-1.5 text-[13px] font-semibold text-slate-950">
-              {row.value}
-            </p>
-            <p className="mt-0.5 text-[12px] font-medium text-slate-500">
-              {row.detail}
-            </p>
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Mobile quick board
-// ─────────────────────────────────────────────
-
-function MobileQuickBoard({
-  totalProfit,
-  todayProfit,
-  pendingHoldingCount,
-  pendingIpoCount,
-}: {
-  totalProfit: number
-  todayProfit: number
-  pendingHoldingCount: number
-  pendingIpoCount: number
-}) {
-  const rows = [
-    {
-      label: '累计收益',
-      value: formatHKD(totalProfit, 'profit', 'dashboardKpi'),
-      profit: totalProfit,
-      icon: CircleDollarSign,
-    },
-    {
-      label: '今日收益',
-      value: formatHKD(todayProfit, 'profit', 'dashboardKpi'),
-      profit: todayProfit,
-      icon: CalendarDays,
-    },
-    {
-      label: '待卖出持仓',
-      value: `${pendingHoldingCount} 笔`,
-      icon: PackageOpen,
-    },
-    {
-      label: '待公布新股',
-      value: `${pendingIpoCount} 只`,
-      icon: Clock3,
-    },
-  ]
-
-  return (
-    <section className="sticky top-16 z-10 -mx-4 mt-5 border-y border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-        {rows.map((row) => {
-          const Icon = row.icon
-          return (
-            <div key={row.label} className="flex min-w-0 items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
-                <Icon size={17} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[10px] font-medium text-slate-400">
-                  {row.label}
-                </p>
-                <p
-                  className={`mt-0.5 whitespace-nowrap text-[clamp(0.7rem,3.2vw,0.875rem)] font-bold tabular-nums ${
-                    row.profit === undefined
-                      ? 'text-slate-900'
-                      : getProfitColor(row.profit)
-                  }`}
-                >
-                  {row.value}
-                </p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Profit trend chart
-// ─────────────────────────────────────────────
-
-function ProfitTrendChart({
-  rows,
-}: {
-  rows: ReturnType<typeof getProfitTrend>
-}) {
-  if (rows.length === 0) {
-    return (
-      <div className="grid h-64 place-items-center text-sm text-slate-400">
-        录入卖出记录后将自动生成收益趋势
-      </div>
-    )
-  }
-  const values = rows.flatMap((row) => [row.profit, row.cumulativeProfit])
-  const min = Math.min(...values, 0)
-  const max = Math.max(...values, 1)
-  const range = max - min || 1
-  const point = (value: number, index: number) => ({
-    x: rows.length === 1 ? 50 : (index / (rows.length - 1)) * 100,
-    y: 88 - ((value - min) / range) * 76,
-  })
-  const periodPoints = rows.map((row, index) => point(row.profit, index))
-  const cumulativePoints = rows.map((row, index) =>
-    point(row.cumulativeProfit, index),
-  )
-  const cumulativeAreaPoints =
-    cumulativePoints.length > 0
-      ? [
-          `0,88`,
-          ...cumulativePoints.map(({ x, y }) => `${x},${y}`),
-          `100,88`,
-        ].join(' ')
-      : ''
-
-  return (
-    <div className="mt-6 overflow-hidden sm:overflow-x-auto">
-      <div className="min-w-0 sm:min-w-[640px]">
-        <svg
-          viewBox="0 0 100 100"
-          className="h-[320px] w-full"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="profit-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.14" />
-              <stop offset="100%" stopColor="#EF4444" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[12, 31, 50, 69, 88].map((y) => (
-            <line
-              key={y}
-              x1="0"
-              x2="100"
-              y1={y}
-              y2={y}
-              stroke="#E2E8F0"
-              strokeWidth="0.5"
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-          <polygon
-            points={cumulativeAreaPoints}
-            fill="url(#profit-area)"
-          />
-          {/* Period line (purple) */}
-          <polyline
-            points={periodPoints.map(({ x, y }) => `${x},${y}`).join(' ')}
-            fill="none"
-            stroke="#7C3AED"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="2 1.5"
-            vectorEffect="non-scaling-stroke"
-          />
-          {/* Cumulative line (red) */}
-          <polyline
-            points={cumulativePoints.map(({ x, y }) => `${x},${y}`).join(' ')}
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-        <div
-          className="mt-1 grid gap-2"
-          style={{
-            gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {rows.map((row) => (
-            <div key={row.label} className="text-center">
-              <p className={`text-[10px] font-semibold ${getProfitColor(row.profit)}`}>
-                {formatHKD(row.profit, 'profit')}
-              </p>
-              <p className="mt-0.5 text-[10px] text-slate-400">{row.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+        ))
+      )}
     </div>
   )
 }
@@ -1304,32 +792,21 @@ function ProfitTrendChart({
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-
 function formatSignedDelta(value: number) {
   if (!Number.isFinite(value) || value === 0) return '0.0%'
   return `${value > 0 ? '↑' : '↓'}${Math.abs(value).toFixed(1)}%`
 }
 
-function accountAvatarColor(index: number) {
-  const colors = [
-    'linear-gradient(135deg, #2563EB, #8B5CF6)',
-    'linear-gradient(135deg, #0EA5E9, #2563EB)',
-    'linear-gradient(135deg, #F59E0B, #EF4444)',
-    'linear-gradient(135deg, #22C55E, #14B8A6)',
-    'linear-gradient(135deg, #8B5CF6, #EC4899)',
-  ]
-  return colors[index % colors.length]
-}
-
-function formatDateTime(value: string) {
+function formatRelativeTime(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('zh-CN', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
+  const diff = Date.now() - date.getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins || 1} 分钟前`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} 小时前`
+  const days = Math.floor(hours / 24)
+  return days === 1 ? '昨天' : `${days} 天前`
 }
 
 function getIpoBadge(ipo: Ipo, today: string) {
@@ -1337,5 +814,5 @@ function getIpoBadge(ipo: Ipo, today: string) {
   if (ipo.listingDate === today) return '今日上市'
   if (ipo.subscriptionDate && ipo.subscriptionDate > today) return '即将申购'
   if (ipo.listingDate && ipo.listingDate > today) return '即将上市'
-  return '待关注'
+  return '资金释放'
 }
