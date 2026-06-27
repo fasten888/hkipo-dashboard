@@ -80,19 +80,7 @@ export function MonthlyReviewPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            月度复盘中心
-          </div>
-          <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-            月度复盘
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            按月回顾参与、中签、收益和最佳新股表现。
-          </p>
-        </div>
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div className="flex gap-2">
           <select
             value={year}

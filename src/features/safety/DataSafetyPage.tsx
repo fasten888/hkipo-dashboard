@@ -48,18 +48,6 @@ export function DataSafetyPage() {
 
   return (
     <>
-      <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-          数据安全与质量
-        </div>
-        <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-          数据安全中心
-        </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          追踪关键操作、恢复历史版本，并检查潜在异常数据。
-        </p>
-      </div>
 
       <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SafetyMetric

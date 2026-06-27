@@ -145,18 +145,6 @@ export function DataExportPage() {
 
   return (
     <>
-      <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-          V1 · 数据管理
-        </div>
-        <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-          数据管理
-        </h1>
-        <p className="mt-2 text-sm text-slate-500">
-          JSON 用于完整迁移与恢复，CSV 用于 Excel 分析。
-        </p>
-      </div>
 
       <section className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ActionCard
