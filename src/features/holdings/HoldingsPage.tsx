@@ -76,7 +76,6 @@ export function HoldingsPage() {
 
       <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {rows.map((holding) => {
-          const account = data.accounts.find((item) => item.id === holding.accountId)
           const financing = holding.marketValue * holding.collateralRate / 100
           return (
             <article key={holding.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
@@ -109,5 +108,5 @@ export function HoldingsPage() {
 }
 
 function Datum({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-[11px] text-slate-400">{label}</p></div>
+  return <div><p className="text-[11px] text-slate-400">{label}</p><p className="mt-1 font-semibold text-slate-700">{value}</p></div>
 }

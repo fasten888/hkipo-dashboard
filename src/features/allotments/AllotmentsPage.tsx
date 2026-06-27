@@ -172,12 +172,7 @@ export function AllotmentsPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {rows.map((subscription) => {
-              const account = accounts.find(
-                (item) => item.id === subscription.accountId,
-              )
               const ipo = ipos.find((item) => item.id === subscription.ipoId)
-              const amount =
-                subscription.allottedShares * (ipo?.issuePrice ?? 0)
               const metrics = getSubscriptionMetrics(
                 subscription,
                 ipo,

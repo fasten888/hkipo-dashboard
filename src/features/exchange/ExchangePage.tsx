@@ -414,14 +414,6 @@ export function ExchangePage() {
   )
 }
 
-const channelLabels = {
-  boc_hk: '中银香港',
-  za_bank: '众安银行',
-  futu: '富途',
-  chief: '致富证券',
-  cash: '线下现金',
-  other: '其他',
-}
 
 function formatCNY(value: number) {
   if (shouldHideMoney('amount')) return '¥ ••••••'
@@ -473,7 +465,7 @@ function RecordDatum({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
       <p className="text-[11px] text-slate-400">{label}</p>
-      
+      <p className="mt-1 break-words text-sm font-semibold text-slate-700">{value}</p>
     </div>
   )
 }
