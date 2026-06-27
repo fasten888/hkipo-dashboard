@@ -87,7 +87,7 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F7F9FC] text-slate-950 lg:flex">
+    <div className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-slate-950 lg:flex">
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/85 px-3 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl sm:px-4 lg:hidden">
         <Brand />
         <div className="flex items-center gap-1">
@@ -102,7 +102,7 @@ export function AppShell({
           <PrivacyButton onClick={() => setPrivacyOpen(true)} compact />
           <button
             type="button"
-            className="rounded-xl p-2 text-slate-600 hover:bg-slate-100"
+            className="rounded-[14px] p-2 text-slate-600 transition hover:bg-slate-100"
             aria-label="打开导航"
             onClick={() => setMobileMenuOpen(true)}
           >
@@ -134,7 +134,7 @@ export function AppShell({
               <Brand />
               <button
                 type="button"
-                className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                className="rounded-[14px] p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
                 aria-label="关闭导航"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -150,7 +150,7 @@ export function AppShell({
       )}
 
       <main className="min-w-0 flex-1 lg:ml-[17.5rem]">
-        <div className="sticky top-0 z-20 hidden h-[72px] items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F7F9FC]/85 px-10 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
+        <div className="sticky top-0 z-20 hidden h-[72px] items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F8FAFC]/85 px-10 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
               港新账本 · Personal Investment OS
@@ -167,7 +167,7 @@ export function AppShell({
             <HeaderPill icon={CalendarRange} label="近12个月" />
             <button
               type="button"
-              className="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200/80 bg-white text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 hover:shadow-card"
+              className="grid h-11 w-11 place-items-center rounded-[14px] border border-slate-200/80 bg-white text-slate-500 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900 hover:shadow-card"
               aria-label="刷新同步"
               onClick={handleRefresh}
             >
@@ -188,7 +188,7 @@ export function AppShell({
             <PrivacyButton onClick={() => setPrivacyOpen(true)} />
             <button
               type="button"
-              className="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200/80 bg-white text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-900 hover:shadow-card"
+              className="grid h-11 w-11 place-items-center rounded-[14px] border border-slate-200/80 bg-white text-slate-500 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-slate-900 hover:shadow-card"
               aria-label="用户菜单"
             >
               <UserCircle2 size={18} />
@@ -244,7 +244,7 @@ function CloudButton({
   return (
     <button
       type="button"
-      className={`inline-flex items-center gap-2 rounded-2xl border px-3.5 py-2.5 text-xs font-medium shadow-sm transition hover:-translate-y-0.5 hover:shadow-card ${
+      className={`inline-flex h-11 items-center gap-2 rounded-[14px] border px-3.5 text-xs font-medium shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-card ${
         hasProblem
           ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
           : connected && pending
@@ -272,7 +272,7 @@ function InstallButton({
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-2 rounded-2xl bg-[#2563EB] px-3.5 py-2.5 text-xs font-medium text-white shadow-sm shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-card"
+      className="inline-flex h-11 items-center gap-2 rounded-[14px] bg-[#2563EB] px-3.5 text-xs font-medium text-white shadow-sm shadow-blue-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-card"
       aria-label="安装港新账本"
       onClick={onClick}
     >
@@ -328,7 +328,7 @@ function PrivacyButton({
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white px-3.5 py-2.5 text-xs font-medium text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-card"
+      className="inline-flex h-11 items-center gap-2 rounded-[14px] border border-slate-200/80 bg-white px-3.5 text-xs font-medium text-slate-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-card"
       aria-label="打开隐私设置"
       onClick={onClick}
     >
@@ -341,7 +341,7 @@ function PrivacyButton({
 function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#8B5CF6] text-white shadow-lg shadow-blue-500/20">
+      <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-gradient-to-br from-[#2563EB] to-[#8B5CF6] text-white shadow-lg shadow-blue-500/20">
         <span className="text-sm font-black tracking-tighter">HK</span>
       </div>
       <div>
@@ -364,34 +364,51 @@ function SidebarContent({
   onNavigate: (navigation: NavigationKey) => void
 }) {
   const cloud = useAppData()
+  const allNavigation = [...mainNavigation, ...secondaryNavigation]
+  const navigationGroups: Array<{ label: string; ids: NavigationKey[] }> = [
+    {
+      label: '驾驶舱',
+      ids: ['dashboard', 'statistics', 'review'],
+    },
+    {
+      label: '新股管理',
+      ids: ['ipos', 'subscriptions', 'allotments', 'sales'],
+    },
+    {
+      label: '资金中心',
+      ids: ['accounts', 'deposits', 'exchange', 'holdings'],
+    },
+    {
+      label: '系统',
+      ids: ['data', 'safety', 'settings'],
+    },
+  ]
   return (
     <>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        <p className="px-3 pb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
-          工作台
-        </p>
-        {mainNavigation.map((item) => (
-          <NavItem
-            key={item.id}
-            item={item}
-            active={item.id === activeNavigation}
-            onNavigate={onNavigate}
-          />
-        ))}
-
-        <div className="pt-7">
-          <p className="px-3 pb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
-            系统
-          </p>
-          {secondaryNavigation.map((item) => (
-            <NavItem
-              key={item.id}
-              item={item}
-              active={item.id === activeNavigation}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
+        {navigationGroups.map((group) => {
+          const items = group.ids
+            .map((id) => allNavigation.find((item) => item.id === id))
+            .filter((item): item is NavigationItem => Boolean(item))
+          if (items.length === 0) return null
+          return (
+            <div key={group.label} className="pt-2 first:pt-0">
+              <p className="px-3 pb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                {group.label}
+              </p>
+              <div className="space-y-1">
+                {items.map((item) => (
+                  <NavItem
+                    key={item.id}
+                    item={item}
+                    active={item.id === activeNavigation}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </nav>
 
       <div className="m-4 rounded-[22px] border border-slate-200/70 bg-white p-4 shadow-card">
@@ -426,11 +443,11 @@ function NavItem({
     <button
       type="button"
       disabled={!available}
-      className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm transition ${
+      className={`group flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left text-sm transition duration-200 ${
         active
-          ? 'bg-slate-950 font-medium text-white shadow-card'
+          ? 'bg-[#2563EB] font-medium text-white shadow-card'
           : available
-            ? 'text-slate-500 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950'
+            ? 'text-slate-600 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950'
             : 'cursor-not-allowed text-slate-600'
       }`}
       onClick={() => onNavigate(id)}
@@ -456,7 +473,7 @@ function HeaderPill({
   return (
     <button
       type="button"
-      className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200/80 bg-white px-3.5 text-xs font-medium text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-card"
+      className="inline-flex h-11 items-center gap-2 rounded-[14px] border border-slate-200/80 bg-white px-3.5 text-xs font-medium text-slate-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-card"
     >
       <Icon size={16} className="text-slate-400" />
       {label}

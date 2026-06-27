@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    color: #0f172a;
-    background: #f7f9fc;
+    color: #111827;
+    background: #f8fafc;
     font-synthesis: none;
     font-variant-numeric: tabular-nums;
     text-rendering: optimizeLegibility;
@@ -21,9 +21,9 @@
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.08), transparent 30rem),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(247, 249, 252, 0) 18rem),
-      #f7f9fc;
+      radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.06), transparent 30rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(248, 250, 252, 0) 18rem),
+      #f8fafc;
     font-size: 14px;
     line-height: 1.55;
   }
@@ -100,31 +100,31 @@
   }
 
   .os-card {
-    @apply rounded-[24px] border border-slate-900/[0.05] bg-white shadow-card;
+    @apply rounded-[24px] border border-slate-900/[0.05] bg-white p-7 shadow-card;
   }
 
   .os-card-hover {
-    @apply transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(15,23,42,.08)];
+    @apply transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_16px_42px_rgba(15,23,42,.09)];
   }
 
   .os-button-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#2563EB] px-4 text-sm font-medium text-white shadow-sm shadow-blue-500/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-card active:translate-y-0;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] px-4 text-sm font-medium text-white shadow-sm shadow-blue-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-card active:translate-y-0;
   }
 
   .os-button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-slate-900/[0.08] bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-card active:translate-y-0;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] border border-slate-900/[0.08] bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-card active:translate-y-0;
   }
 
   .os-button-ghost {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-950;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] px-4 text-sm font-medium text-slate-500 transition duration-200 hover:bg-slate-100 hover:text-slate-950;
   }
 
   .os-button-danger {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 text-sm font-medium text-white shadow-sm shadow-red-500/20 transition hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-card active:translate-y-0;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-red-500 px-4 text-sm font-medium text-white shadow-sm shadow-red-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-card active:translate-y-0;
   }
 
   .os-input {
-    @apply min-h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15;
+    @apply min-h-11 rounded-[14px] border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15;
   }
 
   .page-enter {
@@ -137,20 +137,21 @@
   }
 
   .amount-prefix {
-    @apply shrink-0 text-[clamp(1rem,1.2vw,1.125rem)] font-medium tracking-[-0.01em] text-slate-400;
+    @apply shrink-0 text-[18px] font-medium tracking-[-0.01em] text-slate-400;
   }
 
   .amount-number {
-    @apply min-w-0 shrink text-[clamp(2.25rem,2.7vw,2.625rem)] font-semibold leading-none tracking-[-0.04em];
-    font-size: clamp(1.9rem, 2.55vw, 2.625rem);
+    @apply min-w-0 shrink font-bold leading-none tracking-[-0.04em] text-[#111827];
+    font-size: clamp(2.25rem, 2.7vw, 2.625rem);
   }
 
   .amount-number-compact {
-    font-size: clamp(1.65rem, 2.2vw, 2.25rem);
+    font-size: clamp(1.9rem, 2.25vw, 2.25rem);
   }
 
   .rate-number {
-    @apply whitespace-nowrap text-[clamp(2rem,2.7vw,2.5rem)] font-semibold leading-none tracking-[-0.04em] text-slate-950 tabular-nums;
+    @apply whitespace-nowrap font-bold leading-none tracking-[-0.04em] text-[#111827] tabular-nums;
+    font-size: clamp(2.25rem, 2.7vw, 2.625rem);
     font-variant-numeric: tabular-nums;
   }
 }

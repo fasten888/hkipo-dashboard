@@ -21,7 +21,7 @@ export default {
         },
       },
       boxShadow: {
-        card: '0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px rgba(15, 23, 42, 0.05)',
+        card: '0 8px 30px rgba(15, 23, 42, 0.06)',
         modal: '0 24px 80px rgba(15, 23, 42, 0.24)',
       },
       fontFamily: {

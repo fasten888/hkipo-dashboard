@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   CalendarDays,
   CalendarClock,
+  ChevronRight,
   CircleDollarSign,
   Clock3,
   Gauge,
@@ -212,7 +213,7 @@ export function DashboardPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
             港股打新分析驾驶舱
           </div>
-          <h1 className="text-3xl font-medium tracking-[-0.04em] text-slate-950 sm:text-5xl">
+          <h1 className="text-[36px] font-bold leading-tight tracking-[-0.04em] text-[#111827]">
             总览
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
@@ -247,6 +248,7 @@ export function DashboardPage() {
             profit={stats.totalProfit}
             icon={CircleDollarSign}
             prominent
+            tone="profit"
             hint={`较上期 ${formatSignedDelta(monthDelta)}`}
           />
           <HeroMetric
@@ -263,6 +265,7 @@ export function DashboardPage() {
             profit={stats.profitRate}
             icon={TrendingUp}
             prominent
+            tone="rate"
             hint="按累计投入资金计算"
           />
           <HeroMetric
@@ -271,6 +274,7 @@ export function DashboardPage() {
             countValue={stats.totalCost}
             formatter={(value) => formatHKD(value, 'amount', 'dashboardKpi')}
             icon={PackageOpen}
+            tone="cost"
             hint="融资申购费 + 卖出佣金"
           />
           <HeroMetric
@@ -279,6 +283,7 @@ export function DashboardPage() {
             countValue={stats.winRate}
             formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
             icon={Target}
+            tone="win"
             hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
           />
         </div>
@@ -295,7 +300,7 @@ export function DashboardPage() {
             countValue={performance.overallWinRate}
             formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
             icon={Trophy}
-            tone="orange"
+            tone="win"
           />
           <HeroMetric
             label="本月收益"
@@ -308,7 +313,7 @@ export function DashboardPage() {
             formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={performance.monthProfit}
             icon={CalendarDays}
-            tone="blue"
+            tone="profit"
           />
           <HeroMetric
             label="暗盘收益"
@@ -317,7 +322,7 @@ export function DashboardPage() {
             formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={greyStats.profit}
             icon={Gauge}
-            tone="purple"
+            tone="profit"
           />
           <HeroMetric
             label="首日收益"
@@ -330,20 +335,20 @@ export function DashboardPage() {
             formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
             profit={firstDayStats.profit}
             icon={Sparkles}
-            tone="emerald"
+            tone="profit"
           />
       </section>
 
       <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.55fr)]">
-        <div className="os-card os-card-hover p-5 sm:p-6">
+        <div className="os-card os-card-hover">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <LineChart size={18} className="text-brand-600" />
-                <h2 className="font-medium text-slate-950">收益趋势</h2>
+                <h2 className="text-[15px] font-medium text-[#111827]">收益趋势</h2>
               </div>
-              <p className="mt-1 text-sm text-slate-400">
-                红线为累计收益，蓝线为当期收益
+              <p className="mt-1 text-[13px] font-normal text-slate-400">
+                红线为累计收益，紫线为当期收益
               </p>
             </div>
             <div className="flex rounded-2xl bg-slate-100 p-1">
@@ -453,7 +458,7 @@ function SectionHeading({
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
           {eyebrow}
         </p>
-        <h2 className="mt-1 text-[28px] font-medium leading-tight tracking-[-0.035em] text-slate-950">
+        <h2 className="mt-1 text-2xl font-bold leading-tight tracking-[-0.035em] text-[#111827]">
           {title}
         </h2>
       </div>
@@ -473,7 +478,7 @@ function HeroMetric({
   icon: Icon,
   prominent = false,
   hint,
-  tone = 'slate',
+  tone = 'neutral',
 }: {
   label: string
   value: string
@@ -483,36 +488,59 @@ function HeroMetric({
   icon: typeof Trophy
   prominent?: boolean
   hint?: string
-  tone?: 'slate' | 'blue' | 'purple' | 'emerald' | 'orange'
+  tone?: 'profit' | 'cost' | 'rate' | 'win' | 'count' | 'neutral'
 }) {
-  const toneClass = {
-    slate: prominent
-      ? 'bg-slate-950 text-white'
-      : 'bg-slate-100 text-slate-500',
-    blue: 'bg-blue-50 text-blue-600',
-    purple: 'bg-violet-50 text-violet-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    orange: 'bg-amber-50 text-amber-600',
+  const toneStyle = {
+    profit: {
+      icon: 'bg-[#FEE2E2] text-[#EF4444]',
+      value: 'profit' as const,
+    },
+    cost: {
+      icon: 'bg-[#DCFCE7] text-[#10B981]',
+      value: 'cost' as const,
+    },
+    rate: {
+      icon: 'bg-[#F3E8FF] text-[#7C3AED]',
+      value: 'rate' as const,
+    },
+    win: {
+      icon: 'bg-[#FEF3C7] text-[#F59E0B]',
+      value: 'win' as const,
+    },
+    count: {
+      icon: 'bg-[#DBEAFE] text-[#2563EB]',
+      value: 'count' as const,
+    },
+    neutral: {
+      icon: prominent
+        ? 'bg-slate-100 text-slate-600'
+        : 'bg-slate-100 text-slate-500',
+      value: 'neutral' as const,
+    },
   }[tone]
   return (
-    <div className="os-card os-card-hover relative min-w-0 p-5 sm:p-6">
+    <div className="os-card os-card-hover relative min-w-0">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-slate-400">{label}</p>
+        <p className="text-[15px] font-medium text-slate-400">{label}</p>
         <div
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${toneClass}`}
+          className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] ${toneStyle.icon}`}
         >
-          <Icon size={18} />
+          <Icon size={20} />
         </div>
       </div>
       <p className="mt-8 min-w-0 overflow-hidden">
         {countValue === undefined || !formatter ? (
-          <MetricValueText value={value} numericValue={profit} />
+          <MetricValueText value={value} numericValue={profit} tone={toneStyle.value} />
         ) : (
           <CountUpNumber
             value={countValue}
             format={formatter}
             render={(formatted) => (
-              <MetricValueText value={formatted} numericValue={profit} />
+              <MetricValueText
+                value={formatted}
+                numericValue={profit}
+                tone={toneStyle.value}
+              />
             )}
           />
         )}
@@ -548,12 +576,12 @@ function CompositionCard({
       : '#E2E8F0 0% 100%'
 
   return (
-    <div className="os-card os-card-hover p-5 sm:p-6">
+    <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
         <PieChart size={18} className="text-violet-500" />
-        <h2 className="font-medium text-slate-950">收益构成</h2>
+        <h2 className="text-[15px] font-medium text-[#111827]">收益构成</h2>
       </div>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-[13px] font-normal text-slate-400">
         看清楚钱从哪里来，也看清成本吃掉了多少。
       </p>
       <div className="mt-8 grid place-items-center">
@@ -620,9 +648,14 @@ function AiAdvisor({
     <div className="relative overflow-hidden rounded-[28px] border border-blue-500/10 bg-slate-950 p-5 text-white shadow-[0_18px_50px_rgba(15,23,42,.18)] sm:p-6">
       <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/20 blur-3xl" />
       <div className="relative">
-        <div className="flex items-center gap-2 text-sm font-medium text-blue-200">
+        <div className="flex items-center justify-between gap-3 text-sm font-medium text-blue-200">
+          <span className="inline-flex items-center gap-2">
           <Sparkles size={18} />
           AI 建议预留
+          </span>
+          <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-blue-100">
+            Beta
+          </span>
         </div>
         <h2 className="mt-4 text-2xl font-medium tracking-[-0.03em]">
           下一步应该做什么
@@ -653,15 +686,16 @@ function UpcomingIpoCard({
   ipos: Ipo[]
   subscriptions: Subscription[]
 }) {
+  const today = new Date().toISOString().slice(0, 10)
   return (
-    <div className="os-card os-card-hover p-5 sm:p-6">
+    <div className="os-card os-card-hover">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <CalendarClock size={18} className="text-amber-500" />
-            <h2 className="font-medium text-slate-950">Upcoming IPO</h2>
+            <h2 className="text-[15px] font-medium text-[#111827]">Upcoming IPO</h2>
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-[13px] font-normal text-slate-400">
             最近可申购、上市和资金释放节点。
           </p>
         </div>
@@ -693,8 +727,8 @@ function UpcomingIpoCard({
                       {ipo.industry || '未分类'} · {participants} 个账户
                     </p>
                   </div>
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 shadow-sm">
-                    {ipo.subscriptionDate || ipo.listingDate}
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-amber-600 shadow-sm">
+                    {getIpoBadge(ipo, today)}
                   </span>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
@@ -728,14 +762,14 @@ function AccountCommandCard({
   }>
 }) {
   return (
-    <div className="os-card os-card-hover p-5 sm:p-6">
+    <div className="os-card os-card-hover">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <Trophy size={18} className="text-amber-500" />
-            <h2 className="font-medium text-slate-950">账户 Command Center</h2>
+            <h2 className="text-[15px] font-medium text-[#111827]">账户 Command Center</h2>
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-[13px] font-normal text-slate-400">
             卡片化 Top5，不再把排行榜做成冷冰冰的表格。
           </p>
         </div>
@@ -802,12 +836,12 @@ function CapitalUsageCard({
     { label: '可抵押额度', value: collateralCapacity, icon: Target },
   ]
   return (
-    <div className="os-card os-card-hover p-5 sm:p-6">
+    <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
         <Wallet size={18} className="text-emerald-500" />
-        <h2 className="font-medium text-slate-950">资金占用</h2>
+        <h2 className="text-[15px] font-medium text-[#111827]">资金占用</h2>
       </div>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-[13px] font-normal text-slate-400">
         看清当前资金在哪里，以及还能释放多少打新能力。
       </p>
       <div className="mt-5 space-y-3">
@@ -871,12 +905,12 @@ function ActivityTimeline({
       : fallback
 
   return (
-    <div className="os-card os-card-hover p-5 sm:p-6">
+    <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
         <Activity size={18} className="text-blue-500" />
-        <h2 className="font-medium text-slate-950">最近动态</h2>
+        <h2 className="text-[15px] font-medium text-[#111827]">最近动态</h2>
       </div>
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 text-[13px] font-normal text-slate-400">
         最近 10 条关键操作，像投资系统的 Activity Timeline。
       </p>
       <div className="mt-6 space-y-4">
@@ -886,7 +920,10 @@ function ActivityTimeline({
           </p>
         ) : (
           rows.slice(0, 10).map((row) => (
-            <div key={row.id} className="flex gap-3">
+            <div
+              key={row.id}
+              className="group flex gap-3 rounded-2xl p-3 transition duration-200 hover:bg-slate-50"
+            >
               <div className="mt-1 flex flex-col items-center">
                 <span className="h-2.5 w-2.5 rounded-full bg-brand-600" />
                 <span className="mt-2 h-full min-h-8 w-px bg-slate-100" />
@@ -896,8 +933,12 @@ function ActivityTimeline({
                   <p className="truncate text-sm font-medium text-slate-950">
                     {row.title}
                   </p>
-                  <span className="text-xs font-medium text-slate-400">
+                  <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
                     {formatDateTime(row.createdAt)}
+                    <ChevronRight
+                      size={14}
+                      className="opacity-0 transition group-hover:opacity-100"
+                    />
                   </span>
                 </div>
                 <p className="mt-1 truncate text-sm text-slate-400">
@@ -963,10 +1004,10 @@ function DecisionStack({
     },
   ]
   return (
-    <div className="os-card os-card-hover p-5 sm:p-6">
+    <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
         <AlertTriangle size={18} className="text-amber-500" />
-        <h2 className="font-medium text-slate-950">风险与机会</h2>
+        <h2 className="text-[15px] font-medium text-[#111827]">风险与机会</h2>
       </div>
       <div className="mt-5 space-y-3">
         {rows.map((row) => (
@@ -1079,11 +1120,25 @@ function ProfitTrendChart({
   const cumulativePoints = rows.map((row, index) =>
     point(row.cumulativeProfit, index),
   )
+  const cumulativeAreaPoints =
+    cumulativePoints.length > 0
+      ? [
+          `0,88`,
+          ...cumulativePoints.map(({ x, y }) => `${x},${y}`),
+          `100,88`,
+        ].join(' ')
+      : ''
 
   return (
     <div className="mt-6 overflow-hidden sm:overflow-x-auto">
       <div className="min-w-0 sm:min-w-[640px]">
         <svg viewBox="0 0 100 100" className="h-64 w-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="profit-area" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#EF4444" stopOpacity="0" />
+            </linearGradient>
+          </defs>
           {[12, 31, 50, 69, 88].map((y) => (
             <line
               key={y}
@@ -1096,18 +1151,26 @@ function ProfitTrendChart({
               vectorEffect="non-scaling-stroke"
             />
           ))}
+          <polygon
+            points={cumulativeAreaPoints}
+            fill="url(#profit-area)"
+          />
           <polyline
             points={periodPoints.map(({ x, y }) => `${x},${y}`).join(' ')}
             fill="none"
-            stroke="#6366F1"
+            stroke="#7C3AED"
             strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
           <polyline
             points={cumulativePoints.map(({ x, y }) => `${x},${y}`).join(' ')}
             fill="none"
-            stroke="#ef4444"
+            stroke="#EF4444"
             strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
         </svg>
@@ -1151,4 +1214,12 @@ function formatDateTime(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date)
+}
+
+function getIpoBadge(ipo: Ipo, today: string) {
+  if (ipo.subscriptionDate === today) return '今日可申购'
+  if (ipo.listingDate === today) return '今日上市'
+  if (ipo.subscriptionDate && ipo.subscriptionDate > today) return '即将申购'
+  if (ipo.listingDate && ipo.listingDate > today) return '即将上市'
+  return '待关注'
 }

@@ -12,10 +12,10 @@ interface StatCardProps {
 }
 
 const toneStyles = {
-  blue: 'bg-blue-50 text-blue-600',
-  violet: 'bg-violet-50 text-violet-600',
-  emerald: 'bg-emerald-50 text-emerald-600',
-  amber: 'bg-amber-50 text-amber-600',
+  blue: 'bg-[#DBEAFE] text-[#2563EB]',
+  violet: 'bg-[#F3E8FF] text-[#7C3AED]',
+  emerald: 'bg-[#DCFCE7] text-[#10B981]',
+  amber: 'bg-[#FEF3C7] text-[#F59E0B]',
 }
 
 export function StatCard({
@@ -28,22 +28,22 @@ export function StatCard({
   tooltip,
 }: StatCardProps) {
   return (
-    <div className="group os-card os-card-hover relative min-w-0 p-5 sm:p-6" title={tooltip}>
+    <div className="group os-card os-card-hover relative min-w-0" title={tooltip}>
       <div className="flex items-start justify-between gap-2 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="text-sm font-medium text-slate-400">{label}</p>
+            <p className="text-[15px] font-medium text-slate-400">{label}</p>
             {tooltip && <Info size={13} className="text-slate-300" />}
           </div>
           <p className="mt-5 min-w-0 overflow-hidden">
             <MetricValueText value={value} numericValue={profitValue} />
           </p>
-          <p className="mt-3 text-[13px] leading-5 text-slate-400">
+          <p className="mt-3 text-[13px] font-normal leading-5 text-slate-400">
             {hint}
           </p>
         </div>
-        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl sm:h-11 sm:w-11 ${toneStyles[tone]}`}>
-          <Icon size={19} />
+        <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] ${toneStyles[tone]}`}>
+          <Icon size={20} />
         </div>
       </div>
       {tooltip && (
