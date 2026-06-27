@@ -321,19 +321,7 @@ export function SubscriptionsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            V1 · 核心业务
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-            申购记录
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            管理每个账户参与新股申购的完整记录。
-          </p>
-        </div>
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div className="flex flex-col gap-2 sm:flex-row">
           {canUndoSubscriptionBatch && (
             <button
@@ -391,7 +379,7 @@ export function SubscriptionsPage() {
         </div>
       </div>
 
-      <section className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="总参与次数"
           value={String(subscriptions.length)}
@@ -584,10 +572,7 @@ export function SubscriptionsPage() {
                     <h3 className="truncate text-base font-bold text-slate-900">
                       {group.ipo?.name ?? '已删除新股'}
                     </h3>
-                    <p className="mt-1 text-xs text-slate-400">
-                      {group.ipo?.stockCode ?? '-'} · 参与账户{' '}
-                      {group.records.length} 个
-                    </p>
+                    
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
                       <span className="rounded-full bg-red-50 px-2.5 py-1 text-red-500">
                         中签 {group.winCount}

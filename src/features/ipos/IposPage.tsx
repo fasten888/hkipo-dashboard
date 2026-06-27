@@ -59,10 +59,9 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
   return (
     <>
       {/* ── Header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: C.text3 }}>基础资料</p>
-          <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em]" style={{ color: C.text1 }}>新股资料</h1>
           <p className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>维护新股发行资料，并查看参与账户、中签和收益表现。</p>
         </div>
         <div className="flex gap-2">

@@ -259,15 +259,8 @@ export function SalesPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            V1 · 交易记录
-          </div>
-          <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-            卖出记录
-          </h1>
           <p className="mt-2 text-sm text-slate-500">
             支持中签股份分批、多次卖出，并自动计算收益和收益率。
           </p>
@@ -303,7 +296,7 @@ export function SalesPage() {
         {!sort && <span className="text-slate-400">默认最新录入</span>}
       </div>
 
-      <section className="mt-7 grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-2">
         <SaleKpi
           label="累计收益"
           value={formatHKD(totalProfit, 'profit')}

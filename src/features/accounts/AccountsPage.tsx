@@ -91,10 +91,9 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
   return (
     <>
       {/* ── Page header ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: C.text3 }}>账户中心</p>
-          <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em]" style={{ color: C.text1 }}>账户管理</h1>
           <p className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>管理账户资料，并自动汇总打新参与、中签与收益。</p>
         </div>
         <button type="button" className="os-button-primary gap-2" onClick={() => { setEditingAccount(null); setFormOpen(true) }}>

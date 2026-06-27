@@ -141,19 +141,7 @@ export function ExchangePage() {
 
   return (
     <>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            人民币口径资金分析
-          </div>
-          <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-            换汇管理
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            记录人民币兑换港币或美元的实际汇率，并测算期末汇兑盈亏。
-          </p>
-        </div>
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <button
           type="button"
           disabled={accounts.length === 0}
@@ -168,7 +156,7 @@ export function ExchangePage() {
         </button>
       </div>
 
-      <section className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard
           label="人民币总成本"
           value={formatCNY(metrics.cost)}
@@ -216,9 +204,7 @@ export function ExchangePage() {
           </div>
           <div>
             <h2 className="font-bold text-slate-900">期末参考汇率</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-400">
-              按“1 人民币可兑换多少外币”填写。年末更新一次，即可重新计算全部汇兑盈亏。
-            </p>
+            
           </div>
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
@@ -326,9 +312,7 @@ export function ExchangePage() {
                     <p className="font-bold text-slate-800">
                       {account ? formatAccountName(account) : '已删除账户'}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      {record.date} · {record.remarks || '无备注'}
-                    </p>
+                    
                   </div>
                   <div className="grid grid-cols-2 gap-3 lg:block">
                     <RecordDatum
@@ -355,10 +339,7 @@ export function ExchangePage() {
                       label="成交汇率"
                       value={`1 ${record.sourceCurrency} = ${(record.manualRate ?? record.exchangeRate).toFixed(6)} ${record.targetCurrency}`}
                     />
-                    <p className="mt-1 text-xs text-slate-400">
-                      {channelLabels[record.channel]}
-                      {record.manualRate ? ' · 手动汇率' : ''}
-                    </p>
+                    
                     <p
                       className={`mt-2 text-sm font-bold ${
                         profit === null
@@ -492,9 +473,7 @@ function RecordDatum({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
       <p className="text-[11px] text-slate-400">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-700">
-        {value}
-      </p>
+      
     </div>
   )
 }

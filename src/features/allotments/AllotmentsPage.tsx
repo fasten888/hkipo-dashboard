@@ -73,19 +73,7 @@ export function AllotmentsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            V1 · 结果管理
-          </div>
-          <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-            中签管理
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            对应申购记录填写中签结果、股数、手数和计划卖出方式。
-          </p>
-        </div>
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <button
           type="button"
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/15"
@@ -117,7 +105,7 @@ export function AllotmentsPage() {
         {!sort && <span className="text-slate-400">默认最新录入</span>}
       </div>
 
-      <section className="mt-7 grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="已中签"
           value={String(wins)}
@@ -204,9 +192,7 @@ export function AllotmentsPage() {
                     <p className="text-sm font-bold text-slate-800">
                       {ipo?.name ?? '-'}（{ipo?.stockCode ?? '-'}）
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      {formatAccountName(account)}
-                    </p>
+                    
                   </div>
                   <div className="text-sm text-slate-600">
                     {subscription.status === 'won'
@@ -215,9 +201,7 @@ export function AllotmentsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">中签金额</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                      {formatHKD(amount, 'investment')}
-                    </p>
+                    
                   </div>
                   <div>
                     <p className="text-xs text-slate-400">浮盈浮亏</p>

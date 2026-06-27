@@ -31,10 +31,9 @@ export function WithdrawalsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: C.text3 }}>资金管理</p>
-          <h1 className="text-[28px] font-bold leading-tight tracking-[-0.02em]" style={{ color: C.text1 }}>出金管理</h1>
           <p className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>记录各账户出金，并计算净投入和账户实际收益。</p>
         </div>
         <button type="button" disabled={accounts.length === 0} className="os-button-primary gap-2" onClick={() => { setEditing(null); setFormOpen(true) }}>

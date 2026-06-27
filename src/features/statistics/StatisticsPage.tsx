@@ -278,19 +278,12 @@ export function StatisticsPage() {
   return (
     <>
       <div>
-        <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-          V1 · 分析中心
-        </div>
-        <h1 className="text-2xl font-bold text-slate-950 sm:text-3xl">
-          数据统计
-        </h1>
         <p className="mt-2 text-sm text-slate-500">
           对比账户和新股表现，观察月度收益与参与趋势。
         </p>
       </div>
 
-      <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="总收益"
           value={formatHKD(systemStats.totalProfit, 'profit')}
@@ -350,7 +343,7 @@ export function StatisticsPage() {
         />
       </section>
 
-      <div className="mt-7 grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <ProfitSourceAnalysis
           totalProfit={systemStats.totalProfit}
           rows={[
@@ -376,7 +369,7 @@ export function StatisticsPage() {
 
       <SaleStrategyAnalysis rows={strategyStats} />
 
-      <section className="mt-7 grid gap-6 xl:grid-cols-2">
+      <section className="grid gap-6 xl:grid-cols-2">
         <AccountProfitRanking
           title="赚钱账户"
           subtitle="累计收益为正 · 收益从高到低"
@@ -399,7 +392,7 @@ export function StatisticsPage() {
 
       <IndustryAnalysis rows={industryStats} />
 
-      <div className="mt-7 grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <section className="xl:col-span-2 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-4">
           <select
             value={accountRankMetric}
@@ -1010,7 +1003,7 @@ function SaleStrategyAnalysis({
   }
 
   return (
-    <section className="mt-7 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
+    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="font-bold text-slate-900">卖出策略分析</h2>
@@ -1119,7 +1112,7 @@ function IndustryAnalysis({
   rows: ReturnType<typeof getIndustryStats>
 }) {
   return (
-    <section className="mt-7 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
+    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
       <div className="flex items-start justify-between gap-4 px-5 py-5">
         <div>
           <h2 className="font-bold text-slate-900">行业分析</h2>
