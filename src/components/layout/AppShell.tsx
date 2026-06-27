@@ -10,7 +10,6 @@ import {
   Share,
   ShieldCheck,
   SlidersHorizontal,
-  UserCircle2,
   X,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
@@ -111,8 +110,8 @@ export function AppShell({
         </div>
       </header>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[17.5rem] flex-col border-r border-slate-200/70 bg-white/80 text-slate-900 shadow-[10px_0_30px_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
-        <div className="flex h-20 items-center px-6">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[300px] flex-col border-r border-slate-200/70 bg-white/82 text-slate-900 shadow-[10px_0_30px_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
+        <div className="flex h-[72px] items-center px-6">
           <Brand />
         </div>
         <SidebarContent
@@ -149,20 +148,17 @@ export function AppShell({
         </div>
       )}
 
-      <main className="min-w-0 flex-1 lg:ml-[17.5rem]">
-        <div className="sticky top-0 z-20 hidden h-[72px] items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F8FAFC]/85 px-10 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
+      <main className="min-w-0 flex-1 lg:ml-[300px]">
+        <div className="sticky top-0 z-20 hidden h-[72px] items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F8FAFC]/85 px-8 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
           <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
-              港新账本 · Personal Investment OS
-            </p>
-            <h1 className="mt-1 truncate text-xl font-medium tracking-[-0.02em] text-slate-950">
+            <h1 className="truncate text-xl font-bold tracking-[-0.03em] text-[#0F172A]">
               {pageMeta.title}
             </h1>
-            <p className="mt-0.5 truncate text-xs text-slate-500">
+            <p className="mt-1 truncate text-[13px] text-slate-500">
               {pageMeta.subtitle}
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-3">
             <HeaderPill icon={SlidersHorizontal} label="全部账户" />
             <HeaderPill icon={CalendarRange} label="近12个月" />
             <button
@@ -188,14 +184,14 @@ export function AppShell({
             <PrivacyButton onClick={() => setPrivacyOpen(true)} />
             <button
               type="button"
-              className="grid h-11 w-11 place-items-center rounded-[14px] border border-slate-200/80 bg-white text-slate-500 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-slate-900 hover:shadow-card"
+              className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#2563EB] text-sm font-semibold text-white shadow-sm shadow-blue-500/20 transition duration-200 hover:-translate-y-0.5 hover:shadow-card"
               aria-label="用户菜单"
             >
-              <UserCircle2 size={18} />
+              W
             </button>
           </div>
         </div>
-        <div className="page-enter mx-auto min-w-0 max-w-[1540px] px-4 py-5 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        <div className="page-enter mx-auto min-w-0 max-w-[1540px] px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-8">
           {children}
         </div>
       </main>
@@ -341,15 +337,15 @@ function PrivacyButton({
 function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-gradient-to-br from-[#2563EB] to-[#8B5CF6] text-white shadow-lg shadow-blue-500/20">
-        <span className="text-sm font-black tracking-tighter">HK</span>
+      <div className="grid h-12 w-12 place-items-center rounded-[16px] bg-gradient-to-br from-[#2563EB] to-[#8B5CF6] text-white shadow-lg shadow-blue-500/20">
+        <span className="text-base font-black tracking-tighter">HK</span>
       </div>
       <div>
-        <p className={`text-sm font-medium tracking-wide ${inverse ? 'text-white' : 'text-slate-900'}`}>
+        <p className={`text-[16px] font-bold tracking-[-0.02em] ${inverse ? 'text-white' : 'text-slate-900'}`}>
           港新账本
         </p>
-        <p className={`text-[10px] tracking-[0.2em] ${inverse ? 'text-slate-500' : 'text-slate-400'}`}>
-          INVESTMENT OS
+        <p className={`mt-0.5 text-[12px] tracking-[0.12em] ${inverse ? 'text-slate-500' : 'text-slate-400'}`}>
+          PERSONAL INVESTMENT OS
         </p>
       </div>
     </div>
@@ -385,15 +381,15 @@ function SidebarContent({
   ]
   return (
     <>
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-7 overflow-y-auto px-5 py-5">
         {navigationGroups.map((group) => {
           const items = group.ids
             .map((id) => allNavigation.find((item) => item.id === id))
             .filter((item): item is NavigationItem => Boolean(item))
           if (items.length === 0) return null
           return (
-            <div key={group.label} className="pt-2 first:pt-0">
-              <p className="px-3 pb-2 text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+            <div key={group.label}>
+              <p className="px-2 pb-3 text-[12px] font-medium uppercase tracking-[0.15em] text-slate-400">
                 {group.label}
               </p>
               <div className="space-y-1">
@@ -411,17 +407,17 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="m-4 rounded-[22px] border border-slate-200/70 bg-white p-4 shadow-card">
-        <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-700">
-          <ShieldCheck size={15} className="text-emerald-500" />
+      <div className="m-5 rounded-[20px] border border-slate-900/[0.05] bg-white p-5 shadow-card">
+        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-700">
+          <ShieldCheck size={16} className="text-emerald-500" />
           {cloud.cloudUser ? '本地 + 云端保护' : '本地数据保护'}
         </div>
-        <p className="text-[11px] leading-5 text-slate-500">
+        <p className="text-xs leading-5 text-slate-500">
           {cloud.cloudUser
             ? `已登录 ${cloud.cloudUser.email}，修改后自动同步。`
             : '数据保存在当前浏览器；登录云同步后可跨设备使用。'}
         </p>
-        <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">
+        <p className="mt-5 text-[12px] font-medium text-slate-400">
           v{APP_VERSION}
         </p>
       </div>
@@ -443,7 +439,7 @@ function NavItem({
     <button
       type="button"
       disabled={!available}
-      className={`group flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-left text-sm transition duration-200 ${
+      className={`group flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-left text-[16px] font-medium transition duration-200 ${
         active
           ? 'bg-[#2563EB] font-medium text-white shadow-card'
           : available
@@ -452,7 +448,7 @@ function NavItem({
       }`}
       onClick={() => onNavigate(id)}
     >
-      <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
+      <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
       <span className="flex-1">{label}</span>
       {!available && (
         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-400">

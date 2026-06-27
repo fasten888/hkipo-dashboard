@@ -209,14 +209,14 @@ export function DashboardPage() {
     <>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-600">
+          <div className="mb-3 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-600">
             <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
             港股打新分析驾驶舱
           </div>
-          <h1 className="text-[36px] font-bold leading-tight tracking-[-0.04em] text-[#111827]">
-            总览
+          <h1 className="text-[48px] font-bold leading-none tracking-[-0.045em] text-[#111827]">
+            投资驾驶舱
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+          <p className="mt-4 max-w-3xl text-[20px] leading-8 text-slate-500">
             先看赚了多少，再判断风险在哪里，最后决定下一步该做什么。
           </p>
         </div>
@@ -239,7 +239,7 @@ export function DashboardPage() {
           title="赚了多少钱"
           description="净收益已经扣除融资申购费和卖出佣金。"
         />
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <HeroMetric
             label="总收益"
             value={formatHKD(stats.totalProfit, 'profit', 'dashboardKpi')}
@@ -289,7 +289,7 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <section className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <HeroMetric
             label="打新胜率"
             value={formatPercent(
@@ -301,6 +301,7 @@ export function DashboardPage() {
             formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
             icon={Trophy}
             tone="win"
+            compact
           />
           <HeroMetric
             label="本月收益"
@@ -314,6 +315,7 @@ export function DashboardPage() {
             profit={performance.monthProfit}
             icon={CalendarDays}
             tone="profit"
+            compact
           />
           <HeroMetric
             label="暗盘收益"
@@ -323,6 +325,7 @@ export function DashboardPage() {
             profit={greyStats.profit}
             icon={Gauge}
             tone="profit"
+            compact
           />
           <HeroMetric
             label="首日收益"
@@ -336,10 +339,11 @@ export function DashboardPage() {
             profit={firstDayStats.profit}
             icon={Sparkles}
             tone="profit"
+            compact
           />
       </section>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.55fr)]">
+      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(520px,0.55fr)]">
         <div className="os-card os-card-hover">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -377,7 +381,7 @@ export function DashboardPage() {
         <CompositionCard rows={profitComposition} total={stats.totalProfit} />
       </section>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
+      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
         <AiAdvisor
           upcomingCount={upcomingIpos.length}
           pendingIpoCount={pendingIpoCount}
@@ -398,7 +402,7 @@ export function DashboardPage() {
         <UpcomingIpoCard ipos={upcomingIpos} subscriptions={subscriptions} />
       </section>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.55fr)]">
+      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.55fr)]">
         <AccountCommandCard rows={accountRanking} />
         <CapitalUsageCard
           financingAmount={financingAmount}
@@ -409,7 +413,7 @@ export function DashboardPage() {
         />
       </section>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
+      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
         <ActivityTimeline
           logs={operationLogs}
           fallbackSubscriptions={recent}
@@ -455,14 +459,14 @@ function SectionHeading({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.15em] text-slate-400">
           {eyebrow}
         </p>
-        <h2 className="mt-1 text-2xl font-bold leading-tight tracking-[-0.035em] text-[#111827]">
+        <h2 className="mt-2 text-[32px] font-bold leading-tight tracking-[-0.04em] text-[#111827]">
           {title}
         </h2>
       </div>
-      <p className="max-w-lg text-[13px] leading-6 text-slate-400">
+      <p className="max-w-lg text-[14px] leading-6 text-slate-400">
         {description}
       </p>
     </div>
@@ -477,6 +481,7 @@ function HeroMetric({
   profit,
   icon: Icon,
   prominent = false,
+  compact = false,
   hint,
   tone = 'neutral',
 }: {
@@ -487,6 +492,7 @@ function HeroMetric({
   profit?: number
   icon: typeof Trophy
   prominent?: boolean
+  compact?: boolean
   hint?: string
   tone?: 'profit' | 'cost' | 'rate' | 'win' | 'count' | 'neutral'
 }) {
@@ -519,7 +525,11 @@ function HeroMetric({
     },
   }[tone]
   return (
-    <div className="os-card os-card-hover relative min-w-0">
+    <div
+      className={`os-card os-card-hover relative min-w-0 ${
+        compact ? 'min-h-[132px]' : 'min-h-[176px]'
+      }`}
+    >
       <div className="flex items-center justify-between gap-2">
         <p className="text-[15px] font-medium text-slate-400">{label}</p>
         <div
@@ -528,7 +538,7 @@ function HeroMetric({
           <Icon size={20} />
         </div>
       </div>
-      <p className="mt-8 min-w-0 overflow-hidden">
+      <p className={`${compact ? 'mt-5' : 'mt-8'} min-w-0 overflow-hidden`}>
         {countValue === undefined || !formatter ? (
           <MetricValueText value={value} numericValue={profit} tone={toneStyle.value} />
         ) : (
@@ -546,7 +556,7 @@ function HeroMetric({
         )}
       </p>
       {hint && (
-        <p className="mt-5 text-[13px] font-medium leading-6 text-slate-400">
+        <p className={`${compact ? 'mt-3' : 'mt-5'} text-[13px] font-medium leading-6 text-slate-400`}>
           {hint}
         </p>
       )}
@@ -576,7 +586,7 @@ function CompositionCard({
       : '#E2E8F0 0% 100%'
 
   return (
-    <div className="os-card os-card-hover">
+    <div className="os-card os-card-hover min-h-[320px]">
       <div className="flex items-center gap-2">
         <PieChart size={18} className="text-violet-500" />
         <h2 className="text-[15px] font-medium text-[#111827]">收益构成</h2>
@@ -584,42 +594,51 @@ function CompositionCard({
       <p className="mt-1 text-[13px] font-normal text-slate-400">
         看清楚钱从哪里来，也看清成本吃掉了多少。
       </p>
-      <div className="mt-8 grid place-items-center">
+      <div className="mt-8 grid items-center gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
         <div
-          className="relative grid h-44 w-44 place-items-center rounded-full"
+          className="relative grid h-[220px] w-[220px] place-items-center rounded-full"
           style={{ background: `conic-gradient(${gradient})` }}
         >
-          <div className="grid h-28 w-28 place-items-center rounded-full bg-white text-center shadow-inner">
+          <div className="grid h-[138px] w-[138px] place-items-center rounded-full bg-white text-center shadow-inner">
             <div>
-              <p className="text-[11px] font-medium text-slate-400">
+              <p className="text-[12px] font-medium text-slate-400">
                 净收益
               </p>
               <p
-                className={`mt-1 text-lg font-semibold tracking-tight ${getProfitColor(total)}`}
+                className={`mt-1 text-xl font-bold tracking-[-0.03em] ${getProfitColor(total)}`}
               >
                 {formatHKD(total, 'profit', 'dashboardKpi')}
               </p>
             </div>
           </div>
         </div>
-      </div>
-      <div className="mt-7 space-y-3">
-        {rows.map((row) => (
-          <div key={row.label} className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: row.color }}
-              />
-              <span className="text-sm font-medium text-slate-500">
-                {row.label}
-              </span>
-            </div>
-            <span className="text-sm font-semibold tabular-nums text-slate-900">
-              {formatHKD(row.value, row.label.includes('费') ? 'amount' : 'profit')}
-            </span>
-          </div>
-        ))}
+        <div className="space-y-5">
+          {rows.map((row) => {
+            const percent =
+              totalWeight > 0
+                ? (Math.abs(row.value) / totalWeight) * 100
+                : 0
+            return (
+              <div key={row.label} className="grid grid-cols-[1fr_auto_auto] items-center gap-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: row.color }}
+                  />
+                  <span className="truncate text-[14px] font-medium text-slate-600">
+                    {row.label}
+                  </span>
+                </div>
+                <span className="text-[14px] font-semibold tabular-nums text-slate-900">
+                  {formatHKD(row.value, row.label.includes('费') ? 'amount' : 'profit')}
+                </span>
+                <span className="w-14 text-right text-[14px] tabular-nums text-slate-500">
+                  {percent.toFixed(1)}%
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
@@ -645,36 +664,43 @@ function AiAdvisor({
     `预计待释放资金 ${formatHKD(pendingReleaseAmount, 'amount')}。`,
   ]
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-blue-500/10 bg-slate-950 p-5 text-white shadow-[0_18px_50px_rgba(15,23,42,.18)] sm:p-6">
-      <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-blue-500/20 blur-3xl" />
-      <div className="relative">
-        <div className="flex items-center justify-between gap-3 text-sm font-medium text-blue-200">
-          <span className="inline-flex items-center gap-2">
-          <Sparkles size={18} />
-          AI 建议预留
-          </span>
-          <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-blue-100">
-            Beta
-          </span>
+    <div className="os-card os-card-hover min-h-[270px]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Sparkles size={18} className="text-[#2563EB]" />
+          <h2 className="text-[15px] font-medium text-[#111827]">AI 智能建议</h2>
         </div>
-        <h2 className="mt-4 text-2xl font-medium tracking-[-0.03em]">
-          下一步应该做什么
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-300">
-          这里先提供基于规则的建议，后续可接入 AI 分析。
-        </p>
-        <div className="mt-6 space-y-3">
-          {rows.map((row) => (
-            <div
-              key={row}
-              className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-sm leading-6 text-slate-100"
-            >
-              <ArrowUpRight size={16} className="mt-1 shrink-0 text-blue-300" />
-              <span>{row}</span>
-            </div>
-          ))}
-        </div>
+        <span className="rounded-full bg-[#F3E8FF] px-2.5 py-1 text-[11px] font-semibold text-[#7C3AED]">
+          Beta
+        </span>
       </div>
+      <p className="mt-2 text-[13px] font-normal leading-6 text-slate-400">
+        这里先提供基于规则的建议，后续可接入 AI 分析。
+      </p>
+      <div className="mt-6 space-y-4">
+        {rows.slice(0, 3).map((row, index) => (
+          <div
+            key={row}
+            className="flex gap-3 rounded-2xl p-2 transition duration-200 hover:bg-slate-50"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-blue-50 text-[#2563EB]">
+              <ArrowUpRight size={16} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-medium leading-5 text-slate-800">
+                {index === 0 ? '未来 3 天新股提醒' : index === 1 ? '待公布结果提醒' : '账户申购建议'}
+              </p>
+              <p className="mt-1 text-[13px] leading-5 text-slate-500">
+                {row}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#2563EB]">
+        查看 AI 详细建议
+        <ChevronRight size={15} />
+      </button>
     </div>
   )
 }
@@ -1132,7 +1158,11 @@ function ProfitTrendChart({
   return (
     <div className="mt-6 overflow-hidden sm:overflow-x-auto">
       <div className="min-w-0 sm:min-w-[640px]">
-        <svg viewBox="0 0 100 100" className="h-64 w-full" preserveAspectRatio="none">
+        <svg
+          viewBox="0 0 100 100"
+          className="h-[320px] w-full"
+          preserveAspectRatio="none"
+        >
           <defs>
             <linearGradient id="profit-area" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor="#EF4444" stopOpacity="0.18" />
@@ -1159,7 +1189,7 @@ function ProfitTrendChart({
             points={periodPoints.map(({ x, y }) => `${x},${y}`).join(' ')}
             fill="none"
             stroke="#7C3AED"
-            strokeWidth="2"
+            strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
@@ -1168,13 +1198,18 @@ function ProfitTrendChart({
             points={cumulativePoints.map(({ x, y }) => `${x},${y}`).join(' ')}
             fill="none"
             stroke="#EF4444"
-            strokeWidth="2.5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
         </svg>
-        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))` }}>
+        <div
+          className="grid gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))`,
+          }}
+        >
           {rows.map((row) => (
             <div key={row.label} className="text-center">
               <p className={`text-[10px] font-semibold ${getProfitColor(row.profit)}`}>
