@@ -9,6 +9,8 @@
     font-synthesis: none;
     font-variant-numeric: tabular-nums;
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   * {
@@ -21,8 +23,9 @@
     min-height: 100vh;
     overflow-x: hidden;
     background:
-      radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.06), transparent 30rem),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(248, 250, 252, 0) 18rem),
+      radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.055), transparent 30rem),
+      radial-gradient(circle at 8% 80%, rgba(139, 92, 246, 0.03), transparent 24rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.70), rgba(248, 250, 252, 0) 16rem),
       #f8fafc;
     font-size: 14px;
     line-height: 1.55;
@@ -99,14 +102,30 @@
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
+  /* ── Card system ── */
   .os-card {
     @apply rounded-[24px] border border-slate-900/[0.05] bg-white p-7 shadow-card;
+  }
+
+  /* Subtle inner-gradient lift on cards */
+  .os-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(160deg, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0) 60%);
+    pointer-events: none;
+  }
+
+  .os-card {
+    position: relative;
   }
 
   .os-card-hover {
     @apply transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_16px_42px_rgba(15,23,42,.09)];
   }
 
+  /* ── Buttons ── */
   .os-button-primary {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] px-4 text-sm font-medium text-white shadow-sm shadow-blue-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-card active:translate-y-0;
   }
@@ -123,14 +142,17 @@
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[14px] bg-red-500 px-4 text-sm font-medium text-white shadow-sm shadow-red-500/20 transition duration-200 hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-card active:translate-y-0;
   }
 
+  /* ── Input ── */
   .os-input {
     @apply min-h-11 rounded-[14px] border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15;
   }
 
+  /* ── Page transition ── */
   .page-enter {
-    animation: fade-slide-up 360ms ease-out both;
+    animation: fade-slide-up 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
+  /* ── Amount display ── */
   .amount-line {
     @apply inline-flex max-w-full items-baseline gap-1 whitespace-nowrap tabular-nums;
     font-variant-numeric: tabular-nums;
@@ -140,18 +162,19 @@
     @apply shrink-0 text-[18px] font-medium tracking-[-0.01em] text-slate-400;
   }
 
+  /* Slightly tighter clamp so numbers don't overflow on 1280px screens */
   .amount-number {
     @apply min-w-0 shrink font-bold leading-none tracking-[-0.04em] text-[#111827];
-    font-size: clamp(2.25rem, 2.7vw, 2.625rem);
+    font-size: clamp(2rem, 2.4vw, 2.5rem);
   }
 
   .amount-number-compact {
-    font-size: clamp(1.9rem, 2.25vw, 2.25rem);
+    font-size: clamp(1.75rem, 2vw, 2.125rem);
   }
 
   .rate-number {
     @apply whitespace-nowrap font-bold leading-none tracking-[-0.04em] text-[#111827] tabular-nums;
-    font-size: clamp(2.25rem, 2.7vw, 2.625rem);
+    font-size: clamp(2rem, 2.4vw, 2.5rem);
     font-variant-numeric: tabular-nums;
   }
 }
@@ -159,7 +182,7 @@
 @keyframes fade-slide-up {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -180,10 +203,10 @@
 
 @media (max-width: 420px) {
   .amount-number {
-    font-size: clamp(1.65rem, 8vw, 2.1rem);
+    font-size: clamp(1.55rem, 7.5vw, 2rem);
   }
 
   .rate-number {
-    font-size: clamp(1.75rem, 8vw, 2.15rem);
+    font-size: clamp(1.65rem, 7.5vw, 2rem);
   }
 }

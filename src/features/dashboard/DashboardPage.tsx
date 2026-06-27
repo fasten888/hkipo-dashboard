@@ -207,21 +207,27 @@ export function DashboardPage() {
 
   return (
     <>
+      {/* ── Page hero ── */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-3 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+          {/* Eyebrow — use slate-500 so it doesn't compete with brand blue */}
+          <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]" />
             港股打新分析驾驶舱
           </div>
-          <h1 className="text-[48px] font-bold leading-none tracking-[-0.045em] text-[#111827]">
+          <h1 className="text-[46px] font-bold leading-[1.04] tracking-[-0.045em] text-[#0F172A]">
             投资驾驶舱
           </h1>
-          <p className="mt-4 max-w-3xl text-[20px] leading-8 text-slate-500">
+          <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-slate-400">
             先看赚了多少，再判断风险在哪里，最后决定下一步该做什么。
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-slate-900/[0.05] bg-white px-4 py-2 text-sm font-medium text-slate-500 shadow-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+        {/* Live badge */}
+        <div className="flex items-center gap-2 self-start rounded-full border border-slate-900/[0.06] bg-white/80 px-4 py-2 text-[13px] font-medium text-slate-400 shadow-sm backdrop-blur lg:self-auto">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
           数据随申购、卖出和同步记录自动更新
         </div>
       </div>
@@ -233,6 +239,7 @@ export function DashboardPage() {
         pendingIpoCount={pendingIpoCount}
       />
 
+      {/* ── KPI row 1: Core metrics ── */}
       <section className="mt-8">
         <SectionHeading
           eyebrow="Core metrics"
@@ -289,73 +296,75 @@ export function DashboardPage() {
         </div>
       </section>
 
+      {/* ── KPI row 2: Performance ── */}
       <section className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          <HeroMetric
-            label="打新胜率"
-            value={formatPercent(
-              performance.overallWinRate,
-              'rate',
-              'dashboardKpi',
-            )}
-            countValue={performance.overallWinRate}
-            formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
-            icon={Trophy}
-            tone="win"
-            compact
-          />
-          <HeroMetric
-            label="本月收益"
-            value={formatHKD(
-              performance.monthProfit,
-              'profit',
-              'dashboardKpi',
-            )}
-            countValue={performance.monthProfit}
-            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-            profit={performance.monthProfit}
-            icon={CalendarDays}
-            tone="profit"
-            compact
-          />
-          <HeroMetric
-            label="暗盘收益"
-            value={formatHKD(greyStats.profit, 'profit', 'dashboardKpi')}
-            countValue={greyStats.profit}
-            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-            profit={greyStats.profit}
-            icon={Gauge}
-            tone="profit"
-            compact
-          />
-          <HeroMetric
-            label="首日收益"
-            value={formatHKD(
-              firstDayStats.profit,
-              'profit',
-              'dashboardKpi',
-            )}
-            countValue={firstDayStats.profit}
-            formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
-            profit={firstDayStats.profit}
-            icon={Sparkles}
-            tone="profit"
-            compact
-          />
+        <HeroMetric
+          label="打新胜率"
+          value={formatPercent(
+            performance.overallWinRate,
+            'rate',
+            'dashboardKpi',
+          )}
+          countValue={performance.overallWinRate}
+          formatter={(value) => formatPercent(value, 'rate', 'dashboardKpi')}
+          icon={Trophy}
+          tone="win"
+          compact
+        />
+        <HeroMetric
+          label="本月收益"
+          value={formatHKD(
+            performance.monthProfit,
+            'profit',
+            'dashboardKpi',
+          )}
+          countValue={performance.monthProfit}
+          formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
+          profit={performance.monthProfit}
+          icon={CalendarDays}
+          tone="profit"
+          compact
+        />
+        <HeroMetric
+          label="暗盘收益"
+          value={formatHKD(greyStats.profit, 'profit', 'dashboardKpi')}
+          countValue={greyStats.profit}
+          formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
+          profit={greyStats.profit}
+          icon={Gauge}
+          tone="profit"
+          compact
+        />
+        <HeroMetric
+          label="首日收益"
+          value={formatHKD(
+            firstDayStats.profit,
+            'profit',
+            'dashboardKpi',
+          )}
+          countValue={firstDayStats.profit}
+          formatter={(value) => formatHKD(value, 'profit', 'dashboardKpi')}
+          profit={firstDayStats.profit}
+          icon={Sparkles}
+          tone="profit"
+          compact
+        />
       </section>
 
+      {/* ── Charts row ── */}
       <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(520px,0.55fr)]">
         <div className="os-card os-card-hover">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <LineChart size={18} className="text-brand-600" />
-                <h2 className="text-[15px] font-medium text-[#111827]">收益趋势</h2>
+                <LineChart size={17} className="text-[#2563EB]" />
+                <h2 className="text-[15px] font-semibold text-[#0F172A]">收益趋势</h2>
               </div>
-              <p className="mt-1 text-[13px] font-normal text-slate-400">
+              <p className="mt-1 text-[13px] text-slate-400">
                 红线为累计收益，紫线为当期收益
               </p>
             </div>
-            <div className="flex rounded-2xl bg-slate-100 p-1">
+            <div className="flex rounded-[14px] bg-slate-100/80 p-1">
               {([
                 ['month', '按月'],
                 ['quarter', '按季度'],
@@ -364,10 +373,10 @@ export function DashboardPage() {
                 <button
                   key={key}
                   type="button"
-                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+                  className={`rounded-[10px] px-3 py-1.5 text-xs font-medium transition duration-150 ${
                     trendPeriod === key
                       ? 'bg-white text-slate-950 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-950'
+                      : 'text-slate-500 hover:text-slate-800'
                   }`}
                   onClick={() => setTrendPeriod(key)}
                 >
@@ -381,6 +390,7 @@ export function DashboardPage() {
         <CompositionCard rows={profitComposition} total={stats.totalProfit} />
       </section>
 
+      {/* ── AI advisor + upcoming IPO ── */}
       <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
         <AiAdvisor
           upcomingCount={upcomingIpos.length}
@@ -402,6 +412,7 @@ export function DashboardPage() {
         <UpcomingIpoCard ipos={upcomingIpos} subscriptions={subscriptions} />
       </section>
 
+      {/* ── Account command + capital ── */}
       <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.55fr)]">
         <AccountCommandCard rows={accountRanking} />
         <CapitalUsageCard
@@ -413,6 +424,7 @@ export function DashboardPage() {
         />
       </section>
 
+      {/* ── Activity + decision ── */}
       <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)]">
         <ActivityTimeline
           logs={operationLogs}
@@ -447,6 +459,10 @@ export function DashboardPage() {
   )
 }
 
+// ─────────────────────────────────────────────
+// Section heading
+// ─────────────────────────────────────────────
+
 function SectionHeading({
   eyebrow,
   title,
@@ -459,10 +475,10 @@ function SectionHeading({
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-[12px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400/80">
           {eyebrow}
         </p>
-        <h2 className="mt-2 text-[32px] font-bold leading-tight tracking-[-0.04em] text-[#111827]">
+        <h2 className="mt-2 text-[30px] font-bold leading-tight tracking-[-0.04em] text-[#0F172A]">
           {title}
         </h2>
       </div>
@@ -472,6 +488,10 @@ function SectionHeading({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// HeroMetric card
+// ─────────────────────────────────────────────
 
 function HeroMetric({
   label,
@@ -524,6 +544,7 @@ function HeroMetric({
       value: 'neutral' as const,
     },
   }[tone]
+
   return (
     <div
       className={`os-card os-card-hover relative min-w-0 ${
@@ -531,11 +552,11 @@ function HeroMetric({
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[15px] font-medium text-slate-400">{label}</p>
+        <p className="text-[14px] font-medium text-slate-400">{label}</p>
         <div
           className={`grid h-11 w-11 shrink-0 place-items-center rounded-[14px] ${toneStyle.icon}`}
         >
-          <Icon size={20} />
+          <Icon size={19} />
         </div>
       </div>
       <p className={`${compact ? 'mt-5' : 'mt-8'} min-w-0 overflow-hidden`}>
@@ -556,13 +577,17 @@ function HeroMetric({
         )}
       </p>
       {hint && (
-        <p className={`${compact ? 'mt-3' : 'mt-5'} text-[13px] font-medium leading-6 text-slate-400`}>
+        <p className={`${compact ? 'mt-3' : 'mt-5'} text-[12px] font-medium leading-5 text-slate-400`}>
           {hint}
         </p>
       )}
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Composition / Donut card
+// ─────────────────────────────────────────────
 
 function CompositionCard({
   rows,
@@ -588,51 +613,61 @@ function CompositionCard({
   return (
     <div className="os-card os-card-hover min-h-[320px]">
       <div className="flex items-center gap-2">
-        <PieChart size={18} className="text-violet-500" />
-        <h2 className="text-[15px] font-medium text-[#111827]">收益构成</h2>
+        <PieChart size={17} className="text-violet-500" />
+        <h2 className="text-[15px] font-semibold text-[#0F172A]">收益构成</h2>
       </div>
-      <p className="mt-1 text-[13px] font-normal text-slate-400">
+      <p className="mt-1 text-[13px] text-slate-400">
         看清楚钱从哪里来，也看清成本吃掉了多少。
       </p>
-      <div className="mt-8 grid items-center gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <div
-          className="relative grid h-[220px] w-[220px] place-items-center rounded-full"
-          style={{ background: `conic-gradient(${gradient})` }}
-        >
-          <div className="grid h-[138px] w-[138px] place-items-center rounded-full bg-white text-center shadow-inner">
-            <div>
-              <p className="text-[12px] font-medium text-slate-400">
-                净收益
-              </p>
-              <p
-                className={`mt-1 text-xl font-bold tracking-[-0.03em] ${getProfitColor(total)}`}
-              >
-                {formatHKD(total, 'profit', 'dashboardKpi')}
-              </p>
+
+      {/* Responsive: stack on small screens, side-by-side on lg+ */}
+      <div className="mt-6 flex flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-8">
+        {/* Donut */}
+        <div className="shrink-0">
+          <div
+            className="relative grid h-[200px] w-[200px] place-items-center rounded-full"
+            style={{ background: `conic-gradient(${gradient})` }}
+          >
+            <div className="grid h-[124px] w-[124px] place-items-center rounded-full bg-white text-center shadow-inner">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                  净收益
+                </p>
+                <p
+                  className={`mt-1 text-lg font-bold tracking-[-0.03em] ${getProfitColor(total)}`}
+                >
+                  {formatHKD(total, 'profit', 'dashboardKpi')}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-        <div className="space-y-5">
+
+        {/* Legend */}
+        <div className="w-full space-y-4">
           {rows.map((row) => {
             const percent =
               totalWeight > 0
                 ? (Math.abs(row.value) / totalWeight) * 100
                 : 0
             return (
-              <div key={row.label} className="grid grid-cols-[1fr_auto_auto] items-center gap-5">
-                <div className="flex min-w-0 items-center gap-3">
+              <div key={row.label} className="flex items-center gap-3">
+                {/* Color dot + label */}
+                <div className="flex min-w-0 flex-1 items-center gap-2.5">
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: row.color }}
                   />
-                  <span className="truncate text-[14px] font-medium text-slate-600">
+                  <span className="truncate text-[13px] font-medium text-slate-600">
                     {row.label}
                   </span>
                 </div>
-                <span className="text-[14px] font-semibold tabular-nums text-slate-900">
+                {/* Amount */}
+                <span className="shrink-0 text-[13px] font-semibold tabular-nums text-slate-900">
                   {formatHKD(row.value, row.label.includes('费') ? 'amount' : 'profit')}
                 </span>
-                <span className="w-14 text-right text-[14px] tabular-nums text-slate-500">
+                {/* Percent */}
+                <span className="w-12 shrink-0 text-right text-[13px] tabular-nums text-slate-400">
                   {percent.toFixed(1)}%
                 </span>
               </div>
@@ -643,6 +678,10 @@ function CompositionCard({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// AI Advisor
+// ─────────────────────────────────────────────
 
 function AiAdvisor({
   upcomingCount,
@@ -667,43 +706,54 @@ function AiAdvisor({
     <div className="os-card os-card-hover min-h-[270px]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-[#2563EB]" />
-          <h2 className="text-[15px] font-medium text-[#111827]">AI 智能建议</h2>
+          <Sparkles size={17} className="text-[#2563EB]" />
+          <h2 className="text-[15px] font-semibold text-[#0F172A]">AI 智能建议</h2>
         </div>
-        <span className="rounded-full bg-[#F3E8FF] px-2.5 py-1 text-[11px] font-semibold text-[#7C3AED]">
+        <span className="rounded-full bg-[#F3E8FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#7C3AED]">
           Beta
         </span>
       </div>
-      <p className="mt-2 text-[13px] font-normal leading-6 text-slate-400">
+      <p className="mt-2 text-[13px] leading-6 text-slate-400">
         这里先提供基于规则的建议，后续可接入 AI 分析。
       </p>
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 space-y-3">
         {rows.slice(0, 3).map((row, index) => (
           <div
             key={row}
-            className="flex gap-3 rounded-2xl p-2 transition duration-200 hover:bg-slate-50"
+            className="flex gap-3 rounded-2xl p-2.5 transition duration-150 hover:bg-slate-50"
           >
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-blue-50 text-[#2563EB]">
-              <ArrowUpRight size={16} />
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] bg-[#EFF6FF] text-[#2563EB]">
+              <ArrowUpRight size={15} />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-medium leading-5 text-slate-800">
-                {index === 0 ? '未来 3 天新股提醒' : index === 1 ? '待公布结果提醒' : '账户申购建议'}
+              <p className="text-[13px] font-semibold leading-5 text-slate-800">
+                {index === 0
+                  ? '未来 3 天新股提醒'
+                  : index === 1
+                  ? '待公布结果提醒'
+                  : '账户申购建议'}
               </p>
-              <p className="mt-1 text-[13px] leading-5 text-slate-500">
+              <p className="mt-0.5 text-[12px] leading-5 text-slate-500">
                 {row}
               </p>
             </div>
           </div>
         ))}
       </div>
-      <button type="button" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#2563EB]">
+      <button
+        type="button"
+        className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#2563EB] transition hover:text-blue-700"
+      >
         查看 AI 详细建议
-        <ChevronRight size={15} />
+        <ChevronRight size={14} />
       </button>
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Upcoming IPO
+// ─────────────────────────────────────────────
 
 function UpcomingIpoCard({
   ipos,
@@ -718,14 +768,14 @@ function UpcomingIpoCard({
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <CalendarClock size={18} className="text-amber-500" />
-            <h2 className="text-[15px] font-medium text-[#111827]">Upcoming IPO</h2>
+            <CalendarClock size={17} className="text-amber-500" />
+            <h2 className="text-[15px] font-semibold text-[#0F172A]">Upcoming IPO</h2>
           </div>
-          <p className="mt-1 text-[13px] font-normal text-slate-400">
+          <p className="mt-1 text-[13px] text-slate-400">
             最近可申购、上市和资金释放节点。
           </p>
         </div>
-        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-600">
+        <span className="rounded-full bg-amber-50 px-3 py-1 text-[12px] font-semibold text-amber-600">
           {ipos.length} 只
         </span>
       </div>
@@ -742,22 +792,22 @@ function UpcomingIpoCard({
             return (
               <div
                 key={ipo.id}
-                className="rounded-2xl border border-slate-900/[0.05] bg-slate-50/70 p-4"
+                className="rounded-[18px] border border-slate-900/[0.05] bg-slate-50/60 p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-950">
+                    <p className="truncate text-[13px] font-semibold text-slate-950">
                       {ipo.name}（{ipo.stockCode || '-'}）
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-0.5 text-[12px] text-slate-400">
                       {ipo.industry || '未分类'} · {participants} 个账户
                     </p>
                   </div>
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-amber-600 shadow-sm">
+                  <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-amber-600 shadow-sm">
                     {getIpoBadge(ipo, today)}
                   </span>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                   <DatePill label="申购" value={ipo.subscriptionDate || '-'} />
                   <DatePill label="上市" value={ipo.listingDate || '-'} />
                 </div>
@@ -772,12 +822,16 @@ function UpcomingIpoCard({
 
 function DatePill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white px-3 py-2 shadow-sm">
-      <p className="text-[10px] font-medium text-slate-400">{label}</p>
-      <p className="mt-1 font-medium text-slate-700">{value}</p>
+    <div className="rounded-[12px] bg-white px-3 py-2 shadow-sm">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">{label}</p>
+      <p className="mt-1 text-[12px] font-semibold text-slate-700">{value}</p>
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Account command center
+// ─────────────────────────────────────────────
 
 function AccountCommandCard({
   rows,
@@ -792,14 +846,14 @@ function AccountCommandCard({
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <Trophy size={18} className="text-amber-500" />
-            <h2 className="text-[15px] font-medium text-[#111827]">账户 Command Center</h2>
+            <Trophy size={17} className="text-amber-500" />
+            <h2 className="text-[15px] font-semibold text-[#0F172A]">账户 Command Center</h2>
           </div>
-          <p className="mt-1 text-[13px] font-normal text-slate-400">
-            卡片化 Top5，不再把排行榜做成冷冰冰的表格。
+          <p className="mt-1 text-[13px] text-slate-400">
+            Top 5 账户收益排行，卡片化一目了然。
           </p>
         </div>
-        <span className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 sm:inline-flex">
+        <span className="hidden rounded-full bg-slate-100 px-3 py-1 text-[12px] font-semibold text-slate-500 sm:inline-flex">
           收益最高
         </span>
       </div>
@@ -807,30 +861,30 @@ function AccountCommandCard({
         {rows.map((row, index) => (
           <div
             key={row.account.id}
-            className="rounded-[22px] border border-slate-900/[0.05] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
+            className="rounded-[20px] border border-slate-900/[0.05] bg-white p-4 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:shadow-card"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div
-                className="grid h-10 w-10 place-items-center rounded-2xl text-sm font-semibold text-white"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-[12px] text-sm font-bold text-white"
                 style={{ background: accountAvatarColor(index) }}
               >
                 {row.account.name.slice(0, 1) || '账'}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-950">
+                <p className="truncate text-[13px] font-semibold text-slate-950">
                   {formatAccountName(row.account)}
                 </p>
-                <p className="mt-0.5 truncate text-xs text-slate-400">
+                <p className="mt-0.5 truncate text-[11px] text-slate-400">
                   {row.account.brokerName || '未填写券商'}
                 </p>
               </div>
             </div>
             <p
-              className={`mt-5 text-xl font-semibold tracking-[-0.03em] ${getProfitColor(row.stats.totalProfit)}`}
+              className={`mt-4 text-[18px] font-bold tracking-[-0.03em] ${getProfitColor(row.stats.totalProfit)}`}
             >
               {formatHKD(row.stats.totalProfit, 'profit')}
             </p>
-            <div className="mt-4 flex items-center justify-between text-xs font-medium text-slate-400">
+            <div className="mt-3 flex items-center justify-between text-[11px] font-medium text-slate-400">
               <span>{row.stats.winCount} 次中签</span>
               <span>{formatPercent(row.stats.profitRate, 'profitRate')}</span>
             </div>
@@ -840,6 +894,10 @@ function AccountCommandCard({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Capital usage
+// ─────────────────────────────────────────────
 
 function CapitalUsageCard({
   financingAmount,
@@ -864,29 +922,29 @@ function CapitalUsageCard({
   return (
     <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
-        <Wallet size={18} className="text-emerald-500" />
-        <h2 className="text-[15px] font-medium text-[#111827]">资金占用</h2>
+        <Wallet size={17} className="text-emerald-500" />
+        <h2 className="text-[15px] font-semibold text-[#0F172A]">资金占用</h2>
       </div>
-      <p className="mt-1 text-[13px] font-normal text-slate-400">
+      <p className="mt-1 text-[13px] text-slate-400">
         看清当前资金在哪里，以及还能释放多少打新能力。
       </p>
-      <div className="mt-5 space-y-3">
+      <div className="mt-5 space-y-2.5">
         {rows.map((row) => {
           const Icon = row.icon
           return (
             <div
               key={row.label}
-              className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+              className="flex items-center justify-between rounded-[16px] bg-slate-50/80 px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded-xl bg-white text-slate-500 shadow-sm">
-                  <Icon size={16} />
+                <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-white text-slate-400 shadow-sm">
+                  <Icon size={14} />
                 </span>
-                <span className="text-sm font-medium text-slate-500">
+                <span className="text-[13px] font-medium text-slate-500">
                   {row.label}
                 </span>
               </div>
-              <span className="text-sm font-semibold tabular-nums text-slate-950">
+              <span className="text-[13px] font-bold tabular-nums text-slate-950">
                 {formatHKD(row.value, 'amount')}
               </span>
             </div>
@@ -896,6 +954,10 @@ function CapitalUsageCard({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Activity timeline
+// ─────────────────────────────────────────────
 
 function ActivityTimeline({
   logs,
@@ -933,13 +995,13 @@ function ActivityTimeline({
   return (
     <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
-        <Activity size={18} className="text-blue-500" />
-        <h2 className="text-[15px] font-medium text-[#111827]">最近动态</h2>
+        <Activity size={17} className="text-[#2563EB]" />
+        <h2 className="text-[15px] font-semibold text-[#0F172A]">最近动态</h2>
       </div>
-      <p className="mt-1 text-[13px] font-normal text-slate-400">
+      <p className="mt-1 text-[13px] text-slate-400">
         最近 10 条关键操作，像投资系统的 Activity Timeline。
       </p>
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 space-y-3">
         {rows.length === 0 ? (
           <p className="rounded-2xl bg-slate-50 p-5 text-sm text-slate-400">
             暂无动态。新增申购、中签、卖出后会自动出现。
@@ -948,26 +1010,26 @@ function ActivityTimeline({
           rows.slice(0, 10).map((row) => (
             <div
               key={row.id}
-              className="group flex gap-3 rounded-2xl p-3 transition duration-200 hover:bg-slate-50"
+              className="group flex gap-3 rounded-[16px] p-3 transition duration-150 hover:bg-slate-50"
             >
-              <div className="mt-1 flex flex-col items-center">
-                <span className="h-2.5 w-2.5 rounded-full bg-brand-600" />
-                <span className="mt-2 h-full min-h-8 w-px bg-slate-100" />
+              <div className="mt-1.5 flex flex-col items-center">
+                <span className="h-2 w-2 rounded-full bg-[#2563EB]" />
+                <span className="mt-2 h-full min-h-7 w-px bg-slate-100" />
               </div>
               <div className="min-w-0 flex-1 pb-2">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="truncate text-sm font-medium text-slate-950">
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="truncate text-[13px] font-semibold text-slate-900">
                     {row.title}
                   </p>
-                  <span className="inline-flex items-center gap-2 text-xs font-medium text-slate-400">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
                     {formatDateTime(row.createdAt)}
                     <ChevronRight
-                      size={14}
+                      size={12}
                       className="opacity-0 transition group-hover:opacity-100"
                     />
                   </span>
                 </div>
-                <p className="mt-1 truncate text-sm text-slate-400">
+                <p className="mt-0.5 truncate text-[12px] text-slate-400">
                   {row.detail}
                 </p>
               </div>
@@ -978,6 +1040,10 @@ function ActivityTimeline({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Decision stack
+// ─────────────────────────────────────────────
 
 function DecisionStack({
   bestAccount,
@@ -1032,19 +1098,19 @@ function DecisionStack({
   return (
     <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
-        <AlertTriangle size={18} className="text-amber-500" />
-        <h2 className="text-[15px] font-medium text-[#111827]">风险与机会</h2>
+        <AlertTriangle size={17} className="text-amber-500" />
+        <h2 className="text-[15px] font-semibold text-[#0F172A]">风险与机会</h2>
       </div>
-      <div className="mt-5 space-y-3">
+      <div className="mt-5 space-y-2.5">
         {rows.map((row) => (
-          <div key={row.label} className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-[11px] font-medium text-slate-400">
+          <div key={row.label} className="rounded-[16px] bg-slate-50/80 p-4 transition hover:bg-slate-100/60">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400">
               {row.label}
             </p>
-            <p className="mt-2 text-sm font-medium text-slate-950">
+            <p className="mt-1.5 text-[13px] font-semibold text-slate-950">
               {row.value}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-500">
+            <p className="mt-0.5 text-[12px] font-medium text-slate-500">
               {row.detail}
             </p>
           </div>
@@ -1053,6 +1119,10 @@ function DecisionStack({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Mobile quick board
+// ─────────────────────────────────────────────
 
 function MobileQuickBoard({
   totalProfit,
@@ -1122,6 +1192,10 @@ function MobileQuickBoard({
   )
 }
 
+// ─────────────────────────────────────────────
+// Profit trend chart
+// ─────────────────────────────────────────────
+
 function ProfitTrendChart({
   rows,
 }: {
@@ -1165,7 +1239,7 @@ function ProfitTrendChart({
         >
           <defs>
             <linearGradient id="profit-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.18" />
+              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.14" />
               <stop offset="100%" stopColor="#EF4444" stopOpacity="0" />
             </linearGradient>
           </defs>
@@ -1185,15 +1259,18 @@ function ProfitTrendChart({
             points={cumulativeAreaPoints}
             fill="url(#profit-area)"
           />
+          {/* Period line (purple) */}
           <polyline
             points={periodPoints.map(({ x, y }) => `${x},${y}`).join(' ')}
             fill="none"
             stroke="#7C3AED"
-            strokeWidth="1.8"
+            strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"
+            strokeDasharray="2 1.5"
             vectorEffect="non-scaling-stroke"
           />
+          {/* Cumulative line (red) */}
           <polyline
             points={cumulativePoints.map(({ x, y }) => `${x},${y}`).join(' ')}
             fill="none"
@@ -1205,7 +1282,7 @@ function ProfitTrendChart({
           />
         </svg>
         <div
-          className="grid gap-2"
+          className="mt-1 grid gap-2"
           style={{
             gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))`,
           }}
@@ -1215,7 +1292,7 @@ function ProfitTrendChart({
               <p className={`text-[10px] font-semibold ${getProfitColor(row.profit)}`}>
                 {formatHKD(row.profit, 'profit')}
               </p>
-              <p className="mt-1 text-[10px] text-slate-400">{row.label}</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">{row.label}</p>
             </div>
           ))}
         </div>
@@ -1223,6 +1300,10 @@ function ProfitTrendChart({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
 
 function formatSignedDelta(value: number) {
   if (!Number.isFinite(value) || value === 0) return '0.0%'

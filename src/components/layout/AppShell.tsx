@@ -87,6 +87,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-slate-950 lg:flex">
+      {/* ── Mobile top bar ── */}
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/70 bg-white/85 px-3 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl sm:px-4 lg:hidden">
         <Brand />
         <div className="flex items-center gap-1">
@@ -110,6 +111,7 @@ export function AppShell({
         </div>
       </header>
 
+      {/* ── Desktop sidebar ── */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[300px] flex-col border-r border-slate-200/70 bg-white/82 text-slate-900 shadow-[10px_0_30px_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
         <div className="flex h-[72px] items-center px-6">
           <Brand />
@@ -120,6 +122,7 @@ export function AppShell({
         />
       </aside>
 
+      {/* ── Mobile drawer ── */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
@@ -148,13 +151,15 @@ export function AppShell({
         </div>
       )}
 
+      {/* ── Main content ── */}
       <main className="min-w-0 flex-1 lg:ml-[300px]">
+        {/* Desktop header */}
         <div className="sticky top-0 z-20 hidden h-[72px] items-center justify-between gap-4 border-b border-slate-200/70 bg-[#F8FAFC]/85 px-8 shadow-[0_1px_0_rgba(15,23,42,.03)] backdrop-blur-xl lg:flex">
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold tracking-[-0.03em] text-[#0F172A]">
+            <h1 className="truncate text-[22px] font-bold tracking-[-0.035em] text-[#0F172A]">
               {pageMeta.title}
             </h1>
-            <p className="mt-1 truncate text-[13px] text-slate-500">
+            <p className="mt-0.5 truncate text-[13px] leading-5 text-slate-400">
               {pageMeta.subtitle}
             </p>
           </div>
@@ -182,6 +187,7 @@ export function AppShell({
             />
             {!installed && <InstallButton onClick={handleInstall} />}
             <PrivacyButton onClick={() => setPrivacyOpen(true)} />
+            {/* User avatar */}
             <button
               type="button"
               className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#2563EB] text-sm font-semibold text-white shadow-sm shadow-blue-500/20 transition duration-200 hover:-translate-y-0.5 hover:shadow-card"
@@ -191,10 +197,13 @@ export function AppShell({
             </button>
           </div>
         </div>
+
+        {/* Page content */}
         <div className="page-enter mx-auto min-w-0 max-w-[1540px] px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-8">
           {children}
         </div>
       </main>
+
       <PrivacySettingsModal
         open={privacyOpen}
         onClose={() => setPrivacyOpen(false)}
@@ -210,6 +219,10 @@ export function AppShell({
     </div>
   )
 }
+
+// ─────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────
 
 function CloudButton({
   connected,
@@ -297,13 +310,13 @@ function InstallHelpModal({
           <p className="font-semibold text-slate-800">iPhone / iPad</p>
           <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-slate-500">
             <Share size={17} className="mt-1 shrink-0 text-brand-600" />
-            使用 Safari 打开网址，点击底部“分享”，再选择“添加到主屏幕”。
+            使用 Safari 打开网址，点击底部"分享"，再选择"添加到主屏幕"。
           </p>
         </div>
         <div className="rounded-2xl bg-slate-50 p-4">
           <p className="font-semibold text-slate-800">Android</p>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            使用 Chrome 打开网址，点击浏览器菜单中的“安装应用”或“添加到主屏幕”。
+            使用 Chrome 打开网址，点击浏览器菜单中的"安装应用"或"添加到主屏幕"。
           </p>
         </div>
         <p className="text-xs leading-5 text-amber-600">
@@ -344,7 +357,7 @@ function Brand({ inverse = false }: { inverse?: boolean }) {
         <p className={`text-[16px] font-bold tracking-[-0.02em] ${inverse ? 'text-white' : 'text-slate-900'}`}>
           港新账本
         </p>
-        <p className={`mt-0.5 text-[12px] tracking-[0.12em] ${inverse ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`mt-0.5 text-[11px] font-medium tracking-[0.13em] ${inverse ? 'text-slate-500' : 'text-slate-400'}`}>
           PERSONAL INVESTMENT OS
         </p>
       </div>
@@ -389,10 +402,10 @@ function SidebarContent({
           if (items.length === 0) return null
           return (
             <div key={group.label}>
-              <p className="px-2 pb-3 text-[12px] font-medium uppercase tracking-[0.15em] text-slate-400">
+              <p className="px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400/80">
                 {group.label}
               </p>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {items.map((item) => (
                   <NavItem
                     key={item.id}
@@ -407,19 +420,25 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="m-5 rounded-[20px] border border-slate-900/[0.05] bg-white p-5 shadow-card">
-        <div className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-700">
-          <ShieldCheck size={16} className="text-emerald-500" />
+      {/* Sidebar footer card */}
+      <div className="m-5 rounded-[20px] border border-slate-900/[0.05] bg-gradient-to-br from-white to-slate-50/80 p-5 shadow-card">
+        <div className="mb-3 flex items-center gap-2 text-[13px] font-semibold text-slate-700">
+          <ShieldCheck size={15} className="text-emerald-500" />
           {cloud.cloudUser ? '本地 + 云端保护' : '本地数据保护'}
         </div>
-        <p className="text-xs leading-5 text-slate-500">
+        <p className="text-[12px] leading-[1.6] text-slate-400">
           {cloud.cloudUser
             ? `已登录 ${cloud.cloudUser.email}，修改后自动同步。`
             : '数据保存在当前浏览器；登录云同步后可跨设备使用。'}
         </p>
-        <p className="mt-5 text-[12px] font-medium text-slate-400">
-          v{APP_VERSION}
-        </p>
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-[11px] font-medium tracking-wide text-slate-300">
+            v{APP_VERSION}
+          </p>
+          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
+            {cloud.cloudUser ? '云端' : '本地'}
+          </span>
+        </div>
       </div>
     </>
   )
@@ -439,19 +458,23 @@ function NavItem({
     <button
       type="button"
       disabled={!available}
-      className={`group flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-left text-[16px] font-medium transition duration-200 ${
+      className={`group flex min-h-[42px] w-full items-center gap-3 rounded-[14px] px-3 text-left text-[15px] font-medium transition duration-150 ${
         active
-          ? 'bg-[#2563EB] font-medium text-white shadow-card'
+          ? 'bg-[#2563EB] font-semibold text-white shadow-sm shadow-blue-500/20'
           : available
-            ? 'text-slate-600 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950'
-            : 'cursor-not-allowed text-slate-600'
+            ? 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-950'
+            : 'cursor-not-allowed text-slate-400'
       }`}
       onClick={() => onNavigate(id)}
     >
-      <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
-      <span className="flex-1">{label}</span>
+      <Icon
+        size={18}
+        strokeWidth={active ? 2.2 : 1.8}
+        className={active ? 'text-white/90' : ''}
+      />
+      <span className="flex-1 leading-none">{label}</span>
       {!available && (
-        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-400">
+        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[9px] font-medium text-slate-400">
           soon
         </span>
       )}
@@ -471,9 +494,9 @@ function HeaderPill({
       type="button"
       className="inline-flex h-11 items-center gap-2 rounded-[14px] border border-slate-200/80 bg-white px-3.5 text-xs font-medium text-slate-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-slate-950 hover:shadow-card"
     >
-      <Icon size={16} className="text-slate-400" />
+      <Icon size={15} className="text-slate-400" />
       {label}
-      <ChevronDown size={14} className="text-slate-300" />
+      <ChevronDown size={13} className="text-slate-300" />
     </button>
   )
 }
@@ -481,60 +504,60 @@ function HeaderPill({
 function getPageMeta(navigation: NavigationKey) {
   const map: Record<NavigationKey, { title: string; subtitle: string }> = {
     dashboard: {
-      title: '总览',
-      subtitle: '看收益、风险和下一步行动。',
+      title: '投资驾驶舱',
+      subtitle: '看收益、识风险、定下一步行动',
     },
     accounts: {
       title: '账户管理',
-      subtitle: '识别最赚钱、最高效、最值得继续投入的账户。',
+      subtitle: '识别最赚钱、最高效、最值得继续投入的账户',
     },
     deposits: {
       title: '出金管理',
-      subtitle: '追踪净入金、出金和真实收益。',
+      subtitle: '追踪净入金、出金和真实收益',
     },
     exchange: {
       title: '换汇管理',
-      subtitle: '记录真实成交汇率和年度汇率损益。',
+      subtitle: '记录真实成交汇率和年度汇率损益',
     },
     holdings: {
       title: '持仓管理',
-      subtitle: '管理持仓市值、抵押率和打新能力。',
+      subtitle: '管理持仓市值、抵押率和打新能力',
     },
     ipos: {
       title: '新股资料',
-      subtitle: '管理 IPO 基础信息、行业和上市节奏。',
+      subtitle: '管理 IPO 基础信息、行业和上市节奏',
     },
     subscriptions: {
       title: '申购记录',
-      subtitle: '以申购记录为核心追踪参与、中签和收益。',
+      subtitle: '以申购记录为核心追踪参与、中签和收益',
     },
     allotments: {
       title: '中签管理',
-      subtitle: '批量录入结果，观察命中率结构。',
+      subtitle: '批量录入结果，观察命中率结构',
     },
     sales: {
       title: '卖出记录',
-      subtitle: '记录暗盘、首日和持有后卖出的净收益。',
+      subtitle: '记录暗盘、首日和持有后卖出的净收益',
     },
     statistics: {
       title: '数据统计',
-      subtitle: '用排行、趋势和策略分析复盘打新表现。',
+      subtitle: '用排行、趋势和策略分析复盘打新表现',
     },
     review: {
       title: '月度复盘',
-      subtitle: '按月份回看参与、中签、收益和最佳新股。',
+      subtitle: '按月份回看参与、中签、收益和最佳新股',
     },
     data: {
       title: '数据管理',
-      subtitle: '导入导出、备份恢复和迁移数据。',
+      subtitle: '导入导出、备份恢复和迁移数据',
     },
     safety: {
       title: '数据安全',
-      subtitle: '操作日志、版本快照和数据健康检查。',
+      subtitle: '操作日志、版本快照和数据健康检查',
     },
     settings: {
       title: '设置',
-      subtitle: '配置你的个人投资驾驶舱。',
+      subtitle: '配置你的个人投资驾驶舱',
     },
   }
   return map[navigation]
