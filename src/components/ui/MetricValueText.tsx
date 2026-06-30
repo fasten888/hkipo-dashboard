@@ -11,14 +11,18 @@ export function MetricValueText({
   tone = 'neutral',
   className = '',
 }: MetricValueTextProps) {
+  /* 莫兰迪配色 — tone → color */
   const toneClass = {
-    profit: 'text-[#EF4444]',
-    cost: 'text-[#10B981]',
-    rate: 'text-[#7C3AED]',
-    win: 'text-[#F59E0B]',
-    count: 'text-[#2563EB]',
-    neutral: 'text-[#111827]',
+    profit:  'text-[#B08B7E]',   // 灰玫 — 收益类
+    cost:    'text-[#7E9587]',   // 灰绿 — 成本类
+    rate:    'text-[#8E87A6]',   // 灰紫 — 收益率
+    win:     'text-[#BC9A5F]',   // 灰金 — 中签率
+    count:   'text-[#8E87A6]',   // 灰紫 — 计数类（复用收益率色）
+    neutral: 'text-[#4A4540]',   // 主文字
   }[tone]
+
+  // 负数统一用更深的灰玫色表示（莫兰迪体系内没有强对比的"危险红"）
+  const negativeClass = 'text-[#9A7468]'
 
   if (value.startsWith('HK$')) {
     const amount = value.replace(/^HK\$\s*/, '')
@@ -28,10 +32,10 @@ export function MetricValueText({
 
     return (
       <span className={`amount-line ${className}`}>
-        <span className="amount-prefix">HK$</span>
+        <span className="amount-prefix" style={{ color: '#8C8273' }}>HK$</span>
         <span
           className={`amount-number ${compact ? 'amount-number-compact' : ''} ${
-            negative ? 'text-red-500' : toneClass
+            negative ? negativeClass : toneClass
           }`}
         >
           {amount}
@@ -45,7 +49,7 @@ export function MetricValueText({
       numericValue !== undefined ? numericValue < 0 : value.startsWith('-')
     return (
       <span
-        className={`rate-number ${negative ? 'text-red-500' : toneClass} ${className}`}
+        className={`rate-number ${negative ? negativeClass : toneClass} ${className}`}
       >
         {value}
       </span>

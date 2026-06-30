@@ -4,29 +4,29 @@
 
 /* ════════════════════════════════════════
    Design System — 港股打新系统
-   颜色规范 / 字体规范 / 间距规范 / 阴影规范
+   莫兰迪配色 (Morandi Palette)
    ════════════════════════════════════════ */
 
 @layer base {
   :root {
     /* ── 颜色 token ── */
-    --color-brand:   #2563EB;
-    --color-success: #22C55E;
-    --color-danger:  #EF4444;
-    --color-warning: #F59E0B;
-    --color-info:    #8B5CF6;
-    --color-neutral: #64748B;
-    --color-bg:      #F8FAFC;
-    --color-card:    #FFFFFF;
-    --color-border:  #EEF2F7;
-    --color-text-primary:   #111827;
-    --color-text-secondary: #6B7280;
-    --color-text-muted:     #9CA3AF;
+    --color-brand:   #B08B7E;   /* 灰玫 — 主色/累计收益 */
+    --color-success: #7E9587;   /* 灰绿 — 成本类 */
+    --color-danger:  #B08B7E;   /* 复用灰玫（莫兰迪体系无强红） */
+    --color-warning: #BC9A5F;   /* 灰金 — 中签率 */
+    --color-info:    #8E87A6;   /* 灰紫 — 收益率 */
+    --color-neutral: #8C8273;
+    --color-bg:      #F4F1ED;   /* 米灰背景 */
+    --color-card:    #FAF8F5;   /* 米白卡片 */
+    --color-border:  #E4DFD6;   /* 米灰边框 */
+    --color-text-primary:   #4A4540;
+    --color-text-secondary: #8C8273;
+    --color-text-muted:     #A8A296;
 
     /* ── 阴影 ── */
-    --shadow-card:  0 2px 2px rgba(16,24,40,0.04), 0 4px 12px rgba(16,24,40,0.06);
-    --shadow-hover: 0 8px 24px rgba(16,24,40,0.08);
-    --shadow-modal: 0 24px 80px rgba(16,24,40,0.20);
+    --shadow-card:  0 2px 2px rgba(74,69,64,0.04), 0 4px 12px rgba(74,69,64,0.06);
+    --shadow-hover: 0 8px 24px rgba(74,69,64,0.08);
+    --shadow-modal: 0 24px 80px rgba(74,69,64,0.20);
 
     color: var(--color-text-primary);
     background: var(--color-bg);
@@ -52,7 +52,6 @@
 
   button, input, select, textarea { font: inherit; }
 
-  /* 取消默认 min-height，统一由组件控制 */
   button {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -60,25 +59,24 @@
 
   input:not([type='checkbox']):not([type='radio']),
   select, textarea {
-    border-radius: 10px; /* 输入框圆角 10px */
+    border-radius: 10px;
   }
 
   img, svg { max-width: 100%; }
 
-  ::selection { color: #0b1220; background: #bce0ff; }
+  ::selection { color: #2E2A24; background: #E8D9D3; }
 
   table { width: 100%; border-collapse: separate; border-spacing: 0; }
   th { color: var(--color-text-secondary); font-size: 12px; font-weight: 600; }
-  td { color: #374151; }
+  td { color: #5A5246; }
   tbody tr { transition: background-color 150ms ease; }
-  tbody tr:hover { background: rgba(248,250,252,0.9); }
+  tbody tr:hover { background: rgba(244,241,237,0.9); }
 }
 
 @layer components {
 
   /* ════════════════════════
      卡片系统
-     圆角 16px / 阴影规范
      ════════════════════════ */
   .os-card {
     background: var(--color-card);
@@ -100,39 +98,38 @@
      按钮系统
      ════════════════════════ */
   .os-button-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#2563EB] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-all duration-150 hover:bg-blue-700 active:scale-[0.98];
-    box-shadow: 0 1px 3px rgba(37,99,235,0.25);
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#B08B7E] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-all duration-150 hover:bg-[#9A7468] active:scale-[0.98];
+    box-shadow: 0 1px 3px rgba(176,139,126,0.25);
   }
 
   .os-button-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#EEF2F7] bg-white px-4 py-2 text-[13px] font-medium text-[#374151] shadow-sm transition-all duration-150 hover:bg-slate-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#E4DFD6] bg-[#FAF8F5] px-4 py-2 text-[13px] font-medium text-[#5A5246] shadow-sm transition-all duration-150 hover:bg-[#F4F1ED];
   }
 
   .os-button-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-[13px] font-medium text-[#64748B] transition-all duration-150 hover:bg-[#F8FAFC] hover:text-[#111827];
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-[13px] font-medium text-[#8C8273] transition-all duration-150 hover:bg-[#F4F1ED] hover:text-[#4A4540];
   }
 
   .os-button-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#EF4444] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-all duration-150 hover:bg-red-600;
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-[#9A7468] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-all duration-150 hover:bg-[#7E5D53];
   }
 
   /* ════════════════════════
      输入框
      ════════════════════════ */
   .os-input {
-    @apply w-full rounded-[10px] border border-[#EEF2F7] bg-white px-3 py-2 text-[13px] text-[#111827] outline-none transition placeholder:text-[#9CA3AF];
+    @apply w-full rounded-[10px] border border-[#E4DFD6] bg-[#FAF8F5] px-3 py-2 text-[13px] text-[#4A4540] outline-none transition placeholder:text-[#A8A296];
   }
   .os-input:focus {
-    border-color: #2563EB;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    border-color: #B08B7E;
+    box-shadow: 0 0 0 3px rgba(176,139,126,0.12);
   }
 
   /* ════════════════════════
      KPI 数字显示
-     辅助说明 36-42px/700
      ════════════════════════ */
   .kpi-value {
-    font-size: clamp(1.75rem, 2.2vw, 2.25rem); /* 36–42px */
+    font-size: clamp(1.75rem, 2.2vw, 2.25rem);
     font-weight: 700;
     letter-spacing: -0.04em;
     line-height: 1;
@@ -140,7 +137,7 @@
   }
 
   .kpi-value-sm {
-    font-size: clamp(1.4rem, 1.8vw, 1.875rem); /* 约 30px */
+    font-size: clamp(1.4rem, 1.8vw, 1.875rem);
     font-weight: 700;
     letter-spacing: -0.035em;
     line-height: 1;
@@ -180,18 +177,18 @@
   }
 
   /* ════════════════════════
-     区域标题 (SectionHeading)
+     区域标题
      ════════════════════════ */
   .section-title {
-    font-size: 18px;       /* 区域标题 */
+    font-size: 18px;
     font-weight: 600;
-    color: #111827;
+    color: #4A4540;
     letter-spacing: -0.01em;
   }
 
   .section-subtitle {
     font-size: 13px;
-    color: #6B7280;
+    color: #8C8273;
     margin-top: 2px;
   }
 
@@ -202,8 +199,8 @@
     @apply outline-none;
   }
   .focus-ring:focus {
-    border-color: #2563EB;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    border-color: #B08B7E;
+    box-shadow: 0 0 0 3px rgba(176,139,126,0.12);
   }
 
   .mobile-safe-bottom {
@@ -224,12 +221,12 @@
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
   }
 
-  .badge-blue   { background: #EFF6FF; color: #2563EB; }
-  .badge-green  { background: #F0FDF4; color: #16A34A; }
-  .badge-red    { background: #FEF2F2; color: #DC2626; }
-  .badge-yellow { background: #FFFBEB; color: #D97706; }
-  .badge-purple { background: #F5F3FF; color: #7C3AED; }
-  .badge-gray   { background: #F9FAFB; color: #6B7280; }
+  .badge-rose    { background: #E8D9D3; color: #7E5D53; }
+  .badge-green   { background: #D9E0D9; color: #516159; }
+  .badge-mauve   { background: #B08B7E; color: #FFFFFF; }
+  .badge-amber   { background: #EFE3D2; color: #7D653C; }
+  .badge-purple  { background: #DAD7E0; color: #5D5670; }
+  .badge-gray    { background: #F4F1ED; color: #8C8273; }
 }
 
 @keyframes fade-slide-up {
@@ -245,7 +242,6 @@
   }
 }
 
-/* 小屏字号补丁 */
 @media (max-width: 480px) {
   .amount-number { font-size: clamp(1.4rem, 7vw, 1.9rem); }
   .rate-number   { font-size: clamp(1.4rem, 7vw, 1.9rem); }
