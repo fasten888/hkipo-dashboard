@@ -3,15 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model UserData {
-  userId    String   @id @map("user_id") @db.Uuid
-  data      Json
-  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  userId    String   @id @map("user_id")
+  data      String   @default("{}")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("user_data")
-  @@schema("public")
 }

@@ -1,12 +1,29 @@
 node_modules
 dist
+.vite
+.vercel
 .DS_Store
-*.local
+*.log
+*.tsbuildinfo
+
+# Local environment files. Keep the shareable template.
 .env
 .env.*
 !.env.example
-*.log
-*.tsbuildinfo
-.vite
-.vercel
-.env*
+*.local
+
+# Local SQLite databases. Never commit personal data.
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/dev.db
+prisma/dev.db-journal
+
+# Local recovery exports and browser storage snapshots.
+recovery/
+backups/
+*.backup.json
+HKIPO_RECOVERY*.json
+HKIPO_BACKUP*.json
+public/HKIPO_RECOVERED_APP_DATA.json
