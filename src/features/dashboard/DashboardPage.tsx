@@ -565,7 +565,7 @@ function CompositionCard({
   return (
     <div className="os-card">
       <h2 className="mb-4 text-[15px] font-semibold" style={{ color: C.text1 }}>收益构成</h2>
-      <div className="flex items-center gap-5">
+      <div className="flex flex-col items-center gap-6">
         {/* Donut */}
         <div className="shrink-0">
           <div className="relative grid h-[150px] w-[150px] place-items-center rounded-full"
@@ -582,18 +582,20 @@ function CompositionCard({
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex-1 space-y-2.5">
+        {/* Legend — full width, single column, generous spacing */}
+        <div className="w-full space-y-3">
           {rows.map((r) => {
             const pct = tw > 0 ? (Math.abs(r.value) / tw) * 100 : 0
             return (
-              <div key={r.label} className="grid items-center gap-2" style={{ gridTemplateColumns: 'auto 1fr auto auto' }}>
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: r.color }} />
-                <span className="truncate text-[12px]" style={{ color: C.text2 }}>{r.label}</span>
-                <span className="text-[12px] font-semibold tabular-nums" style={{ color: C.text1 }}>
+              <div key={r.label} className="flex items-center gap-3">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: r.color }} />
+                <span className="min-w-0 flex-1 text-[13px] font-medium" style={{ color: C.text1 }}>
+                  {r.label}
+                </span>
+                <span className="shrink-0 text-[13px] font-semibold tabular-nums" style={{ color: C.text1 }}>
                   {formatHKD(r.value, 'amount')}
                 </span>
-                <span className="w-10 text-right text-[11px] tabular-nums" style={{ color: C.text3 }}>
+                <span className="w-12 shrink-0 text-right text-[12px] tabular-nums" style={{ color: C.text3 }}>
                   {pct.toFixed(1)}%
                 </span>
               </div>
