@@ -36,17 +36,17 @@ import {
    Design token shortcuts
    ════════════════════════════════════════ */
 const C = {
-  brand:   '#2563EB',
-  success: '#22C55E',
-  danger:  '#EF4444',
-  warning: '#F59E0B',
-  info:    '#8B5CF6',
-  neutral: '#64748B',
-  text1:   '#111827',
-  text2:   '#6B7280',
-  text3:   '#9CA3AF',
-  border:  '#EEF2F7',
-  bg:      '#F8FAFC',
+  brand:   '#B08B7E',
+  success: '#7E9587',
+  danger:  '#9A7468',
+  warning: '#BC9A5F',
+  info:    '#8E87A6',
+  neutral: '#8C8273',
+  text1:   '#4A4540',
+  text2:   '#8C8273',
+  text3:   '#A8A296',
+  border:  '#E4DFD6',
+  bg:      '#F4F1ED',
 }
 
 /* ════════════════════════════════════════
@@ -112,29 +112,29 @@ export function DashboardPage() {
   const upcomingTasks = upcomingIpos.slice(0, 5).map((ipo) => {
     const badge = getIpoBadge(ipo, today)
     const style =
-      badge.includes('今日') && badge.includes('申购') ? { bg: '#FEE2E2', text: C.danger }
-      : badge.includes('申购') ? { bg: '#FEE2E2', text: C.danger }
-      : badge.includes('上市') ? { bg: '#FEF3C7', text: '#D97706' }
-      : { bg: '#DCFCE7', text: '#16A34A' }
+      badge.includes('今日') && badge.includes('申购') ? { bg: '#F0E0DC', text: C.danger }
+      : badge.includes('申购') ? { bg: '#F0E0DC', text: C.danger }
+      : badge.includes('上市') ? { bg: '#F3EAD7', text: '#9F814C' }
+      : { bg: '#E5EBE5', text: '#677A6F' }
     return { ipo, badge, style }
   })
 
   /* ── AI rows ── */
   const aiRows = [
     {
-      bg:    '#EFF6FF',
+      bg:    '#F8F4F1',
       emoji: '🔔',
       title: `未来 3 天内有 ${upcomingIpos.length} 只新股可申购`,
       desc:  `预计需要资金 HK$ ${formatHKD(pendingReleaseAmount * 0.3, 'amount').replace('HK$ ', '')}`,
     },
     {
-      bg:    '#F0FDF4',
+      bg:    '#F2F5F2',
       emoji: '💡',
       title: `建议：${capitalCandidate ? formatAccountName(capitalCandidate.account) : '—'} 使用 ${bestFinancing ? getSubscriptionMethodLabel(bestFinancing.method) : '融资'} 申购`,
       desc:  `${pendingIpoCount > 0 ? `同时有 ${pendingIpoCount} 只等待结果` : '当前暂无待公布新股'}`,
     },
     {
-      bg:    '#FFF7ED',
+      bg:    '#FAF8F57ED',
       emoji: '💰',
       title: `预计资金释放: ${new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })} 17:00`,
       desc:  `可释放资金约 HK$ ${formatHKD(pendingReleaseAmount, 'amount').replace('HK$ ', '')}`,
@@ -152,7 +152,7 @@ export function DashboardPage() {
           value={stats.totalProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
-          iconBg="#FEE2E2"
+          iconBg="#F0E0DC"
           icon={<CircleDollarSign size={20} color={C.danger} />}
           hint={`较上月 ${formatSignedDelta(monthDelta)}`}
           hintPositive={monthDelta >= 0}
@@ -163,7 +163,7 @@ export function DashboardPage() {
           value={stats.profitRate}
           formatter={(v) => formatPercent(v, 'profitRate', 'dashboardKpi')}
           color={C.info}
-          iconBg="#EDE9FE"
+          iconBg="#E9E7EE"
           icon={<TrendingUp size={20} color={C.info} />}
           hint="较上月 ↑ 3.2%"
           hintPositive
@@ -173,7 +173,7 @@ export function DashboardPage() {
           value={stats.totalCost}
           formatter={(v) => formatHKD(v, 'amount', 'dashboardKpi')}
           color={C.success}
-          iconBg="#DCFCE7"
+          iconBg="#E5EBE5"
           icon={<Layers size={20} color={C.success} />}
           hint="较上月 ↓ 4.1%"
           hintPositive={false}
@@ -184,7 +184,7 @@ export function DashboardPage() {
           value={stats.winRate}
           formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
           color={C.warning}
-          iconBg="#FEF3C7"
+          iconBg="#F3EAD7"
           icon={<Target size={20} color={C.warning} />}
           hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
         />
@@ -197,7 +197,7 @@ export function DashboardPage() {
           value={performance.overallWinRate}
           formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
           color={C.text1}
-          iconBg="#EFF6FF"
+          iconBg="#F8F4F1"
           icon={<Trophy size={16} color={C.brand} />}
           hint="较上月 ↑ 2.3%"
           hintPositive
@@ -207,7 +207,7 @@ export function DashboardPage() {
           value={performance.monthProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
-          iconBg="#EFF6FF"
+          iconBg="#F8F4F1"
           icon={<CalendarDays size={16} color={C.brand} />}
           hint="较上月 ↑ 118%"
           hintPositive
@@ -218,7 +218,7 @@ export function DashboardPage() {
           value={greyStats.profit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
-          iconBg="#FEE2E2"
+          iconBg="#F0E0DC"
           icon={<Moon size={16} color={C.danger} />}
           hint="较上月 ↑ 15.3%"
           hintPositive
@@ -229,7 +229,7 @@ export function DashboardPage() {
           value={firstDayStats.profit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
-          iconBg="#FEF3C7"
+          iconBg="#F3EAD7"
           icon={<Sun size={16} color={C.warning} />}
           hint="较上月 ↑ 19.8%"
           hintPositive
@@ -420,12 +420,12 @@ function TrendCard({
             </span>
           </div>
           {/* Period selector */}
-          <div className="flex overflow-hidden rounded-[8px] border border-[#EEF2F7] text-[11px]">
+          <div className="flex overflow-hidden rounded-[8px] border border-[#E4DFD6] text-[11px]">
             {periods.map(([key, label]) => (
               <button key={key} type="button"
                 onClick={() => onPeriodChange(key)}
                 className={['px-3 py-1.5 font-medium transition',
-                  trendPeriod === key ? 'bg-[#2563EB] text-white' : 'bg-white text-[#6B7280] hover:bg-[#F8FAFC]',
+                  trendPeriod === key ? 'bg-[#B08B7E] text-white' : 'bg-white text-[#8C8273] hover:bg-[#F4F1ED]',
                 ].join(' ')}>
                 {label}
               </button>
@@ -500,7 +500,7 @@ function ProfitTrendChart({ rows }: { rows: ReturnType<typeof getProfitTrend> })
             </defs>
             {/* Grid */}
             {yLabels.map(({ y }, i) => (
-              <line key={i} x1="0" x2="100" y1={y} y2={y} stroke="#EEF2F7" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
+              <line key={i} x1="0" x2="100" y1={y} y2={y} stroke="#E4DFD6" strokeWidth="0.5" vectorEffect="non-scaling-stroke" />
             ))}
             {/* Area */}
             <polygon points={areaStr} fill="url(#area-grad-v3)" />
@@ -559,7 +559,7 @@ function CompositionCard({
   let cur = 0
   const grad = tw > 0
     ? rows.map((r) => { const s = cur; cur += (Math.abs(r.value) / tw) * 100; return `${r.color} ${s}% ${cur}%` }).join(', ')
-    : '#EEF2F7 0% 100%'
+    : '#E4DFD6 0% 100%'
 
   const totalStr = formatHKD(total, 'profit').replace('HK$ ', '')
 
@@ -723,7 +723,7 @@ function AiCard({
     <div className="os-card">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-[14px] font-semibold" style={{ color: C.text1 }}>AI 智能建议</h2>
-        <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: '#F5F3FF', color: '#7C3AED' }}>
+        <span className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ background: '#F5F4F7', color: '#766E8E' }}>
           Beta
         </span>
       </div>

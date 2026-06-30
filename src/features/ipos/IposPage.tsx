@@ -14,7 +14,7 @@ import { IpoBatchForm } from './IpoBatchForm'
 import { IpoForm } from './IpoForm'
 
 type IpoSortKey = 'name' | 'subscriptionDate' | 'profit' | 'profitRate' | 'winRate' | 'participants'
-const C = { text1: '#111827', text2: '#6B7280', text3: '#9CA3AF', brand: '#2563EB', danger: '#EF4444', border: '#EEF2F7', bg: '#F8FAFC' }
+const C = { text1: '#4A4540', text2: '#8C8273', text3: '#A8A296', brand: '#B08B7E', danger: '#9A7468', border: '#E4DFD6', bg: '#F4F1ED' }
 
 export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void }) {
   const { ipos, subscriptions, sales, addIpos, updateIpo, deleteIpo } = useAppData()
@@ -92,7 +92,7 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
           <p className="mt-4 text-[13px]" style={{ color: C.text3 }}>暂无匹配的新股资料</p>
         </div>
       ) : (
-        <div className="mt-4 overflow-hidden rounded-[16px] border" style={{ borderColor: C.border, background: '#fff', boxShadow: '0 2px 2px rgba(16,24,40,0.04),0 4px 12px rgba(16,24,40,0.06)' }}>
+        <div className="mt-4 overflow-hidden rounded-[16px] border" style={{ borderColor: C.border, background: '#FAF8F5', boxShadow: '0 2px 2px rgba(16,24,40,0.04),0 4px 12px rgba(16,24,40,0.06)' }}>
           {/* Mobile cards */}
           <div className="divide-y md:hidden" style={{ borderColor: C.border }}>
             {rows.map(({ ipo, stats }) => (
@@ -144,7 +144,7 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
               </thead>
               <tbody className="divide-y" style={{ borderColor: C.border }}>
                 {rows.map(({ ipo, stats }) => (
-                  <tr key={ipo.id} className="cursor-pointer transition hover:bg-[#F8FAFC]" onClick={() => onViewIpo?.(ipo.id)}>
+                  <tr key={ipo.id} className="cursor-pointer transition hover:bg-[#F4F1ED]" onClick={() => onViewIpo?.(ipo.id)}>
                     <td className="px-5 py-4">
                       <p className="text-[13px] font-semibold" style={{ color: C.text1 }}>{ipo.name}（{ipo.stockCode}）</p>
                       <p className="mt-0.5 text-[11px]" style={{ color: C.text3 }}>{ipo.industry || '未填写行业'}</p>
@@ -189,7 +189,7 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
 }
 
 function MobileDatum({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-[10px]" style={{ color: '#9CA3AF' }}>{label}</p><p className="mt-0.5 break-words text-[12px] font-semibold" style={{ color: '#374151' }}>{value}</p></div>
+  return <div><p className="text-[10px]" style={{ color: '#A8A296' }}>{label}</p><p className="mt-0.5 break-words text-[12px] font-semibold" style={{ color: '#5A5246' }}>{value}</p></div>
 }
 
 function SortTh({ label, sortKey, sort, onSort }: { label: string; sortKey: IpoSortKey; sort: SortState<IpoSortKey> | null; onSort: (k: IpoSortKey) => void }) {
@@ -203,12 +203,12 @@ function SortTh({ label, sortKey, sort, onSort }: { label: string; sortKey: IpoS
 function ActionBtn({ children, danger, onClick }: { children: React.ReactNode; danger?: boolean; onClick: (e: React.MouseEvent) => void }) {
   return (
     <button type="button" onClick={onClick}
-      className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#9CA3AF] hover:bg-red-50 hover:text-red-500' : 'text-[#9CA3AF] hover:bg-[#F8FAFC] hover:text-[#374151]'}`}>
+      className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#A8A296] hover:bg-red-50 hover:text-red-500' : 'text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]'}`}>
       {children}
     </button>
   )
 }
 
 function Toast({ children }: { children: React.ReactNode }) {
-  return <div role="status" className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-[10px] px-4 py-3 text-[13px] font-medium text-white shadow-xl" style={{ background: '#111827' }}>{children}</div>
+  return <div role="status" className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-[10px] px-4 py-3 text-[13px] font-medium text-white shadow-xl" style={{ background: '#4A4540' }}>{children}</div>
 }

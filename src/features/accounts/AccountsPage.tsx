@@ -27,9 +27,9 @@ import { useAccounts } from './useAccounts'
 
 // ── Design tokens ──────────────────────────────
 const C = {
-  text1: '#111827', text2: '#6B7280', text3: '#9CA3AF',
-  brand: '#2563EB', danger: '#EF4444', success: '#22C55E',
-  warning: '#F59E0B', info: '#8B5CF6', border: '#EEF2F7', bg: '#F8FAFC',
+  text1: '#4A4540', text2: '#8C8273', text3: '#A8A296',
+  brand: '#B08B7E', danger: '#9A7468', success: '#7E9587',
+  warning: '#BC9A5F', info: '#8E87A6', border: '#E4DFD6', bg: '#F4F1ED',
 }
 
 interface AccountsPageProps { onViewAccount: (accountId: string) => void }
@@ -103,18 +103,18 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
 
       {/* ── KPI row 1 ── */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <PageKpi label="总收益" value={formatHKD(totals.totalProfit, 'profit')} hint="全部账户累计净收益" iconBg="#DCFCE7" iconColor={C.success} icon={<TrendingUp size={18} />} profitVal={totals.totalProfit} />
-        <PageKpi label="总收益率" value={formatPercent(totalProfitRate, 'profitRate')} hint="总收益 ÷ 当前投入资金" iconBg="#EDE9FE" iconColor={C.info} icon={<Gauge size={18} />} profitVal={totalProfitRate} />
-        <PageKpi label="总投入资金" value={formatHKD(netInvestment, 'investment')} hint="初始入金减累计出金" iconBg="#DBEAFE" iconColor={C.brand} icon={<CircleDollarSign size={18} />} />
-        <PageKpi label="整体中签率" value={formatPercent(overallWinRate)} hint={`${totals.winCount} 次中签`} iconBg="#FEF3C7" iconColor={C.warning} icon={<Trophy size={18} />} />
+        <PageKpi label="总收益" value={formatHKD(totals.totalProfit, 'profit')} hint="全部账户累计净收益" iconBg="#E5EBE5" iconColor={C.success} icon={<TrendingUp size={18} />} profitVal={totals.totalProfit} />
+        <PageKpi label="总收益率" value={formatPercent(totalProfitRate, 'profitRate')} hint="总收益 ÷ 当前投入资金" iconBg="#E9E7EE" iconColor={C.info} icon={<Gauge size={18} />} profitVal={totalProfitRate} />
+        <PageKpi label="总投入资金" value={formatHKD(netInvestment, 'investment')} hint="初始入金减累计出金" iconBg="#E8D9D3" iconColor={C.brand} icon={<CircleDollarSign size={18} />} />
+        <PageKpi label="整体中签率" value={formatPercent(overallWinRate)} hint={`${totals.winCount} 次中签`} iconBg="#F3EAD7" iconColor={C.warning} icon={<Trophy size={18} />} />
       </div>
 
       {/* ── KPI row 2 ── */}
       <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <PageKpiSm label="账户数量" value={String(accounts.length)} hint="当前管理账户" icon={<Users size={15} />} iconBg="#DBEAFE" iconColor={C.brand} />
-        <PageKpiSm label="参与次数" value={String(totals.participationCount)} hint="全部账户累计参与" icon={<Activity size={15} />} iconBg="#DBEAFE" iconColor={C.brand} />
-        <PageKpiSm label="中签次数" value={String(totals.winCount)} hint={`${historicalCount + decidedCount} 次已确定结果`} icon={<Trophy size={15} />} iconBg="#FEF3C7" iconColor={C.warning} />
-        <PageKpiSm label="打新胜率" value={formatPercent(performance.overallWinRate)} hint="已卖出申购中的盈利占比" icon={<BarChart3 size={15} />} iconBg="#EDE9FE" iconColor={C.info} />
+        <PageKpiSm label="账户数量" value={String(accounts.length)} hint="当前管理账户" icon={<Users size={15} />} iconBg="#E8D9D3" iconColor={C.brand} />
+        <PageKpiSm label="参与次数" value={String(totals.participationCount)} hint="全部账户累计参与" icon={<Activity size={15} />} iconBg="#E8D9D3" iconColor={C.brand} />
+        <PageKpiSm label="中签次数" value={String(totals.winCount)} hint={`${historicalCount + decidedCount} 次已确定结果`} icon={<Trophy size={15} />} iconBg="#F3EAD7" iconColor={C.warning} />
+        <PageKpiSm label="打新胜率" value={formatPercent(performance.overallWinRate)} hint="已卖出申购中的盈利占比" icon={<BarChart3 size={15} />} iconBg="#E9E7EE" iconColor={C.info} />
       </div>
 
       {/* ── Ranking section ── */}
@@ -201,14 +201,14 @@ function PageKpi({ label, value, hint, iconBg, iconColor, icon, profitVal }: { l
   return (
     <div className="os-card os-card-hover">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-medium" style={{ color: '#6B7280' }}>{label}</span>
+        <span className="text-[13px] font-medium" style={{ color: '#8C8273' }}>{label}</span>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px]" style={{ background: iconBg, color: iconColor }}>{icon}</span>
       </div>
       <p className={`mt-4 text-[clamp(1.4rem,1.7vw,1.85rem)] font-bold leading-none tracking-[-0.04em] tabular-nums ${profitVal !== undefined ? getProfitColor(profitVal) : ''}`}
-        style={profitVal === undefined ? { color: '#111827' } : {}}>
+        style={profitVal === undefined ? { color: '#4A4540' } : {}}>
         {value}
       </p>
-      <p className="mt-3 text-[12px]" style={{ color: '#9CA3AF' }}>{hint}</p>
+      <p className="mt-3 text-[12px]" style={{ color: '#A8A296' }}>{hint}</p>
     </div>
   )
 }
@@ -218,17 +218,17 @@ function PageKpiSm({ label, value, hint, iconBg, iconColor, icon }: { label: str
     <div className="os-card os-card-hover">
       <div className="flex items-center gap-2">
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px]" style={{ background: iconBg, color: iconColor }}>{icon}</span>
-        <span className="text-[12px] font-medium" style={{ color: '#6B7280' }}>{label}</span>
+        <span className="text-[12px] font-medium" style={{ color: '#8C8273' }}>{label}</span>
       </div>
-      <p className="mt-3 text-[22px] font-bold leading-none tracking-[-0.03em]" style={{ color: '#111827' }}>{value}</p>
-      <p className="mt-2 text-[11px]" style={{ color: '#9CA3AF' }}>{hint}</p>
+      <p className="mt-3 text-[22px] font-bold leading-none tracking-[-0.03em]" style={{ color: '#4A4540' }}>{value}</p>
+      <p className="mt-2 text-[11px]" style={{ color: '#A8A296' }}>{hint}</p>
     </div>
   )
 }
 
 function Toast({ children }: { children: React.ReactNode }) {
   return (
-    <div role="status" className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-[10px] px-4 py-3 text-[13px] font-medium text-white shadow-xl" style={{ background: '#111827' }}>
+    <div role="status" className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-[10px] px-4 py-3 text-[13px] font-medium text-white shadow-xl" style={{ background: '#4A4540' }}>
       {children}
     </div>
   )

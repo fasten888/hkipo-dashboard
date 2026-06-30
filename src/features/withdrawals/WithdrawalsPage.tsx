@@ -12,7 +12,7 @@ import { formatHKD } from '../../utils/currency'
 import { getProfitColor } from '../../utils/profit'
 import { WithdrawalForm } from './WithdrawalForm'
 
-const C = { text1: '#111827', text2: '#6B7280', text3: '#9CA3AF', brand: '#2563EB', danger: '#EF4444', success: '#22C55E', warning: '#F59E0B', info: '#8B5CF6', border: '#EEF2F7', bg: '#F8FAFC' }
+const C = { text1: '#4A4540', text2: '#8C8273', text3: '#A8A296', brand: '#B08B7E', danger: '#9A7468', success: '#7E9587', warning: '#BC9A5F', info: '#8E87A6', border: '#E4DFD6', bg: '#F4F1ED' }
 
 export function WithdrawalsPage() {
   const { accounts, withdrawals, addWithdrawal, updateWithdrawal, deleteWithdrawal } = useAppData()
@@ -42,10 +42,10 @@ export function WithdrawalsPage() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <WdKpi label="净入金" value={formatHKD(initialDeposit, 'investment')} hint="全部账户初始入金" iconBg="#DBEAFE" iconColor={C.brand} icon={<Landmark size={17} />} />
-        <WdKpi label="累计净出金" value={formatHKD(withdrawalTotal)} hint={`${withdrawals.length} 条出金记录`} iconBg="#EDE9FE" iconColor={C.info} icon={<WalletCards size={17} />} />
-        <WdKpi label="当前净投入" value={formatHKD(initialDeposit - withdrawalTotal, 'investment')} hint="初始入金 - 已出金" iconBg="#FEF3C7" iconColor={C.warning} icon={<Landmark size={17} />} />
-        <WdKpi label="实际收益" value={formatHKD(actualProfit, 'profit')} hint="当前资产 + 出金 - 初始入金" iconBg="#DCFCE7" iconColor={C.success} icon={<WalletCards size={17} />} profitVal={actualProfit} />
+        <WdKpi label="净入金" value={formatHKD(initialDeposit, 'investment')} hint="全部账户初始入金" iconBg="#E8D9D3" iconColor={C.brand} icon={<Landmark size={17} />} />
+        <WdKpi label="累计净出金" value={formatHKD(withdrawalTotal)} hint={`${withdrawals.length} 条出金记录`} iconBg="#E9E7EE" iconColor={C.info} icon={<WalletCards size={17} />} />
+        <WdKpi label="当前净投入" value={formatHKD(initialDeposit - withdrawalTotal, 'investment')} hint="初始入金 - 已出金" iconBg="#F3EAD7" iconColor={C.warning} icon={<Landmark size={17} />} />
+        <WdKpi label="实际收益" value={formatHKD(actualProfit, 'profit')} hint="当前资产 + 出金 - 初始入金" iconBg="#E5EBE5" iconColor={C.success} icon={<WalletCards size={17} />} profitVal={actualProfit} />
       </div>
 
       <div className="mt-6 flex justify-end">
@@ -55,7 +55,7 @@ export function WithdrawalsPage() {
         </select>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[16px] border" style={{ borderColor: C.border, background: '#fff', boxShadow: '0 2px 2px rgba(16,24,40,0.04),0 4px 12px rgba(16,24,40,0.06)' }}>
+      <div className="mt-4 overflow-hidden rounded-[16px] border" style={{ borderColor: C.border, background: '#FAF8F5', boxShadow: '0 2px 2px rgba(16,24,40,0.04),0 4px 12px rgba(16,24,40,0.06)' }}>
         {rows.length === 0 ? (
           <p className="px-6 py-14 text-center text-[13px]" style={{ color: C.text3 }}>暂无出金记录</p>
         ) : (
@@ -95,12 +95,12 @@ function WdKpi({ label, value, hint, iconBg, iconColor, icon, profitVal }: { lab
   return (
     <div className="os-card os-card-hover">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-medium" style={{ color: '#6B7280' }}>{label}</span>
+        <span className="text-[13px] font-medium" style={{ color: '#8C8273' }}>{label}</span>
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px]" style={{ background: iconBg, color: iconColor }}>{icon}</span>
       </div>
       <p className={`mt-4 text-[clamp(1.3rem,1.6vw,1.75rem)] font-bold leading-none tracking-[-0.04em] tabular-nums ${profitVal !== undefined ? getProfitColor(profitVal) : ''}`}
-        style={profitVal === undefined ? { color: '#111827' } : {}}>{value}</p>
-      <p className="mt-3 text-[12px]" style={{ color: '#9CA3AF' }}>{hint}</p>
+        style={profitVal === undefined ? { color: '#4A4540' } : {}}>{value}</p>
+      <p className="mt-3 text-[12px]" style={{ color: '#A8A296' }}>{hint}</p>
     </div>
   )
 }
@@ -108,7 +108,7 @@ function WdKpi({ label, value, hint, iconBg, iconColor, icon, profitVal }: { lab
 function TblBtn({ children, danger, onClick }: { children: React.ReactNode; danger?: boolean; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick}
-      className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#9CA3AF] hover:bg-red-50 hover:text-red-500' : 'text-[#9CA3AF] hover:bg-[#F8FAFC] hover:text-[#374151]'}`}>
+      className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#A8A296] hover:bg-red-50 hover:text-red-500' : 'text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]'}`}>
       {children}
     </button>
   )
