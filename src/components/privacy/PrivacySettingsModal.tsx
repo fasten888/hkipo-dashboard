@@ -71,24 +71,24 @@ export function PrivacySettingsModal({
           />
         </div>
 
-        <div className="mt-6 divide-y divide-slate-100 rounded-2xl border border-slate-200">
+        <div className="mt-6 divide-y divide-[#F4F1ED] rounded-2xl border border-[#E4DFD6]">
           {options.map((option) => (
             <label
               key={option.field}
-              className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5 hover:bg-slate-50"
+              className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3.5 hover:bg-[#F4F1ED]"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-sm font-semibold text-[#5A5246]">
                   {option.label}
                 </p>
-                <p className="mt-0.5 text-xs text-slate-400">
+                <p className="mt-0.5 text-xs text-[#A8A296]">
                   {option.description}
                 </p>
               </div>
               <input
                 type="checkbox"
                 checked={settings[option.field]}
-                className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                className="h-4 w-4 rounded border-[#D2CBBF] text-brand-600 focus:ring-brand-500"
                 onChange={(event) =>
                   updateSetting(option.field, event.target.checked)
                 }
@@ -96,7 +96,7 @@ export function PrivacySettingsModal({
             </label>
           ))}
         </div>
-        <p className="mt-4 text-xs leading-5 text-slate-400">
+        <p className="mt-4 text-xs leading-5 text-[#A8A296]">
           勾选表示隐藏。隐私设置只影响显示，不会修改或删除任何原始数据。
         </p>
       </div>
@@ -116,7 +116,7 @@ function PresetButton({
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-600 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
+      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] bg-white px-3 py-2.5 text-xs font-semibold text-[#736A5C] hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
       onClick={onClick}
     >
       <Icon size={15} />

@@ -75,14 +75,14 @@ export function IpoBatchForm({ onSubmit, onCancel }: IpoBatchFormProps) {
         {rows.map((row, index) => (
           <div
             key={row.key}
-            className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+            className="rounded-2xl border border-[#E4DFD6] bg-[#F4F1ED]/60 p-4"
           >
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-bold text-slate-700">新股 {index + 1}</p>
+              <p className="text-sm font-bold text-[#5A5246]">新股 {index + 1}</p>
               {rows.length > 1 && (
                 <button
                   type="button"
-                  className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-lg p-2 text-[#A8A296] hover:bg-[#F9F2F0] hover:text-[#9A7468]"
                   aria-label={`删除第 ${index + 1} 行`}
                   onClick={() =>
                     setRows((current) =>
@@ -156,13 +156,13 @@ export function IpoBatchForm({ onSubmit, onCancel }: IpoBatchFormProps) {
           <Plus size={16} />
           增加一行
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468]">{error}</p>}
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
+      <div className="flex flex-col-reverse gap-3 border-t border-[#F4F1ED] bg-[#F4F1ED]/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
         <button
           type="button"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-5 py-2.5 text-sm font-semibold text-[#5A5246]"
           onClick={onCancel}
         >
           取消
@@ -197,7 +197,7 @@ function Input({
 }) {
   return (
     <label>
-      <span className="mb-1.5 block text-xs font-semibold text-slate-600">
+      <span className="mb-1.5 block text-xs font-semibold text-[#736A5C]">
         {label}
       </span>
       <input
@@ -206,7 +206,7 @@ function Input({
         placeholder={placeholder}
         inputMode={inputMode}
         maxLength={maxLength}
-        className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+        className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
         onChange={(event) => onChange(event.target.value)}
       />
     </label>

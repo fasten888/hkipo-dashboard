@@ -50,12 +50,12 @@ export function WithdrawalForm({
     <form onSubmit={handleSubmit}>
       <div className="grid gap-5 px-5 py-6 sm:grid-cols-2 sm:px-7">
         <label>
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             账户
           </span>
           <select
             value={accountId}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) => setAccountId(event.target.value)}
           >
             {accounts.map((account) => (
@@ -66,44 +66,44 @@ export function WithdrawalForm({
           </select>
         </label>
         <label>
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             日期
           </span>
           <input
             type="date"
             value={date}
-            className="focus-ring w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setDate(event.target.value)}
           />
         </label>
         <label className="sm:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             出金金额
           </span>
           <div className="relative">
-            <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-slate-400">
+            <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-[#A8A296]">
               HK$
             </span>
             <input
               value={amount}
               inputMode="decimal"
-              className="focus-ring w-full rounded-xl border border-slate-200 py-3 pl-12 pr-3.5 text-sm"
+              className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 pl-12 pr-3.5 text-sm"
               onChange={(event) => setAmount(event.target.value)}
             />
           </div>
         </label>
         <label className="sm:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             备注
           </span>
           <textarea
             value={remarks}
             rows={3}
-            className="focus-ring w-full resize-none rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setRemarks(event.target.value)}
           />
         </label>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions
         submitLabel={withdrawal ? '保存出金' : '记录出金'}

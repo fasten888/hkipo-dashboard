@@ -278,7 +278,7 @@ export function StatisticsPage() {
   return (
     <>
       <div>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-[#F4F1ED]0">
           对比账户和新股表现，观察月度收益与参与趋势。
         </p>
       </div>
@@ -393,10 +393,10 @@ export function StatisticsPage() {
       <IndustryAnalysis rows={industryStats} />
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <section className="xl:col-span-2 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white p-4">
+        <section className="xl:col-span-2 flex flex-wrap gap-2 rounded-2xl border border-[#E4DFD6] bg-white p-4">
           <select
             value={accountRankMetric}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            className="rounded-xl border border-[#E4DFD6] px-3 py-2 text-sm"
             onChange={(event) =>
               setAccountRankMetric(event.target.value as AccountRankMetric)
             }
@@ -410,7 +410,7 @@ export function StatisticsPage() {
           </select>
           <button
             type="button"
-            className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600"
+            className="rounded-xl bg-[#F4F1ED] px-4 py-2 text-sm font-semibold text-[#736A5C]"
             onClick={() =>
               setAccountRankDirection((current) =>
                 current === 'asc' ? 'desc' : 'asc',
@@ -421,7 +421,7 @@ export function StatisticsPage() {
           </button>
           <select
             value={ipoRankMetric}
-            className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+            className="rounded-xl border border-[#E4DFD6] px-3 py-2 text-sm"
             onChange={(event) =>
               setIpoRankMetric(event.target.value as IpoRankMetric)
             }
@@ -497,15 +497,15 @@ export function StatisticsPage() {
             display: `${row.participation} 次`,
           }))}
         />
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card xl:col-span-2">
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card xl:col-span-2">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <BarChart3 size={17} className="text-brand-600" />
-              <h2 className="font-bold text-slate-900">账户收益曲线</h2>
+              <h2 className="font-bold text-[#2E2A24]">账户收益曲线</h2>
             </div>
             <select
               value={selectedAccountId}
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm"
+              className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2 text-sm"
               onChange={(event) => setCurveAccountId(event.target.value)}
             >
               {accounts.map((account) => (
@@ -540,11 +540,11 @@ function ProfitSourceAnalysis({
   const denominator =
     rows.reduce((total, row) => total + Math.abs(row.profit), 0) || 1
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-bold text-slate-900">收益来源分析</h2>
-          <p className="mt-1 text-xs text-slate-400">按卖出方式拆分收益贡献</p>
+          <h2 className="font-bold text-[#2E2A24]">收益来源分析</h2>
+          <p className="mt-1 text-xs text-[#A8A296]">按卖出方式拆分收益贡献</p>
         </div>
         <p className={`text-lg font-bold ${getProfitColor(totalProfit)}`}>
           {formatHKD(totalProfit, 'profit')}
@@ -555,10 +555,10 @@ function ProfitSourceAnalysis({
           <div key={row.label}>
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold text-slate-700">
+                <p className="text-sm font-semibold text-[#5A5246]">
                   {row.label}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-[#A8A296]">
                   收益率 {formatPercent(row.rate, 'profitRate')}
                 </p>
               </div>
@@ -566,12 +566,12 @@ function ProfitSourceAnalysis({
                 <p className={`text-sm font-bold ${getProfitColor(row.profit)}`}>
                   {formatHKD(row.profit, 'profit')}
                 </p>
-                <p className="mt-1 text-xs font-medium text-slate-500">
+                <p className="mt-1 text-xs font-medium text-[#F4F1ED]0">
                   占比 {formatPercent((Math.abs(row.profit) / denominator) * 100)}
                 </p>
               </div>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#F4F1ED]">
               <div
                 className={getProfitColor(row.profit, 'background')}
                 style={{
@@ -598,11 +598,11 @@ function FinancingAnalysis({
       (left, right) => right.averageProfitRate - left.averageProfitRate,
     )[0]
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
+    <section className="overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
       <div className="flex items-start justify-between gap-4 px-5 py-5">
         <div>
-          <h2 className="font-bold text-slate-900">申购方式分析</h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <h2 className="font-bold text-[#2E2A24]">申购方式分析</h2>
+          <p className="mt-1 text-xs text-[#A8A296]">
             比较现金与 10x 融资的参与、命中和收益表现
           </p>
         </div>
@@ -621,10 +621,10 @@ function FinancingAnalysis({
         {rows.map((row) => (
           <article
             key={row.method}
-            className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+            className="rounded-2xl border border-[#F4F1ED] bg-[#F4F1ED] p-4"
           >
             <div className="flex items-center justify-between gap-3">
-              <h3 className="font-bold text-slate-800">
+              <h3 className="font-bold text-[#4A4540]">
                 {getSubscriptionMethodLabel(row.method)}
               </h3>
               <p className={`text-base font-bold ${getProfitColor(row.totalProfit)}`}>
@@ -645,7 +645,7 @@ function FinancingAnalysis({
       </div>
       <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[700px]">
-          <thead className="bg-slate-50 text-left text-xs text-slate-500">
+          <thead className="bg-[#F4F1ED] text-left text-xs text-[#F4F1ED]0">
             <tr>
               {['方式', '参与', '中签', '中签率', '总收益', '平均收益', '平均收益率'].map(
                 (label) => (
@@ -656,17 +656,17 @@ function FinancingAnalysis({
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-[#F4F1ED] text-sm">
             {rows.map((row) => (
               <tr key={row.method}>
-                <td className="px-4 py-3 font-bold text-slate-800">
+                <td className="px-4 py-3 font-bold text-[#4A4540]">
                   {getSubscriptionMethodLabel(row.method)}
                 </td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-[#736A5C]">
                   {row.participationCount}
                 </td>
-                <td className="px-4 py-3 text-red-500">{row.winCount}</td>
-                <td className="px-4 py-3 text-slate-600">
+                <td className="px-4 py-3 text-[#F9F2F0]0">{row.winCount}</td>
+                <td className="px-4 py-3 text-[#736A5C]">
                   {formatPercent(row.winRate)}
                 </td>
                 <td className={`px-4 py-3 font-semibold ${getProfitColor(row.totalProfit)}`}>
@@ -693,7 +693,7 @@ function Curve({
   rows: { label: string; value: number; display: string }[]
 }) {
   if (rows.length === 0) {
-    return <p className="py-12 text-center text-sm text-slate-400">暂无数据</p>
+    return <p className="py-12 text-center text-sm text-[#A8A296]">暂无数据</p>
   }
   const min = Math.min(...rows.map((row) => row.value), 0)
   const max = Math.max(...rows.map((row) => row.value), 1)
@@ -735,7 +735,7 @@ function Curve({
               >
                 {point.display}
               </p>
-              <p className="mt-1 text-[10px] text-slate-400">{point.label}</p>
+              <p className="mt-1 text-[10px] text-[#A8A296]">{point.label}</p>
             </div>
           ))}
         </div>
@@ -766,22 +766,22 @@ function Ranking({
   }[]
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className="flex items-center gap-2">
-        <Trophy size={17} className="text-amber-500" />
-        <h2 className="font-bold text-slate-900">{title}</h2>
+        <Trophy size={17} className="text-[#FAF6EF]0" />
+        <h2 className="font-bold text-[#2E2A24]">{title}</h2>
       </div>
       {rows.length === 0 ? (
-        <p className="py-12 text-center text-sm text-slate-400">暂无数据</p>
+        <p className="py-12 text-center text-sm text-[#A8A296]">暂无数据</p>
       ) : (
         <div className="mt-5 space-y-4">
           {rows.slice(0, 8).map((row, index) => (
             <div
               key={row.id}
-              className="rounded-xl px-1 py-1 transition hover:bg-slate-50"
+              className="rounded-xl px-1 py-1 transition hover:bg-[#F4F1ED]"
             >
-              <p className="truncate text-sm font-semibold text-slate-700">
-                <span className="mr-2 text-slate-300">{index + 1}</span>
+              <p className="truncate text-sm font-semibold text-[#5A5246]">
+                <span className="mr-2 text-[#D2CBBF]">{index + 1}</span>
                 {row.name}
               </p>
               <p
@@ -792,14 +792,14 @@ function Ranking({
                 {hidden ? '••••••' : row.primary}
               </p>
               {hidden ? (
-                <p className="mt-2 text-xs font-medium text-slate-400">
+                <p className="mt-2 text-xs font-medium text-[#A8A296]">
                   ••••••
                 </p>
               ) : (
                 <div className="mt-2 space-y-1 text-xs font-medium">
                   <button
                     type="button"
-                    className="block font-semibold text-red-500 hover:underline"
+                    className="block font-semibold text-[#F9F2F0]0 hover:underline"
                     onClick={() => onOutcomeSelect(row.id, 'won')}
                   >
                     {kind === 'account'
@@ -808,14 +808,14 @@ function Ranking({
                   </button>
                   <button
                     type="button"
-                    className="block font-semibold text-green-500 hover:underline"
+                    className="block font-semibold text-[#F2F5F2]0 hover:underline"
                     onClick={() => onOutcomeSelect(row.id, 'lost')}
                   >
                     {kind === 'account'
                       ? `${row.lossCount} 次未中签`
                       : `${row.lossCount} 个账户未中签`}
                   </button>
-                  <span className="block text-slate-500">
+                  <span className="block text-[#F4F1ED]0">
                     {kind === 'account'
                       ? `${row.totalCount} 次参与`
                       : `总参与 ${row.totalCount} 个账户`}
@@ -855,17 +855,17 @@ function HitStructureBar({
 
   return (
     <div className="group relative mt-2">
-      <div className="flex h-2.5 overflow-hidden rounded-full bg-slate-100">
+      <div className="flex h-2.5 overflow-hidden rounded-full bg-[#F4F1ED]">
         <div
-          className="h-full bg-red-500"
+          className="h-full bg-[#F9F2F0]0"
           style={{ width: `${winWidth}%` }}
         />
         <div
-          className="h-full bg-green-500"
+          className="h-full bg-[#F2F5F2]0"
           style={{ width: `${lossWidth}%` }}
         />
       </div>
-      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-xs leading-5 text-white shadow-lg group-hover:block">
+      <div className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#2E2A24] px-3 py-2 text-xs leading-5 text-white shadow-lg group-hover:block">
         <p>中签：{winCount}{unit}</p>
         <p>未中签：{lossCount}{unit}</p>
         <p>参与：{totalCount}{unit}</p>
@@ -899,23 +899,23 @@ function AccountProfitRanking({
     type === 'profit' ? '目前还没有盈利账户' : '很好，目前没有亏损账户'
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
-      <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
+    <section className="overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
+      <div className="flex items-center gap-3 border-b border-[#F4F1ED] px-5 py-4">
         <span
           className={`flex h-9 w-9 items-center justify-center rounded-xl ${
             type === 'profit'
-              ? 'bg-red-50 text-red-500'
-              : 'bg-green-50 text-green-500'
+              ? 'bg-[#F9F2F0] text-[#F9F2F0]'
+              : 'bg-[#F2F5F2] text-[#F2F5F2]'
           }`}
         >
           <Icon size={18} />
         </span>
         <div>
-          <h2 className="font-bold text-slate-900">{title}</h2>
-          <p className="mt-0.5 text-[11px] text-slate-400">{subtitle}</p>
+          <h2 className="font-bold text-[#2E2A24]">{title}</h2>
+          <p className="mt-0.5 text-[11px] text-[#A8A296]">{subtitle}</p>
         </div>
       </div>
-      <div className="divide-y divide-slate-100 px-5">
+      <div className="divide-y divide-[#F4F1ED] px-5">
         {rows.map((row, index) => (
           <button
             type="button"
@@ -930,26 +930,26 @@ function AccountProfitRanking({
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
                   index < 3
                     ? type === 'profit'
-                      ? 'bg-red-50 text-red-500'
-                      : 'bg-green-50 text-green-500'
-                    : 'bg-slate-50 text-slate-400'
+                      ? 'bg-[#F9F2F0] text-[#F9F2F0]'
+                      : 'bg-[#F2F5F2] text-[#F2F5F2]'
+                    : 'bg-[#F4F1ED] text-[#A8A296]'
                 }`}
               >
                 {index + 1}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-slate-800">
+                <p className="truncate text-sm font-semibold text-[#4A4540]">
                   {row.name}
                 </p>
-                <p className="mt-1 truncate text-xs font-medium text-slate-400">
+                <p className="mt-1 truncate text-xs font-medium text-[#A8A296]">
                   {hidden
                     ? '••••••'
                     : `${row.winCount} 次中签 · ${row.participationCount} 次参与`}
                 </p>
               </div>
             </div>
-            <div className="flex w-full items-end justify-between border-t border-slate-100 pt-3 sm:w-auto sm:shrink-0 sm:flex-col sm:border-0 sm:pt-0 sm:text-right">
-              <span className="text-xs font-medium text-slate-400 sm:hidden">
+            <div className="flex w-full items-end justify-between border-t border-[#F4F1ED] pt-3 sm:w-auto sm:shrink-0 sm:flex-col sm:border-0 sm:pt-0 sm:text-right">
+              <span className="text-xs font-medium text-[#A8A296] sm:hidden">
                 点击查看详情
               </span>
               <div className="text-right">
@@ -974,7 +974,7 @@ function AccountProfitRanking({
           </button>
         ))}
         {rows.length === 0 && (
-          <p className="py-12 text-center text-sm text-slate-400">
+          <p className="py-12 text-center text-sm text-[#A8A296]">
             {emptyText}
           </p>
         )}
@@ -1003,11 +1003,11 @@ function SaleStrategyAnalysis({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-start sm:justify-between">
+    <section className="overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
+      <div className="flex flex-col gap-3 border-b border-[#F4F1ED] px-5 py-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="font-bold text-slate-900">卖出策略分析</h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <h2 className="font-bold text-[#2E2A24]">卖出策略分析</h2>
+          <p className="mt-1 text-xs text-[#A8A296]">
             对比暗盘、首日和持有卖出的收益、收益率与胜率
           </p>
         </div>
@@ -1024,13 +1024,13 @@ function SaleStrategyAnalysis({
         {rows.map((row) => (
           <article
             key={row.method}
-            className="rounded-2xl border border-slate-100 p-4"
+            className="rounded-2xl border border-[#F4F1ED] p-4"
           >
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-800">
+              <h3 className="font-bold text-[#4A4540]">
                 {methodLabels[row.method]}
               </h3>
-              <span className="text-xs text-slate-400">{row.count} 次</span>
+              <span className="text-xs text-[#A8A296]">{row.count} 次</span>
             </div>
             <p
               className={`mt-3 text-xl font-bold ${getProfitColor(
@@ -1039,7 +1039,7 @@ function SaleStrategyAnalysis({
             >
               {formatHKD(row.totalProfit, 'profit')}
             </p>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#F4F1ED]">
               <div
                 className={getProfitColor(row.totalProfit, 'background')}
                 style={{
@@ -1068,8 +1068,8 @@ function SaleStrategyAnalysis({
           </article>
         ))}
       </div>
-      <div className="border-t border-slate-100 px-5 py-4">
-        <p className="text-xs font-semibold text-slate-500">暗盘 VS 首日</p>
+      <div className="border-t border-[#F4F1ED] px-5 py-4">
+        <p className="text-xs font-semibold text-[#F4F1ED]0">暗盘 VS 首日</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {['总收益', '平均收益率', '胜率'].map((label, index) => {
             const grey = rows.find((row) => row.method === 'grey_market')
@@ -1080,12 +1080,12 @@ function SaleStrategyAnalysis({
               [grey?.winRate ?? 0, first?.winRate ?? 0],
             ][index]
             return (
-              <div key={label} className="rounded-xl bg-slate-50 p-3">
-                <p className="text-[11px] text-slate-400">{label}</p>
-                <p className="mt-1 text-xs font-semibold text-slate-700">
+              <div key={label} className="rounded-xl bg-[#F4F1ED] p-3">
+                <p className="text-[11px] text-[#A8A296]">{label}</p>
+                <p className="mt-1 text-xs font-semibold text-[#5A5246]">
                   暗盘 {index === 0 ? formatHKD(values[0], 'profit') : formatPercent(values[0])}
                 </p>
-                <p className="mt-1 text-xs font-semibold text-slate-700">
+                <p className="mt-1 text-xs font-semibold text-[#5A5246]">
                   首日 {index === 0 ? formatHKD(values[1], 'profit') : formatPercent(values[1])}
                 </p>
               </div>
@@ -1100,8 +1100,8 @@ function SaleStrategyAnalysis({
 function StrategyMetric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-slate-400">{label}</p>
-      <p className="mt-1 font-semibold text-slate-700">{value}</p>
+      <p className="text-[#A8A296]">{label}</p>
+      <p className="mt-1 font-semibold text-[#5A5246]">{value}</p>
     </div>
   )
 }
@@ -1112,27 +1112,27 @@ function IndustryAnalysis({
   rows: ReturnType<typeof getIndustryStats>
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
+    <section className="overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
       <div className="flex items-start justify-between gap-4 px-5 py-5">
         <div>
-          <h2 className="font-bold text-slate-900">行业分析</h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <h2 className="font-bold text-[#2E2A24]">行业分析</h2>
+          <p className="mt-1 text-xs text-[#A8A296]">
             按新股行业汇总参与、中签率与累计收益
           </p>
         </div>
         <div className="flex gap-2">
           {rows[0] && (
-            <div className="rounded-xl bg-red-50 px-3 py-2 text-right">
-              <p className="text-[10px] font-semibold text-red-500">最赚钱行业</p>
-              <p className="mt-0.5 text-sm font-bold text-red-500">
+            <div className="rounded-xl bg-[#F9F2F0] px-3 py-2 text-right">
+              <p className="text-[10px] font-semibold text-[#F9F2F0]0">最赚钱行业</p>
+              <p className="mt-0.5 text-sm font-bold text-[#F9F2F0]0">
                 {rows[0].industry}
               </p>
             </div>
           )}
           {rows.length > 1 && (
-            <div className="rounded-xl bg-green-50 px-3 py-2 text-right">
-              <p className="text-[10px] font-semibold text-green-500">最差行业</p>
-              <p className="mt-0.5 text-sm font-bold text-green-500">
+            <div className="rounded-xl bg-[#F2F5F2] px-3 py-2 text-right">
+              <p className="text-[10px] font-semibold text-[#F2F5F2]0">最差行业</p>
+              <p className="mt-0.5 text-sm font-bold text-[#F2F5F2]0">
                 {rows[rows.length - 1].industry}
               </p>
             </div>
@@ -1143,14 +1143,14 @@ function IndustryAnalysis({
         {rows.map((row, index) => (
           <article
             key={row.industry}
-            className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+            className="rounded-2xl border border-[#F4F1ED] bg-[#F4F1ED] p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold text-slate-300">
+                <p className="text-[10px] font-bold text-[#D2CBBF]">
                   TOP {index + 1}
                 </p>
-                <h3 className="mt-1 font-bold text-slate-800">
+                <h3 className="mt-1 font-bold text-[#4A4540]">
                   {row.industry}
                 </h3>
               </div>
@@ -1168,7 +1168,7 @@ function IndustryAnalysis({
       </div>
       <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[720px]">
-          <thead className="bg-slate-50 text-left text-xs text-slate-500">
+          <thead className="bg-[#F4F1ED] text-left text-xs text-[#F4F1ED]0">
             <tr>
               {[
                 '排名',
@@ -1184,18 +1184,18 @@ function IndustryAnalysis({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-[#F4F1ED] text-sm">
             {rows.map((row, index) => (
               <tr key={row.industry}>
-                <td className="px-5 py-4 text-slate-400">{index + 1}</td>
-                <td className="px-5 py-4 font-bold text-slate-800">
+                <td className="px-5 py-4 text-[#A8A296]">{index + 1}</td>
+                <td className="px-5 py-4 font-bold text-[#4A4540]">
                   {row.industry}
                 </td>
-                <td className="px-5 py-4 text-slate-600">
+                <td className="px-5 py-4 text-[#736A5C]">
                   {row.participationCount}
                 </td>
-                <td className="px-5 py-4 text-red-500">{row.winCount}</td>
-                <td className="px-5 py-4 text-slate-600">
+                <td className="px-5 py-4 text-[#F9F2F0]0">{row.winCount}</td>
+                <td className="px-5 py-4 text-[#736A5C]">
                   {formatPercent(row.winRate)}
                 </td>
                 <td
@@ -1225,13 +1225,13 @@ function TrendChart({
 }) {
   const max = Math.max(...rows.map((row) => Math.abs(row.value)), 1)
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className="flex items-center gap-2">
         <BarChart3 size={17} className="text-brand-600" />
-        <h2 className="font-bold text-slate-900">{title}</h2>
+        <h2 className="font-bold text-[#2E2A24]">{title}</h2>
       </div>
       {rows.length === 0 ? (
-        <p className="py-12 text-center text-sm text-slate-400">暂无数据</p>
+        <p className="py-12 text-center text-sm text-[#A8A296]">暂无数据</p>
       ) : (
         <div className="mt-6 flex h-52 items-end gap-1 overflow-hidden pb-1 sm:gap-3 sm:overflow-x-auto">
           {rows.slice(-12).map((row) => (
@@ -1243,7 +1243,7 @@ function TrendChart({
                 className={`mb-2 text-[10px] font-semibold ${
                   profitColors
                     ? getProfitColor(row.value)
-                    : 'text-slate-500'
+                    : 'text-[#F4F1ED]'
                 }`}
               >
                 {row.display}
@@ -1258,7 +1258,7 @@ function TrendChart({
                   height: `${Math.max(4, (Math.abs(row.value) / max) * 150)}px`,
                 }}
               />
-              <span className="mt-2 text-[10px] text-slate-400">
+              <span className="mt-2 text-[10px] text-[#A8A296]">
                 {row.label.slice(5)}
               </span>
             </div>

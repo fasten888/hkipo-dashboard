@@ -90,8 +90,8 @@ export function AccountDetailPage({
 
   if (!account) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-card">
-        <p className="font-semibold text-slate-800">账户不存在或已被删除</p>
+      <div className="rounded-2xl border border-[#E4DFD6] bg-white p-10 text-center shadow-card">
+        <p className="font-semibold text-[#4A4540]">账户不存在或已被删除</p>
         <button
           type="button"
           className="mt-5 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white"
@@ -293,7 +293,7 @@ export function AccountDetailPage({
     <>
       <button
         type="button"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-[#F4F1ED]0 hover:text-[#2E2A24]"
         onClick={onBack}
       >
         <ArrowLeft size={17} />
@@ -301,17 +301,17 @@ export function AccountDetailPage({
       </button>
 
       <div className="mt-5 flex min-w-0 items-center gap-3 sm:gap-4">
-        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 text-white">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-[#4A4540] to-[#2E2A24] text-white">
           <CreditCard size={24} />
         </div>
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
             账户详情
           </p>
-          <h1 className="mt-1 truncate text-xl font-bold text-slate-950 sm:text-3xl">
+          <h1 className="mt-1 truncate text-xl font-bold text-[#2E2A24] sm:text-3xl">
             {formatAccountName(account)}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-[#F4F1ED]0">
             {account.brokerName || '未填写券商名称'}
           </p>
         </div>
@@ -395,9 +395,9 @@ export function AccountDetailPage({
       <AccountProfitTrend rows={profitTrend} />
 
       <div className="mt-7 grid gap-6 xl:grid-cols-[1fr_2fr]">
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
-          <h2 className="font-bold text-slate-900">基础信息</h2>
-          <div className="mt-4 divide-y divide-slate-100">
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
+          <h2 className="font-bold text-[#2E2A24]">基础信息</h2>
+          <div className="mt-4 divide-y divide-[#F4F1ED]">
             <Detail icon={User} label="账户名称" value={formatAccountName(account)} />
             <Detail icon={Phone} label="手机号" value={formatSensitiveText(account.phone)} />
             <Detail
@@ -497,19 +497,19 @@ export function AccountDetailPage({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="font-bold text-slate-900">账户全部历史</h2>
+            <h2 className="font-bold text-[#2E2A24]">账户全部历史</h2>
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-3 py-2 text-xs font-semibold text-[#736A5C]"
               onClick={() => exportAccountHistoryCsv(account.id, data)}
             >
               <Download size={14} />
               导出 CSV
             </button>
           </div>
-          <div className="mt-4 flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
+          <div className="mt-4 flex flex-wrap gap-1 rounded-xl bg-[#F4F1ED] p-1">
             {[
               ['participation', `参与记录 ${records.length}`],
               [
@@ -528,8 +528,8 @@ export function AccountDetailPage({
                 type="button"
                 className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold ${
                   activeTab === key
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500'
+                    ? 'bg-white text-[#2E2A24] shadow-sm'
+                    : 'text-[#F4F1ED]'
                 }`}
                 onClick={() =>
                   setActiveTab(
@@ -550,18 +550,18 @@ export function AccountDetailPage({
             <label className="relative">
               <Search
                 size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
               />
               <input
                 value={historySearch}
                 placeholder="搜索新股、代码或备注"
-                className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm"
+                className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-9 pr-3 text-sm"
                 onChange={(event) => setHistorySearch(event.target.value)}
               />
             </label>
             <select
               value={historySort}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-600"
+              className="rounded-xl border border-[#E4DFD6] bg-white px-3 py-2.5 text-sm text-[#736A5C]"
               onChange={(event) =>
                 setHistorySort(
                   event.target.value as
@@ -610,17 +610,17 @@ export function AccountDetailPage({
                   return (
                     <div
                       key={sale.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4 text-sm"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#F4F1ED] p-4 text-sm"
                     >
                       <div>
-                        <p className="font-bold text-slate-800">
+                        <p className="font-bold text-[#4A4540]">
                           {ipo?.name ?? '-'}（{ipo?.stockCode ?? '-'}）
                         </p>
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className="mt-1 text-xs text-[#A8A296]">
                           {saleMethodLabel[sale.method]} · {sale.date}
                         </p>
                       </div>
-                      <p className="font-semibold text-slate-700">
+                      <p className="font-semibold text-[#5A5246]">
                         {sale.shares} 股 × {formatHKD(sale.price)}
                       </p>
                     </div>
@@ -637,17 +637,17 @@ export function AccountDetailPage({
                 filteredWithdrawals.map((withdrawal) => (
                   <div
                     key={withdrawal.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#F4F1ED] p-4 text-sm"
                   >
                     <div>
-                      <p className="font-bold text-slate-800">
+                      <p className="font-bold text-[#4A4540]">
                         {withdrawal.date}
                       </p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-[#A8A296]">
                         {withdrawal.remarks || '无备注'}
                       </p>
                     </div>
-                    <p className="font-semibold text-slate-700">
+                    <p className="font-semibold text-[#5A5246]">
                       {formatHKD(withdrawal.amount)}
                     </p>
                   </div>
@@ -658,12 +658,12 @@ export function AccountDetailPage({
         </section>
       </div>
 
-      <section className="mt-7 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
+      <section className="mt-7 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
         <div className="flex items-center gap-2">
           <CalendarClock size={18} className="text-brand-600" />
           <div>
-            <h2 className="font-bold text-slate-900">账户时间轴</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="font-bold text-[#2E2A24]">账户时间轴</h2>
+            <p className="mt-1 text-xs text-[#A8A296]">
               申购、中签、卖出和出金按时间倒序展示
             </p>
           </div>
@@ -671,21 +671,21 @@ export function AccountDetailPage({
         {timeline.length === 0 ? (
           <EmptyHistory label="暂无账户动态" />
         ) : (
-          <div className="relative mt-6 space-y-0 before:absolute before:bottom-3 before:left-[5px] before:top-3 before:w-px before:bg-slate-200">
+          <div className="relative mt-6 space-y-0 before:absolute before:bottom-3 before:left-[5px] before:top-3 before:w-px before:bg-[#E4DFD6]">
             {timeline.map((event) => (
               <div
                 key={event.id}
                 className="relative grid gap-2 pb-6 pl-7 sm:grid-cols-[110px_1fr_auto]"
               >
                 <span className="absolute left-0 top-1.5 h-[11px] w-[11px] rounded-full border-2 border-white bg-brand-500 ring-2 ring-brand-100" />
-                <time className="text-xs font-medium text-slate-400">
+                <time className="text-xs font-medium text-[#A8A296]">
                   {event.date || '-'}
                 </time>
                 <div>
-                  <p className="text-sm font-bold text-slate-800">
+                  <p className="text-sm font-bold text-[#4A4540]">
                     {event.subject}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-[#F4F1ED]0">
                     {event.title} · {event.detail}
                   </p>
                 </div>
@@ -755,19 +755,19 @@ function HistoryRecords({
                 return (
                   <article
                     key={subscription.id}
-                    className="rounded-xl border border-slate-100 p-4"
+                    className="rounded-xl border border-[#F4F1ED] p-4"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-slate-800">
+                          <p className="text-sm font-bold text-[#4A4540]">
                             {ipo?.name ?? '已删除新股'}（{ipo?.stockCode ?? '-'}）
                           </p>
                           <Status status={subscription.status} />
                           {onEdit && (
                             <button
                               type="button"
-                              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                              className="rounded-lg p-1.5 text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]"
                               aria-label="编辑历史申购"
                               onClick={() => onEdit(subscription)}
                             >
@@ -775,14 +775,14 @@ function HistoryRecords({
                             </button>
                           )}
                         </div>
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className="mt-1 text-xs text-[#A8A296]">
                           申购 {subscription.subscriptionDate} ·{' '}
                           {formatHKD(
                             subscription.subscriptionAmount,
                             'investment',
                           )}
                         </p>
-                        <p className="mt-1 text-xs font-medium text-slate-500">
+                        <p className="mt-1 text-xs font-medium text-[#F4F1ED]0">
                           资金来源：{getFundingSourceLabel(subscription.fundingSource)}
                         </p>
                       </div>
@@ -805,7 +805,7 @@ function HistoryRecords({
                       </div>
                     </div>
                     {subscription.status === 'won' && (
-                      <div className="mt-3 flex flex-wrap gap-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                      <div className="mt-3 flex flex-wrap gap-3 rounded-lg bg-[#F4F1ED] px-3 py-2 text-xs text-[#F4F1ED]0">
                         <span>
                           中签 {subscription.allottedShares} 股 /{' '}
                           {subscription.allottedLots} 手
@@ -819,7 +819,7 @@ function HistoryRecords({
                         {recordSales.map((sale) => (
                           <div
                             key={sale.id}
-                            className="flex flex-wrap justify-between gap-2 text-xs text-slate-500"
+                            className="flex flex-wrap justify-between gap-2 text-xs text-[#F4F1ED]0"
                           >
                             <span>
                               {saleMethodLabel[sale.method]} · {sale.date}
@@ -840,7 +840,7 @@ function HistoryRecords({
 
 function EmptyHistory({ label }: { label: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-4 py-12 text-center text-sm text-slate-400">
+    <div className="rounded-xl bg-[#F4F1ED] px-4 py-12 text-center text-sm text-[#A8A296]">
       {label}
     </div>
   )
@@ -906,10 +906,10 @@ function Summary({
   prominent?: boolean
 }) {
   const color =
-    profitValue === undefined ? 'text-slate-900' : getProfitColor(profitValue)
+    profitValue === undefined ? 'text-[#2E2A24]' : getProfitColor(profitValue)
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
+      <p className="text-xs text-[#A8A296]">{label}</p>
       <p
         className={`mt-2 font-bold tabular-nums ${color} ${
           prominent ? 'text-2xl sm:text-3xl' : 'text-xl'
@@ -937,11 +937,11 @@ function AccountProfitTrend({
   const latest = rows[rows.length - 1]?.cumulativeProfit ?? 0
 
   return (
-    <section className="mt-7 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
+    <section className="mt-7 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="font-bold text-slate-900">累计收益趋势</h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <h2 className="font-bold text-[#2E2A24]">累计收益趋势</h2>
+          <p className="mt-1 text-xs text-[#A8A296]">
             按卖出月份汇总账户累计收益
           </p>
         </div>
@@ -994,7 +994,7 @@ function AccountProfitTrend({
                   >
                     {formatHKD(row.cumulativeProfit, 'profit')}
                   </p>
-                  <p className="mt-1 text-[10px] text-slate-400">
+                  <p className="mt-1 text-[10px] text-[#A8A296]">
                     {row.label}
                   </p>
                 </div>
@@ -1020,11 +1020,11 @@ function Detail({
 }) {
   return (
     <div className="flex gap-3 py-4">
-      <Icon size={17} className="mt-0.5 shrink-0 text-slate-400" />
+      <Icon size={17} className="mt-0.5 shrink-0 text-[#A8A296]" />
       <div className="min-w-0">
-        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-xs text-[#A8A296]">{label}</p>
         <p
-          className={`mt-1 text-sm font-medium text-slate-700 ${
+          className={`mt-1 text-sm font-medium text-[#5A5246] ${
             multiline ? 'whitespace-pre-wrap leading-6' : 'break-all'
           }`}
         >
@@ -1041,10 +1041,10 @@ function Status({
   status: 'applied' | 'announced' | 'lost' | 'won'
 }) {
   const style = {
-    applied: ['已申购', 'bg-blue-50 text-blue-700'],
-    announced: ['已公布', 'bg-amber-50 text-amber-700'],
-    lost: ['未中签', 'bg-slate-100 text-slate-500'],
-    won: ['已中签', 'bg-emerald-50 text-emerald-700'],
+    applied: ['已申购', 'bg-[#F8F4F1] text-[#7E5D53]'],
+    announced: ['已公布', 'bg-[#FAF6EF] text-[#7D653C]'],
+    lost: ['未中签', 'bg-[#F4F1ED] text-[#F4F1ED]'],
+    won: ['已中签', 'bg-[#F2F5F2] text-emerald-700'],
   }[status]
   return (
     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${style[1]}`}>

@@ -69,7 +69,7 @@ export function HoldingForm({
           <Label>账户</Label>
           <select
             value={accountId}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) => setAccountId(event.target.value)}
           >
             {accounts.map((account) => (
@@ -85,9 +85,9 @@ export function HoldingForm({
         <Field label="持仓成本" value={cost} prefix="HK$" onChange={setCost} numeric />
         <Field label="当前市值" value={marketValue} prefix="HK$" onChange={setMarketValue} numeric />
         <Field label="抵押率" value={collateralRate} suffix="%" onChange={setCollateralRate} numeric />
-        <div className="rounded-xl bg-slate-50 px-4 py-3">
-          <p className="text-xs text-slate-400">可融资额度</p>
-          <p className="mt-1 text-lg font-bold text-slate-800">
+        <div className="rounded-xl bg-[#F4F1ED] px-4 py-3">
+          <p className="text-xs text-[#A8A296]">可融资额度</p>
+          <p className="mt-1 text-lg font-bold text-[#4A4540]">
             HK${' '}
             {(
               (Number(marketValue) || 0) *
@@ -100,11 +100,11 @@ export function HoldingForm({
           <textarea
             value={remarks}
             rows={3}
-            className="focus-ring w-full resize-none rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setRemarks(event.target.value)}
           />
         </label>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions
         submitLabel={holding ? '保存持仓' : '新增持仓'}
@@ -115,7 +115,7 @@ export function HoldingForm({
 }
 
 function Label({ children }: { children: string }) {
-  return <span className="mb-2 block text-sm font-semibold text-slate-700">{children}</span>
+  return <span className="mb-2 block text-sm font-semibold text-[#5A5246]">{children}</span>
 }
 
 function Field({
@@ -137,16 +137,16 @@ function Field({
     <label>
       <Label>{label}</Label>
       <div className="relative">
-        {prefix && <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-slate-400">{prefix}</span>}
+        {prefix && <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-[#A8A296]">{prefix}</span>}
         <input
           value={value}
           inputMode={numeric ? 'decimal' : 'text'}
-          className={`focus-ring w-full rounded-xl border border-slate-200 py-3 text-sm ${
+          className={`focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 text-sm ${
             prefix ? 'pl-12' : 'pl-3.5'
           } ${suffix ? 'pr-10' : 'pr-3.5'}`}
           onChange={(event) => onChange(event.target.value)}
         />
-        {suffix && <span className="absolute inset-y-0 right-3.5 flex items-center text-sm text-slate-400">{suffix}</span>}
+        {suffix && <span className="absolute inset-y-0 right-3.5 flex items-center text-sm text-[#A8A296]">{suffix}</span>}
       </div>
     </label>
   )

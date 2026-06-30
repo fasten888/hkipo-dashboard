@@ -48,7 +48,7 @@ export function Modal({
       <button
         type="button"
         aria-label="关闭弹窗"
-        className="absolute inset-0 bg-slate-950/45 backdrop-blur-md"
+        className="absolute inset-0 bg-[#2E2A24]/45 backdrop-blur-md"
         onClick={onClose}
       />
       <div
@@ -58,18 +58,18 @@ export function Modal({
             : 'max-h-[94vh] rounded-t-3xl'
         }`}
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-100 bg-white/95 px-5 py-5 backdrop-blur sm:px-8 sm:py-6">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-[#F4F1ED] bg-white/95 px-5 py-5 backdrop-blur sm:px-8 sm:py-6">
           <div>
-            <h2 id="modal-title" className="text-xl font-medium tracking-[-0.025em] text-slate-950">
+            <h2 id="modal-title" className="text-xl font-medium tracking-[-0.025em] text-[#2E2A24]">
               {title}
             </h2>
             {description && (
-              <p className="mt-1 text-sm text-slate-500">{description}</p>
+              <p className="mt-1 text-sm text-[#F4F1ED]0">{description}</p>
             )}
           </div>
           <button
             type="button"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-[#A8A296] transition hover:bg-[#F4F1ED] hover:text-[#5A5246]"
             aria-label="关闭"
             onClick={onClose}
           >

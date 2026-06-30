@@ -39,8 +39,8 @@ export function IpoDetailPage({
 
   if (!ipo) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-card">
-        <p className="font-semibold text-slate-800">新股不存在或已被删除</p>
+      <div className="rounded-2xl border border-[#E4DFD6] bg-white p-10 text-center shadow-card">
+        <p className="font-semibold text-[#4A4540]">新股不存在或已被删除</p>
         <button
           type="button"
           className="mt-5 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white"
@@ -70,7 +70,7 @@ export function IpoDetailPage({
     <>
       <button
         type="button"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-[#F4F1ED]0 hover:text-[#2E2A24]"
         onClick={onBack}
       >
         <ArrowLeft size={17} />
@@ -82,15 +82,15 @@ export function IpoDetailPage({
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
             新股详情
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-950 sm:text-3xl">
+          <h1 className="mt-1 text-2xl font-bold text-[#2E2A24] sm:text-3xl">
             {ipo.name}（{ipo.stockCode}）
           </h1>
-          <p className="mt-2 text-sm font-medium text-slate-400">
+          <p className="mt-2 text-sm font-medium text-[#A8A296]">
             {ipo.industry || '未填写行业'}
           </p>
         </div>
-        <div className="rounded-2xl bg-slate-950 px-5 py-4 text-white">
-          <p className="text-[11px] text-slate-400">总收益</p>
+        <div className="rounded-2xl bg-[#2E2A24] px-5 py-4 text-white">
+          <p className="text-[11px] text-[#A8A296]">总收益</p>
           <p className={`mt-1 text-2xl font-bold ${getProfitColor(stats.totalProfit)}`}>
             {formatHKD(stats.totalProfit, 'profit')}
           </p>
@@ -131,8 +131,8 @@ export function IpoDetailPage({
       </section>
 
       <div className="mt-7 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
-          <h2 className="font-bold text-slate-900">基础信息</h2>
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
+          <h2 className="font-bold text-[#2E2A24]">基础信息</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Info label="股票名称" value={ipo.name} />
             <Info label="股票代码" value={ipo.stockCode} />
@@ -143,8 +143,8 @@ export function IpoDetailPage({
             <Info label="行业" value={ipo.industry} />
           </div>
         </section>
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
-          <h2 className="font-bold text-slate-900">账户中签结构</h2>
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
+          <h2 className="font-bold text-[#2E2A24]">账户中签结构</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <AccountGroup
               title={`中签账户 ${new Set(winners.map((item) => item.accountId)).size}`}
@@ -162,20 +162,20 @@ export function IpoDetailPage({
         </section>
       </div>
 
-      <section className="mt-7 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="font-bold text-slate-900">所有参与账户</h2>
-          <p className="mt-1 text-xs text-slate-400">
+      <section className="mt-7 overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
+        <div className="border-b border-[#F4F1ED] px-5 py-4">
+          <h2 className="font-bold text-[#2E2A24]">所有参与账户</h2>
+          <p className="mt-1 text-xs text-[#A8A296]">
             每个账户的实际申购方式独立保存，可直接修改。
           </p>
         </div>
         {records.length === 0 ? (
-          <p className="py-12 text-center text-sm text-slate-400">
+          <p className="py-12 text-center text-sm text-[#A8A296]">
             暂无参与账户
           </p>
         ) : (
           <>
-          <div className="divide-y divide-slate-100 md:hidden">
+          <div className="divide-y divide-[#F4F1ED] md:hidden">
             {records
               .slice()
               .sort((left, right) =>
@@ -189,7 +189,7 @@ export function IpoDetailPage({
                   <article key={record.id} className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="break-words font-bold text-slate-800">
+                        <p className="break-words font-bold text-[#4A4540]">
                           {account ? formatAccountName(account) : '已删除账户'}
                         </p>
                         <p className="mt-1 text-sm font-semibold text-brand-600">
@@ -200,7 +200,7 @@ export function IpoDetailPage({
                       </div>
                       <button
                         type="button"
-                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500"
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#E4DFD6] text-[#F4F1ED]0"
                         aria-label="编辑申购记录"
                         onClick={() => setEditingSubscription(record)}
                       >
@@ -215,7 +215,7 @@ export function IpoDetailPage({
                       />
                     </div>
                     {record.remarks && (
-                      <p className="mt-3 break-words text-xs leading-5 text-slate-400">
+                      <p className="mt-3 break-words text-xs leading-5 text-[#A8A296]">
                         {record.remarks}
                       </p>
                     )}
@@ -225,7 +225,7 @@ export function IpoDetailPage({
           </div>
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[680px]">
-              <thead className="bg-slate-50 text-left text-xs text-slate-500">
+              <thead className="bg-[#F4F1ED] text-left text-xs text-[#F4F1ED]0">
                 <tr>
                   {['账户', '申购方式', '申购日期', '状态', '备注', '操作'].map(
                     (label) => (
@@ -236,7 +236,7 @@ export function IpoDetailPage({
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-[#F4F1ED] text-sm">
                 {records
                   .slice()
                   .sort((left, right) =>
@@ -248,29 +248,29 @@ export function IpoDetailPage({
                     )
                     return (
                       <tr key={record.id}>
-                        <td className="px-5 py-4 font-semibold text-slate-700">
+                        <td className="px-5 py-4 font-semibold text-[#5A5246]">
                           {account
                             ? formatAccountName(account)
                             : '已删除账户'}
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        <td className="px-5 py-4 text-[#736A5C]">
                           {getSubscriptionMethodLabel(
                             getSubscriptionMethod(record, account),
                           )}
                         </td>
-                        <td className="px-5 py-4 text-slate-500">
+                        <td className="px-5 py-4 text-[#F4F1ED]0">
                           {record.subscriptionDate}
                         </td>
-                        <td className="px-5 py-4 text-slate-600">
+                        <td className="px-5 py-4 text-[#736A5C]">
                           {subscriptionStatusLabels[record.status]}
                         </td>
-                        <td className="max-w-48 truncate px-5 py-4 text-slate-500">
+                        <td className="max-w-48 truncate px-5 py-4 text-[#F4F1ED]0">
                           {record.remarks || '-'}
                         </td>
                         <td className="px-5 py-4">
                           <button
                             type="button"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            className="rounded-lg p-2 text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]"
                             aria-label="编辑申购记录"
                             onClick={() => setEditingSubscription(record)}
                           >
@@ -287,21 +287,21 @@ export function IpoDetailPage({
         )}
       </section>
 
-      <section className="mt-7 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+      <section className="mt-7 overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
+        <div className="flex items-center justify-between border-b border-[#F4F1ED] px-5 py-4">
           <div>
-            <h2 className="font-bold text-slate-900">卖出记录</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="font-bold text-[#2E2A24]">卖出记录</h2>
+            <p className="mt-1 text-xs text-[#A8A296]">
               暗盘、首日及持有后卖出统一核算
             </p>
           </div>
-          <CalendarDays size={18} className="text-slate-300" />
+          <CalendarDays size={18} className="text-[#D2CBBF]" />
         </div>
         {saleRows.length === 0 ? (
-          <p className="py-14 text-center text-sm text-slate-400">暂无卖出记录</p>
+          <p className="py-14 text-center text-sm text-[#A8A296]">暂无卖出记录</p>
         ) : (
           <>
-          <div className="divide-y divide-slate-100 md:hidden">
+          <div className="divide-y divide-[#F4F1ED] md:hidden">
             {saleRows.map((sale) => {
               const subscription = records.find(
                 (item) => item.id === sale.subscriptionId,
@@ -327,10 +327,10 @@ export function IpoDetailPage({
                 <article key={sale.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="break-words font-bold text-slate-800">
+                      <p className="break-words font-bold text-[#4A4540]">
                         {account ? formatAccountName(account) : '已删除账户'}
                       </p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-[#A8A296]">
                         {saleMethodLabels[sale.method]} · {sale.date}
                       </p>
                     </div>
@@ -353,7 +353,7 @@ export function IpoDetailPage({
           </div>
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[760px]">
-              <thead className="bg-slate-50 text-left text-xs text-slate-500">
+              <thead className="bg-[#F4F1ED] text-left text-xs text-[#F4F1ED]0">
                 <tr>
                   {['账户', '卖出方式', '日期', '股数', '价格', '收益', '收益率'].map(
                     (label) => (
@@ -364,7 +364,7 @@ export function IpoDetailPage({
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-[#F4F1ED] text-sm">
                 {saleRows.map((sale) => {
                   const subscription = records.find(
                     (item) => item.id === sale.subscriptionId,
@@ -390,15 +390,15 @@ export function IpoDetailPage({
                   const rate = cost > 0 ? (profit / cost) * 100 : 0
                   return (
                     <tr key={sale.id}>
-                      <td className="px-5 py-4 font-semibold text-slate-700">
+                      <td className="px-5 py-4 font-semibold text-[#5A5246]">
                         {account ? formatAccountName(account) : '已删除账户'}
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[#736A5C]">
                         {saleMethodLabels[sale.method]}
                       </td>
-                      <td className="px-5 py-4 text-slate-500">{sale.date}</td>
-                      <td className="px-5 py-4 text-slate-600">{sale.shares}</td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[#F4F1ED]0">{sale.date}</td>
+                      <td className="px-5 py-4 text-[#736A5C]">{sale.shares}</td>
+                      <td className="px-5 py-4 text-[#736A5C]">
                         {formatHKD(sale.price)}
                       </td>
                       <td className={`px-5 py-4 font-bold ${getProfitColor(profit)}`}>
@@ -452,14 +452,14 @@ function Metric({
   profit?: number
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <div className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-slate-400">{label}</p>
-        <Icon size={16} className="text-slate-300" />
+        <p className="text-xs text-[#A8A296]">{label}</p>
+        <Icon size={16} className="text-[#D2CBBF]" />
       </div>
       <p
         className={`mt-2 text-lg font-bold ${
-          profit === undefined ? 'text-slate-900' : getProfitColor(profit)
+          profit === undefined ? 'text-[#2E2A24]' : getProfitColor(profit)
         }`}
       >
         {value}
@@ -470,9 +470,9 @@ function Metric({
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-4 py-3">
-      <p className="text-[11px] text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-700">{value || '-'}</p>
+    <div className="rounded-xl bg-[#F4F1ED] px-4 py-3">
+      <p className="text-[11px] text-[#A8A296]">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-[#5A5246]">{value || '-'}</p>
     </div>
   )
 }
@@ -489,18 +489,18 @@ function AccountGroup({
   accounts: ReturnType<typeof useAppData>['accounts']
 }) {
   return (
-    <div className={`rounded-xl p-4 ${tone === 'red' ? 'bg-red-50' : 'bg-green-50'}`}>
-      <p className={`text-xs font-bold ${tone === 'red' ? 'text-red-500' : 'text-green-500'}`}>
+    <div className={`rounded-xl p-4 ${tone === 'red' ? 'bg-[#F9F2F0]' : 'bg-[#F2F5F2]'}`}>
+      <p className={`text-xs font-bold ${tone === 'red' ? 'text-[#F9F2F0]' : 'text-[#F2F5F2]'}`}>
         {title}
       </p>
       <div className="mt-3 space-y-2">
         {accountIds.length === 0 ? (
-          <p className="text-xs text-slate-400">暂无记录</p>
+          <p className="text-xs text-[#A8A296]">暂无记录</p>
         ) : (
           accountIds.map((accountId) => {
             const account = accounts.find((item) => item.id === accountId)
             return (
-              <p key={accountId} className="text-sm font-semibold text-slate-700">
+              <p key={accountId} className="text-sm font-semibold text-[#5A5246]">
                 {account ? formatAccountName(account) : '已删除账户'}
               </p>
             )

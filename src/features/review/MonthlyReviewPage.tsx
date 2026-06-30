@@ -84,7 +84,7 @@ export function MonthlyReviewPage() {
         <div className="flex gap-2">
           <select
             value={year}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+            className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
             onChange={(event) => {
               setSelectedYear(event.target.value)
               setSelectedMonth('')
@@ -98,7 +98,7 @@ export function MonthlyReviewPage() {
           </select>
           <select
             value={month}
-            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+            className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
             onChange={(event) => setSelectedMonth(event.target.value)}
           >
             {yearRows.map((item) => (
@@ -111,7 +111,7 @@ export function MonthlyReviewPage() {
       </div>
 
       {!current ? (
-        <div className="mt-7 rounded-2xl border border-slate-200 bg-white px-6 py-20 text-center text-sm text-slate-400 shadow-card">
+        <div className="mt-7 rounded-2xl border border-[#E4DFD6] bg-white px-6 py-20 text-center text-sm text-[#A8A296] shadow-card">
           暂无可复盘的数据
         </div>
       ) : (
@@ -164,10 +164,10 @@ export function MonthlyReviewPage() {
             />
           </section>
 
-          <section className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
+          <section className="mt-6 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
             <div>
-              <h2 className="font-bold text-slate-900">年度资金来源收益</h2>
-              <p className="mt-1 text-xs text-slate-400">
+              <h2 className="font-bold text-[#2E2A24]">年度资金来源收益</h2>
+              <p className="mt-1 text-xs text-[#A8A296]">
                 按申购记录的独立资金来源统计
               </p>
             </div>
@@ -179,9 +179,9 @@ export function MonthlyReviewPage() {
             </div>
           </section>
 
-          <section className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
-            <h2 className="font-bold text-slate-900">年度综合收益</h2>
-            <p className="mt-1 text-xs text-slate-400">
+          <section className="mt-6 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
+            <h2 className="font-bold text-[#2E2A24]">年度综合收益</h2>
+            <p className="mt-1 text-xs text-[#A8A296]">
               港股交易按期末 HKD/CNY 参考汇率折算人民币
             </p>
             <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -194,7 +194,7 @@ export function MonthlyReviewPage() {
                 value={comprehensiveProfitCny}
               />
             </div>
-            <div className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-xs leading-6 text-slate-500">
+            <div className="mt-4 rounded-xl bg-[#F4F1ED] px-4 py-3 text-xs leading-6 text-[#F4F1ED]0">
               港股打新交易收益：{formatHKD(annualNetProfit, 'profit')} ·
               汇率损益：{formatCNY(annualExchangeProfit)} · 综合收益：
               {fxRates.HKD > 0
@@ -203,10 +203,10 @@ export function MonthlyReviewPage() {
             </div>
           </section>
 
-          <section className="mt-7 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
+          <section className="mt-7 overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
             <div className="px-5 py-5">
-              <h2 className="font-bold text-slate-900">{year} 年度汇总</h2>
-              <p className="mt-1 text-xs text-slate-400">
+              <h2 className="font-bold text-[#2E2A24]">{year} 年度汇总</h2>
+              <p className="mt-1 text-xs text-[#A8A296]">
                 年度中签率{' '}
                 {formatPercent(
                   annualDecided > 0
@@ -215,13 +215,13 @@ export function MonthlyReviewPage() {
                 )}
               </p>
             </div>
-            <div className="divide-y divide-slate-100 sm:hidden">
+            <div className="divide-y divide-[#F4F1ED] sm:hidden">
               {yearRows.map((row) => (
                 <article key={row.month} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-bold text-slate-800">{row.month}</p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="font-bold text-[#4A4540]">{row.month}</p>
+                      <p className="mt-1 text-xs text-[#A8A296]">
                         最佳新股：{row.bestIpoName}
                       </p>
                     </div>
@@ -234,7 +234,7 @@ export function MonthlyReviewPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-slate-50 p-3 text-center">
+                  <div className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-[#F4F1ED] p-3 text-center">
                     <ReviewDatum label="参与" value={row.participation} />
                     <ReviewDatum label="中签" value={row.wins} tone="red" />
                     <ReviewDatum label="未中" value={row.losses} tone="green" />
@@ -245,7 +245,7 @@ export function MonthlyReviewPage() {
             </div>
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[760px]">
-                <thead className="bg-slate-50 text-left text-xs text-slate-500">
+                <thead className="bg-[#F4F1ED] text-left text-xs text-[#F4F1ED]0">
                   <tr>
                     {[
                       '月份',
@@ -263,18 +263,18 @@ export function MonthlyReviewPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-[#F4F1ED] text-sm">
                   {yearRows.map((row) => (
                     <tr key={row.month}>
-                      <td className="px-5 py-4 font-semibold text-slate-700">
+                      <td className="px-5 py-4 font-semibold text-[#5A5246]">
                         {row.month}
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[#736A5C]">
                         {row.participation}
                       </td>
-                      <td className="px-5 py-4 text-red-500">{row.wins}</td>
-                      <td className="px-5 py-4 text-green-500">{row.losses}</td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[#F9F2F0]0">{row.wins}</td>
+                      <td className="px-5 py-4 text-[#F2F5F2]0">{row.losses}</td>
+                      <td className="px-5 py-4 text-[#736A5C]">
                         {formatPercent(row.winRate)}
                       </td>
                       <td
@@ -291,7 +291,7 @@ export function MonthlyReviewPage() {
                       >
                         {formatPercent(row.profitRate, 'profitRate')}
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[#736A5C]">
                         {row.bestIpoName}
                       </td>
                     </tr>
@@ -308,8 +308,8 @@ export function MonthlyReviewPage() {
 
 function AnnualMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl bg-slate-50 p-4">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="rounded-xl bg-[#F4F1ED] p-4">
+      <p className="text-xs text-[#A8A296]">{label}</p>
       <p className={`mt-2 text-lg font-bold ${getProfitColor(value)}`}>
         {formatHKD(value, 'profit')}
       </p>
@@ -329,8 +329,8 @@ function formatCNY(value: number) {
 
 function CnyMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl bg-slate-50 p-4">
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="rounded-xl bg-[#F4F1ED] p-4">
+      <p className="text-xs text-[#A8A296]">{label}</p>
       <p className={`mt-2 text-lg font-bold ${getProfitColor(value)}`}>
         {formatCNY(value)}
       </p>
@@ -349,14 +349,14 @@ function ReviewDatum({
 }) {
   return (
     <div>
-      <p className="text-[10px] text-slate-400">{label}</p>
+      <p className="text-[10px] text-[#A8A296]">{label}</p>
       <p
         className={`mt-1 text-xs font-bold ${
           tone === 'red'
-            ? 'text-red-500'
+            ? 'text-[#F9F2F0]'
             : tone === 'green'
-              ? 'text-green-500'
-              : 'text-slate-700'
+              ? 'text-[#F2F5F2]'
+              : 'text-[#5A5246]'
         }`}
       >
         {value}
@@ -377,12 +377,12 @@ function IpoReviewCard({
   icon: typeof TrendingUp
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <div className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-slate-400">{title}</p>
-        <Icon size={18} className="text-slate-300" />
+        <p className="text-xs font-medium text-[#A8A296]">{title}</p>
+        <Icon size={18} className="text-[#D2CBBF]" />
       </div>
-      <p className="mt-3 text-lg font-bold text-slate-800">{name}</p>
+      <p className="mt-3 text-lg font-bold text-[#4A4540]">{name}</p>
       <p className={`mt-1 text-xl font-bold ${getProfitColor(profit)}`}>
         {formatHKD(profit, 'profit')}
       </p>

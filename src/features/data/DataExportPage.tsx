@@ -199,14 +199,14 @@ export function DataExportPage() {
               <Import size={21} />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">导入旧版备份 JSON</h2>
-              <p className="mt-1 text-sm leading-6 text-slate-500">
+              <h2 className="font-bold text-[#2E2A24]">导入旧版备份 JSON</h2>
+              <p className="mt-1 text-sm leading-6 text-[#F4F1ED]0">
                 支持选择 HKIPO_Backup_20260608.json，自动读取 accounts、ipos、records 和 parts。
               </p>
             </div>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex rounded-xl border border-slate-200 bg-white p-1">
+            <div className="flex rounded-xl border border-[#E4DFD6] bg-white p-1">
               <ModeButton
                 active={legacyMode === 'merge'}
                 label="合并导入"
@@ -234,7 +234,7 @@ export function DataExportPage() {
             />
           </div>
         </div>
-        <p className="mt-4 rounded-xl bg-white/80 px-4 py-3 text-xs leading-5 text-slate-500">
+        <p className="mt-4 rounded-xl bg-white/80 px-4 py-3 text-xs leading-5 text-[#F4F1ED]0">
           {legacyMode === 'merge'
             ? '合并导入会保留当前数据，并自动识别重复账户、新股、申购及卖出记录。'
             : '覆盖导入会用旧版备份替换当前业务数据。执行前会自动备份当前数据。'}
@@ -242,9 +242,9 @@ export function DataExportPage() {
       </section>
 
       {legacySummary && (
-        <section className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+        <section className="mt-4 rounded-2xl border border-emerald-200 bg-[#F2F5F2] p-5">
           <div className="flex items-center gap-2">
-            <CheckCircle2 size={18} className="text-emerald-600" />
+            <CheckCircle2 size={18} className="text-[#677A6F]" />
             <h2 className="font-bold text-emerald-900">旧版备份导入完成</h2>
           </div>
           <p className="mt-3 text-xs text-emerald-700">
@@ -282,37 +282,37 @@ export function DataExportPage() {
       )}
 
       {message && (
-        <div className="mt-4 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white">
+        <div className="mt-4 rounded-xl bg-[#2E2A24] px-4 py-3 text-sm text-white">
           {message}
         </div>
       )}
 
-      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+      <section className="mt-8 rounded-2xl border border-[#E4DFD6] bg-white p-5 shadow-card">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="font-bold text-slate-900">导入前备份</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="font-bold text-[#2E2A24]">导入前备份</h2>
+            <p className="mt-1 text-sm text-[#F4F1ED]0">
               每次导入前自动保存，最多保留最近 20 份。
             </p>
           </div>
           <History size={20} className="text-brand-600" />
         </div>
         {importBackups.length === 0 ? (
-          <p className="mt-5 rounded-xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-400">
+          <p className="mt-5 rounded-xl bg-[#F4F1ED] px-4 py-8 text-center text-sm text-[#A8A296]">
             暂无导入前备份
           </p>
         ) : (
-          <div className="mt-5 divide-y divide-slate-100">
+          <div className="mt-5 divide-y divide-[#F4F1ED]">
             {importBackups.map((entry) => (
               <div
                 key={entry.id}
                 className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">
+                  <p className="text-sm font-semibold text-[#5A5246]">
                     {new Date(entry.createdAt).toLocaleString('zh-CN')}
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-[#A8A296]">
                     {entry.backup.accounts.length} 个账户 ·{' '}
                     {entry.backup.ipos.length} 只新股 ·{' '}
                     {entry.backup.subscriptions.length} 条申购
@@ -337,7 +337,7 @@ export function DataExportPage() {
                   </button>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-600"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#F9F2F0] px-3 py-2 text-xs font-semibold text-[#9A7468]"
                     onClick={() =>
                       setImportBackups(deleteImportBackup(entry.id))
                     }
@@ -353,8 +353,8 @@ export function DataExportPage() {
       </section>
 
       <div className="mt-10">
-        <h2 className="font-bold text-slate-900">CSV 导出</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="font-bold text-[#2E2A24]">CSV 导出</h2>
+        <p className="mt-1 text-sm text-[#F4F1ED]0">
           分模块导出为 Excel 可直接打开的文件。
         </p>
       </div>
@@ -362,7 +362,7 @@ export function DataExportPage() {
         {csvExports.map((item) => (
           <article
             key={item.type}
-            className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card"
+            className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
@@ -370,15 +370,15 @@ export function DataExportPage() {
               </div>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2.5 text-xs font-semibold text-white"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#2E2A24] px-3.5 py-2.5 text-xs font-semibold text-white"
                 onClick={() => exportCsv(item.type, data)}
               >
                 <Download size={14} />
                 导出
               </button>
             </div>
-            <h3 className="mt-4 font-bold text-slate-900">{item.title}</h3>
-            <p className="mt-1 text-sm text-slate-500">{item.description}</p>
+            <h3 className="mt-4 font-bold text-[#2E2A24]">{item.title}</h3>
+            <p className="mt-1 text-sm text-[#F4F1ED]0">{item.description}</p>
           </article>
         ))}
       </section>
@@ -444,8 +444,8 @@ function ModeButton({
       type="button"
       className={`rounded-lg px-4 py-2 text-xs font-semibold transition ${
         active
-          ? 'bg-slate-900 text-white'
-          : 'text-slate-500 hover:bg-slate-50'
+          ? 'bg-[#2E2A24] text-white'
+          : 'text-[#F4F1ED]0 hover:bg-[#F4F1ED]'
       }`}
       onClick={onClick}
     >
@@ -465,9 +465,9 @@ function ImportCount({
 }) {
   return (
     <div className="rounded-xl bg-white px-4 py-3">
-      <p className="text-xs text-slate-400">{label}</p>
-      <p className="mt-1 text-xl font-bold text-slate-900">{total}</p>
-      <p className="mt-1 text-[10px] text-emerald-600">
+      <p className="text-xs text-[#A8A296]">{label}</p>
+      <p className="mt-1 text-xl font-bold text-[#2E2A24]">{total}</p>
+      <p className="mt-1 text-[10px] text-[#677A6F]">
         本次读取 {imported} 条
       </p>
     </div>
@@ -490,12 +490,12 @@ function ActionCard({
   onClick: () => void
 }) {
   return (
-    <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <article className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
         <Icon size={20} />
       </div>
-      <h2 className="mt-4 font-bold text-slate-900">{title}</h2>
-      <p className="mt-1 min-h-12 text-sm leading-6 text-slate-500">
+      <h2 className="mt-4 font-bold text-[#2E2A24]">{title}</h2>
+      <p className="mt-1 min-h-12 text-sm leading-6 text-[#F4F1ED]0">
         {description}
       </p>
       <button

@@ -326,7 +326,7 @@ export function SubscriptionsPage() {
           {canUndoSubscriptionBatch && (
             <button
               type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700 hover:bg-amber-100"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#EFE3D2] bg-[#FAF6EF] px-4 py-3 text-sm font-semibold text-[#7D653C] hover:bg-[#F3EAD7]"
               onClick={() => {
                 const restored = undoLastSubscriptionBatch()
                 setSelectedIds([])
@@ -346,7 +346,7 @@ export function SubscriptionsPage() {
             className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold shadow-sm ${
               selectionMode
                 ? 'border-brand-200 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                : 'border-[#E4DFD6] bg-white text-[#5A5246] hover:bg-[#F4F1ED]'
             }`}
             onClick={() => {
               setSelectionMode((current) => !current)
@@ -358,7 +358,7 @@ export function SubscriptionsPage() {
           </button>
           <button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] bg-white px-4 py-3 text-sm font-semibold text-[#5A5246] shadow-sm hover:bg-[#F4F1ED]"
             onClick={() => canCreate() && setBatchOpen(true)}
           >
             <Layers3 size={17} />
@@ -424,22 +424,22 @@ export function SubscriptionsPage() {
         />
       </section>
 
-      <div className="mt-8 grid gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-card sm:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto]">
+      <div className="mt-8 grid gap-3 rounded-2xl border border-[#E4DFD6]/80 bg-white p-4 shadow-card sm:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto]">
         <label className="relative">
           <Search
             size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
           />
           <input
             value={search}
             placeholder="搜索账户、新股名称或股票代码"
-            className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-10 pr-4 text-sm"
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
         <select
           value={status}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-600"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm text-[#736A5C]"
           onChange={(event) =>
             setStatus(event.target.value as SubscriptionStatus | 'all')
           }
@@ -452,7 +452,7 @@ export function SubscriptionsPage() {
         </select>
         <select
           value={accountFilter}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-600"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm text-[#736A5C]"
           onChange={(event) => setAccountFilter(event.target.value)}
         >
           <option value="all">全部账户</option>
@@ -464,7 +464,7 @@ export function SubscriptionsPage() {
         </select>
         <select
           value={ipoFilter}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-600"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm text-[#736A5C]"
           onChange={(event) => setIpoFilter(event.target.value)}
         >
           <option value="all">全部新股</option>
@@ -477,7 +477,7 @@ export function SubscriptionsPage() {
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs shadow-sm">
-        <span className="text-slate-400">排序：</span>
+        <span className="text-[#A8A296]">排序：</span>
         {[
           ['name', '名称'],
           ['date', '日期'],
@@ -492,16 +492,16 @@ export function SubscriptionsPage() {
             onClick={() => toggleSort(key as SubscriptionSortKey)}
           />
         ))}
-        {!sort && <span className="text-slate-400">默认最新录入</span>}
+        {!sort && <span className="text-[#A8A296]">默认最新录入</span>}
       </div>
 
       {selectionMode && (
         <div className="sticky top-3 z-30 mt-4 flex flex-col gap-3 rounded-2xl border border-brand-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-bold text-slate-800">
+            <span className="font-bold text-[#4A4540]">
               已选择 {selectedIds.length} 条记录
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-[#A8A296]">
               当前筛选共 {visibleIds.length} 条
             </span>
           </div>
@@ -546,7 +546,7 @@ export function SubscriptionsPage() {
 
       <section className="mt-4 grid gap-3 md:hidden">
         {rows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center text-sm text-slate-400 shadow-card">
+          <div className="rounded-2xl border border-[#E4DFD6] bg-white px-6 py-14 text-center text-sm text-[#A8A296] shadow-card">
             暂无匹配的申购记录
           </div>
         ) : (
@@ -555,7 +555,7 @@ export function SubscriptionsPage() {
             return (
               <article
                 key={group.id}
-                className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card"
+                className="overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card"
               >
                 <button
                   type="button"
@@ -569,18 +569,18 @@ export function SubscriptionsPage() {
                   }
                 >
                   <div className="min-w-0">
-                    <h3 className="truncate text-base font-bold text-slate-900">
+                    <h3 className="truncate text-base font-bold text-[#2E2A24]">
                       {group.ipo?.name ?? '已删除新股'}
                     </h3>
                     
                     <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                      <span className="rounded-full bg-red-50 px-2.5 py-1 text-red-500">
+                      <span className="rounded-full bg-[#F9F2F0] px-2.5 py-1 text-[#F9F2F0]0">
                         中签 {group.winCount}
                       </span>
-                      <span className="rounded-full bg-green-50 px-2.5 py-1 text-green-600">
+                      <span className="rounded-full bg-[#F2F5F2] px-2.5 py-1 text-[#677A6F]">
                         未中 {group.lossCount}
                       </span>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-500">
+                      <span className="rounded-full bg-[#F4F1ED] px-2.5 py-1 text-[#F4F1ED]0">
                         待公布{' '}
                         {Math.max(
                           0,
@@ -593,13 +593,13 @@ export function SubscriptionsPage() {
                   </div>
                   <ChevronDown
                     size={20}
-                    className={`shrink-0 text-slate-400 transition ${
+                    className={`shrink-0 text-[#A8A296] transition ${
                       expanded ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
                 {expanded && (
-                  <div className="space-y-3 border-t border-slate-100 bg-slate-50 p-3">
+                  <div className="space-y-3 border-t border-[#F4F1ED] bg-[#F4F1ED] p-3">
                     {group.records.map(renderSubscriptionCard)}
                   </div>
                 )}
@@ -611,7 +611,7 @@ export function SubscriptionsPage() {
 
       <section className="mt-4 hidden gap-4 md:grid">
         {rows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center text-sm text-slate-400 shadow-card">
+          <div className="rounded-2xl border border-[#E4DFD6] bg-white px-6 py-14 text-center text-sm text-[#A8A296] shadow-card">
             暂无匹配的申购记录
           </div>
         ) : (
@@ -743,7 +743,7 @@ export function SubscriptionsPage() {
         onClose={() => setBatchDeleteOpen(false)}
       />
       {notice && (
-        <div className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-medium text-white shadow-xl">
+        <div className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-xl bg-[#2E2A24] px-4 py-3 text-sm font-medium text-white shadow-xl">
           {notice}
         </div>
       )}
@@ -767,10 +767,10 @@ function BatchAction({
   onClick: () => void
 }) {
   const style = danger
-    ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+    ? 'border-[#E8D2CC] bg-[#F9F2F0] text-[#9A7468] hover:bg-[#F0E0DC]'
     : primary
       ? 'border-brand-600 bg-brand-600 text-white hover:bg-brand-700'
-      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+      : 'border-[#E4DFD6] bg-white text-[#736A5C] hover:bg-[#F4F1ED]'
   return (
     <button
       type="button"
@@ -794,19 +794,19 @@ function ParticipationSummary({
   unit: string
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
-      <h2 className="text-sm font-bold text-slate-800">{title}</h2>
+    <div className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
+      <h2 className="text-sm font-bold text-[#4A4540]">{title}</h2>
       {rows.length === 0 ? (
-        <p className="py-6 text-center text-xs text-slate-400">暂无数据</p>
+        <p className="py-6 text-center text-xs text-[#A8A296]">暂无数据</p>
       ) : (
         <div className="mt-4 flex flex-wrap gap-2">
           {rows.slice(0, 10).map((row) => (
             <span
               key={row.id}
-              className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600"
+              className="rounded-lg bg-[#F4F1ED] px-3 py-2 text-xs text-[#736A5C]"
             >
               {row.name}
-              <strong className="ml-2 text-slate-900">
+              <strong className="ml-2 text-[#2E2A24]">
                 {row.count} {unit}
               </strong>
             </span>

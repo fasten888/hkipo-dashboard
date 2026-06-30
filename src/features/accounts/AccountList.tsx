@@ -58,14 +58,14 @@ export function AccountList({
 }: AccountListProps) {
   if (accounts.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200/80 bg-white px-6 py-16 text-center shadow-card">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+      <div className="rounded-2xl border border-[#E4DFD6]/80 bg-white px-6 py-16 text-center shadow-card">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#F4F1ED] text-[#A8A296]">
           {hasSearch ? <SearchX size={25} /> : <CreditCard size={25} />}
         </div>
-        <h3 className="mt-5 font-bold text-slate-900">
+        <h3 className="mt-5 font-bold text-[#2E2A24]">
           {hasSearch ? '没有匹配的账户' : '还没有账户'}
         </h3>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#F4F1ED]0">
           {hasSearch
             ? '请尝试其他账户名称、后四位或券商名称。'
             : '添加第一个港股账户，开始记录打新数据。'}
@@ -98,11 +98,11 @@ export function AccountList({
         ))}
       </div>
 
-      <div className="hidden overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card md:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px]">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-left">
+              <tr className="border-b border-[#F4F1ED] bg-[#F4F1ED]/70 text-left">
                 <SortableHead label="账户" sortKey="name" sort={sort} onSort={onSort} />
                 <SortableHead label="当前资产" sortKey="currentAssets" sort={sort} onSort={onSort} />
                 <SortableHead label="累计收益" sortKey="profit" sort={sort} onSort={onSort} />
@@ -113,13 +113,13 @@ export function AccountList({
                 <th className="px-5 py-4" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#F4F1ED]">
               {accounts.map((account) => {
                 const accountStats = stats[account.id]
                 return (
                   <tr
                     key={account.id}
-                    className="cursor-pointer transition hover:bg-slate-50/80"
+                    className="cursor-pointer transition hover:bg-[#F4F1ED]/80"
                     tabIndex={0}
                     onClick={() => onView(account)}
                     onKeyDown={(event) => {
@@ -132,7 +132,7 @@ export function AccountList({
                         active={accountStats.participationCount > 0}
                       />
                     </td>
-                    <td className="px-5 py-4 text-sm font-semibold text-slate-900">
+                    <td className="px-5 py-4 text-sm font-semibold text-[#2E2A24]">
                       {formatHKD(account.currentAssets)}
                     </td>
                     <td
@@ -149,10 +149,10 @@ export function AccountList({
                     >
                       {formatSignedPercent(accountStats.profitRate)}
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">
+                    <td className="px-5 py-4 text-sm text-[#736A5C]">
                       {accountStats.participationCount}
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">
+                    <td className="px-5 py-4 text-sm text-[#736A5C]">
                       {accountStats.winCount}
                     </td>
                     <td className="px-5 py-4">
@@ -216,7 +216,7 @@ function AccountCard({
 }) {
   return (
     <article
-      className="cursor-pointer rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card"
+      className="cursor-pointer rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card"
       onClick={() => onView(account)}
     >
       <div className="flex items-start justify-between gap-4">
@@ -228,7 +228,7 @@ function AccountCard({
           onDelete={onDelete}
         />
       </div>
-      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-5">
+      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-[#F4F1ED] pt-5">
         <Metric label="当前资产" value={formatHKD(account.currentAssets)} />
         <Metric
           label="累计收益"
@@ -257,15 +257,15 @@ function AccountIdentity({
 }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 text-white shadow-sm">
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#4A4540] to-[#2E2A24] text-white shadow-sm">
         <CreditCard size={18} />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-bold text-slate-900">
+        <p className="truncate text-sm font-bold text-[#2E2A24]">
           {formatAccountName(account)}
         </p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
-          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+          <span className="rounded-md bg-[#F4F1ED] px-2 py-0.5 text-[10px] font-semibold text-[#F4F1ED]0">
             {getSubscriptionMethodLabel(
               getAccountDefaultSubscriptionMethod(account),
             )}
@@ -293,11 +293,11 @@ function Metric({
   prominent?: boolean
 }) {
   const toneClass =
-    profitValue === undefined ? 'text-slate-700' : getProfitColor(profitValue)
+    profitValue === undefined ? 'text-[#5A5246]' : getProfitColor(profitValue)
 
   return (
     <div>
-      <p className="text-[11px] font-medium text-slate-400">{label}</p>
+      <p className="text-[11px] font-medium text-[#A8A296]">{label}</p>
       <p
         className={`mt-1 font-semibold tabular-nums ${toneClass} ${
           prominent ? 'text-lg' : 'text-sm'
@@ -345,7 +345,7 @@ function RowActions({
     >
       <button
         type="button"
-        className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        className="rounded-xl p-2 text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]"
         aria-label={`${account.name}操作菜单`}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
@@ -353,7 +353,7 @@ function RowActions({
         <MoreHorizontal size={19} />
       </button>
       {open && (
-        <div className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-lg">
+        <div className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-xl border border-[#E4DFD6] bg-white p-1.5 text-left shadow-lg">
           <ActionButton
             icon={Eye}
             label="查看详情"
@@ -392,8 +392,8 @@ function ActionButton({
       type="button"
       className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${
         danger
-          ? 'text-red-600 hover:bg-red-50'
-          : 'text-slate-700 hover:bg-slate-50'
+          ? 'text-[#9A7468] hover:bg-[#F9F2F0]'
+          : 'text-[#5A5246] hover:bg-[#F4F1ED]'
       }`}
       onClick={onClick}
     >
@@ -405,7 +405,7 @@ function ActionButton({
 
 export function WinRateNote() {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+    <span className="inline-flex items-center gap-1.5 text-xs text-[#A8A296]">
       <Trophy size={13} />
       中签率按已公布申购记录计算
     </span>

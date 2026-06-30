@@ -111,7 +111,7 @@ export function ExchangeForm({
           <FieldLabel>账户</FieldLabel>
           <select
             value={accountId}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) => setAccountId(event.target.value)}
           >
             {accounts.map((account) => (
@@ -126,7 +126,7 @@ export function ExchangeForm({
           <input
             type="date"
             value={date}
-            className="focus-ring w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setDate(event.target.value)}
           />
         </label>
@@ -134,7 +134,7 @@ export function ExchangeForm({
           <FieldLabel>原币种</FieldLabel>
           <select
             value={sourceCurrency}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) =>
               setSourceCurrency(event.target.value as ExchangeCurrency)
             }
@@ -155,7 +155,7 @@ export function ExchangeForm({
           <FieldLabel>换得币种</FieldLabel>
           <select
             value={targetCurrency}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) =>
               setTargetCurrency(event.target.value as ExchangeCurrency)
             }
@@ -176,13 +176,13 @@ export function ExchangeForm({
           value={feeCny}
           onChange={setFeeCny}
         />
-        <div className="rounded-xl bg-slate-50 px-4 py-3 sm:col-span-2">
-          <p className="text-xs text-slate-400">实际换汇汇率</p>
-          <p className="mt-1 text-lg font-bold text-slate-800">
+        <div className="rounded-xl bg-[#F4F1ED] px-4 py-3 sm:col-span-2">
+          <p className="text-xs text-[#A8A296]">实际换汇汇率</p>
+          <p className="mt-1 text-lg font-bold text-[#4A4540]">
             1 {sourceCurrency} = {effectiveRate > 0 ? effectiveRate.toFixed(6) : '-'}{' '}
             {targetCurrency}
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[#A8A296]">
             自动汇率为到账金额 ÷ 原币金额；填写手动汇率后优先使用手动值
           </p>
         </div>
@@ -204,7 +204,7 @@ export function ExchangeForm({
           <FieldLabel>换汇渠道</FieldLabel>
           <select
             value={channel}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) =>
               setChannel(event.target.value as ExchangeChannel)
             }
@@ -223,12 +223,12 @@ export function ExchangeForm({
             value={remarks}
             rows={3}
             maxLength={200}
-            className="focus-ring w-full resize-none rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             placeholder="例如：招商银行换汇、用于某券商入金"
             onChange={(event) => setRemarks(event.target.value)}
           />
         </label>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions
         submitLabel={record ? '保存换汇记录' : '添加换汇记录'}
@@ -246,7 +246,7 @@ function currencyPrefix(currency: ExchangeCurrency) {
 
 function FieldLabel({ children }: { children: string }) {
   return (
-    <span className="mb-2 block text-sm font-semibold text-slate-700">
+    <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
       {children}
     </span>
   )
@@ -269,14 +269,14 @@ function MoneyField({
     <label>
       <FieldLabel>{label}</FieldLabel>
       <div className="relative">
-        <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-slate-400">
+        <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-[#A8A296]">
           {prefix}
         </span>
         <input
           value={value}
           inputMode="decimal"
           autoFocus={autoFocus}
-          className="focus-ring w-full rounded-xl border border-slate-200 py-3 pl-12 pr-3.5 text-sm"
+          className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 pl-12 pr-3.5 text-sm"
           onChange={(event) => onChange(event.target.value)}
         />
       </div>

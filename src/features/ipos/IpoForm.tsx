@@ -94,7 +94,7 @@ export function IpoForm({
             onChange={setIndustry}
           />
         </div>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions
         submitLabel={ipo ? '保存新股资料' : '创建新股'}
@@ -123,12 +123,12 @@ function Field({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <div className="relative">
         {prefix && (
-          <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-slate-400">
+          <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-[#A8A296]">
             {prefix}
           </span>
         )}
@@ -138,7 +138,7 @@ function Field({
           placeholder={placeholder}
           maxLength={maxLength}
           inputMode={type === 'date' ? undefined : 'text'}
-          className={`focus-ring w-full rounded-xl border border-slate-200 py-3 text-sm ${
+          className={`focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 text-sm ${
             prefix ? 'pl-12 pr-3.5' : 'px-3.5'
           }`}
           onChange={(event) => onChange(event.target.value)}

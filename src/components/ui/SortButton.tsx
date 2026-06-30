@@ -20,7 +20,7 @@ export function SortButton({
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-slate-500 hover:text-slate-900"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-[#F4F1ED]0 hover:text-[#2E2A24]"
       onClick={onClick}
     >
       {label}

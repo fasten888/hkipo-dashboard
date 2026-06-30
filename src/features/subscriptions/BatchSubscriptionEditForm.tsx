@@ -97,7 +97,7 @@ export function BatchSubscriptionEditForm({
           <select
             value={method}
             disabled={!editMethod}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400"
+            className="w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm disabled:bg-[#F4F1ED] disabled:text-[#A8A296]"
             onChange={(event) =>
               setMethod(event.target.value as SubscriptionMethod)
             }
@@ -135,7 +135,7 @@ export function BatchSubscriptionEditForm({
             <select
               value={remarks.mode}
               disabled={!editRemarks}
-              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400"
+              className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm disabled:bg-[#F4F1ED] disabled:text-[#A8A296]"
               onChange={(event) =>
                 setRemarks((current) => ({
                   ...current,
@@ -152,7 +152,7 @@ export function BatchSubscriptionEditForm({
                 value={remarks.value ?? ''}
                 disabled={!editRemarks}
                 placeholder="输入备注内容"
-                className="rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm disabled:bg-slate-50"
+                className="rounded-xl border border-[#E4DFD6] px-3.5 py-2.5 text-sm disabled:bg-[#F4F1ED]"
                 onChange={(event) =>
                   setRemarks((current) => ({
                     ...current,
@@ -164,7 +164,7 @@ export function BatchSubscriptionEditForm({
           </div>
         </EditSection>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468]">{error}</p>}
       </div>
       <FormActions submitLabel="保存批量修改" onCancel={onCancel} />
     </form>
@@ -194,7 +194,7 @@ function DateEditSection({
         <select
           value={value.mode}
           disabled={!checked}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm disabled:bg-[#F4F1ED] disabled:text-[#A8A296]"
           onChange={(event) =>
             onChange({
               mode: event.target.value as BatchDateChange['mode'],
@@ -209,7 +209,7 @@ function DateEditSection({
           type={value.mode === 'set' ? 'date' : 'number'}
           value={value.value}
           disabled={!checked}
-          className="rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm disabled:bg-slate-50"
+          className="rounded-xl border border-[#E4DFD6] px-3.5 py-2.5 text-sm disabled:bg-[#F4F1ED]"
           onChange={(event) =>
             onChange({
               ...value,
@@ -237,15 +237,15 @@ function EditSection({
   onCheckedChange: (checked: boolean) => void
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 p-4">
+    <section className="rounded-2xl border border-[#E4DFD6] p-4">
       <label className="mb-3 flex cursor-pointer items-center gap-2">
         <input
           type="checkbox"
           checked={checked}
-          className="h-4 w-4 rounded border-slate-300 text-brand-600"
+          className="h-4 w-4 rounded border-[#D2CBBF] text-brand-600"
           onChange={(event) => onCheckedChange(event.target.checked)}
         />
-        <span className="text-sm font-bold text-slate-700">{title}</span>
+        <span className="text-sm font-bold text-[#5A5246]">{title}</span>
       </label>
       {children}
     </section>

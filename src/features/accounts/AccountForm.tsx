@@ -183,12 +183,12 @@ export function AccountForm({
           onChange={(value) => updateValue('cashBalance', value)}
         />
         <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             默认申购方式
           </span>
           <select
             value={values.defaultSubscriptionMethod}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm text-[#2E2A24]"
             onChange={(event) =>
               updateValue(
                 'defaultSubscriptionMethod',
@@ -202,17 +202,17 @@ export function AccountForm({
               </option>
             ))}
           </select>
-          <span className="mt-1.5 block text-xs text-slate-400">
+          <span className="mt-1.5 block text-xs text-[#A8A296]">
             仅作为新增申购时的默认值，每笔申购仍可单独修改。
           </span>
         </label>
         <label className="block sm:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             关联换汇记录
           </span>
           <select
             value={values.exchangeRecordId}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) =>
               updateValue('exchangeRecordId', event.target.value)
             }
@@ -226,12 +226,12 @@ export function AccountForm({
               </option>
             ))}
           </select>
-          <span className="mt-1.5 block text-xs text-slate-400">
+          <span className="mt-1.5 block text-xs text-[#A8A296]">
             用于还原初始入金的人民币成本和真实换汇汇率。
           </span>
         </label>
         <label className="block sm:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             备注
           </span>
           <textarea
@@ -240,16 +240,16 @@ export function AccountForm({
             rows={3}
             maxLength={300}
             placeholder="记录账户相关说明"
-            className="focus-ring w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 placeholder:text-slate-300"
+            className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm text-[#2E2A24] placeholder:text-[#D2CBBF]"
             onChange={(event) => updateValue('remarks', event.target.value)}
           />
         </label>
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
+      <div className="flex flex-col-reverse gap-3 border-t border-[#F4F1ED] bg-[#F4F1ED]/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
         <button
           type="button"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-5 py-2.5 text-sm font-semibold text-[#5A5246] transition hover:bg-[#F4F1ED]"
           onClick={onCancel}
         >
           取消
@@ -292,12 +292,12 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <div className="relative">
         {prefix && (
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-slate-400">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-[#A8A296]">
             {prefix}
           </span>
         )}
@@ -308,16 +308,16 @@ function Field({
           inputMode={inputMode}
           maxLength={maxLength}
           autoFocus={autoFocus}
-          className={`focus-ring w-full rounded-xl border bg-white py-3 text-sm text-slate-900 placeholder:text-slate-300 ${
+          className={`focus-ring w-full rounded-xl border bg-white py-3 text-sm text-[#2E2A24] placeholder:text-[#D2CBBF] ${
             prefix ? 'pl-12 pr-3.5' : 'px-3.5'
-          } ${error ? 'border-red-400' : 'border-slate-200'}`}
+          } ${error ? 'border-red-400' : 'border-[#E4DFD6]'}`}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${name}-error` : undefined}
           onChange={(event) => onChange(event.target.value)}
         />
       </div>
       {error && (
-        <span id={`${name}-error`} className="mt-1.5 block text-xs text-red-600">
+        <span id={`${name}-error`} className="mt-1.5 block text-xs text-[#9A7468]">
           {error}
         </span>
       )}

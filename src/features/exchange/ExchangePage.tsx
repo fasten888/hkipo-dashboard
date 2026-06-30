@@ -197,13 +197,13 @@ export function ExchangePage() {
         />
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+      <section className="mt-6 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
         <div className="flex items-start gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
             <ArrowRightLeft size={19} />
           </div>
           <div>
-            <h2 className="font-bold text-slate-900">期末参考汇率</h2>
+            <h2 className="font-bold text-[#2E2A24]">期末参考汇率</h2>
             
           </div>
         </div>
@@ -224,13 +224,13 @@ export function ExchangePage() {
           />
           <button
             type="button"
-            className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-[#2E2A24] px-5 py-3 text-sm font-semibold text-white"
             onClick={saveRates}
           >
             保存参考汇率
           </button>
         </div>
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#A8A296]">
           {fxRates.updatedAt && (
             <span>
               上次更新：
@@ -241,22 +241,22 @@ export function ExchangePage() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card md:grid-cols-[1fr_auto_auto]">
+      <div className="mt-6 grid gap-3 rounded-2xl border border-[#E4DFD6] bg-white p-4 shadow-card md:grid-cols-[1fr_auto_auto]">
         <label className="relative">
           <Search
             size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
           />
           <input
             value={search}
             placeholder="搜索账户、后四位或备注"
-            className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-10 pr-4 text-sm"
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
         <select
           value={currencyFilter}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
           onChange={(event) =>
             setCurrencyFilter(
               event.target.value as 'all' | ExchangeCurrency,
@@ -269,7 +269,7 @@ export function ExchangePage() {
         </select>
         <select
           value={yearFilter}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
           onChange={(event) => setYearFilter(event.target.value)}
         >
           <option value="all">全部年份</option>
@@ -281,13 +281,13 @@ export function ExchangePage() {
         </select>
       </div>
 
-      <section className="mt-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-card">
+      <section className="mt-4 overflow-hidden rounded-2xl border border-[#E4DFD6]/80 bg-white shadow-card">
         {rows.length === 0 ? (
-          <p className="px-6 py-16 text-center text-sm text-slate-400">
+          <p className="px-6 py-16 text-center text-sm text-[#A8A296]">
             暂无换汇记录
           </p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#F4F1ED]">
             {rows.map((record) => {
               const account = accounts.find(
                 (item) => item.id === record.accountId,
@@ -309,7 +309,7 @@ export function ExchangePage() {
                   className="grid gap-4 px-4 py-5 sm:px-5 lg:grid-cols-[1.1fr_1fr_1fr_auto] lg:items-center"
                 >
                   <div>
-                    <p className="font-bold text-slate-800">
+                    <p className="font-bold text-[#4A4540]">
                       {account ? formatAccountName(account) : '已删除账户'}
                     </p>
                     
@@ -343,7 +343,7 @@ export function ExchangePage() {
                     <p
                       className={`mt-2 text-sm font-bold ${
                         profit === null
-                          ? 'text-slate-400'
+                          ? 'text-[#A8A296]'
                           : getProfitColor(profit)
                       }`}
                     >
@@ -355,7 +355,7 @@ export function ExchangePage() {
                   <div className="flex justify-end gap-1">
                     <button
                       type="button"
-                      className="grid h-11 w-11 place-items-center rounded-xl text-slate-400 hover:bg-slate-100"
+                      className="grid h-11 w-11 place-items-center rounded-xl text-[#A8A296] hover:bg-[#F4F1ED]"
                       aria-label="编辑换汇记录"
                       onClick={() => {
                         setEditing(record)
@@ -366,7 +366,7 @@ export function ExchangePage() {
                     </button>
                     <button
                       type="button"
-                      className="grid h-11 w-11 place-items-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600"
+                      className="grid h-11 w-11 place-items-center rounded-xl text-[#A8A296] hover:bg-[#F9F2F0] hover:text-[#9A7468]"
                       aria-label="删除换汇记录"
                       onClick={() => setDeleting(record)}
                     >
@@ -442,7 +442,7 @@ function RateField({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <div className="relative">
@@ -450,10 +450,10 @@ function RateField({
           value={value}
           inputMode="decimal"
           placeholder={placeholder}
-          className="focus-ring w-full rounded-xl border border-slate-200 py-3 pl-3.5 pr-14 text-sm"
+          className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 pl-3.5 pr-14 text-sm"
           onChange={(event) => onChange(event.target.value)}
         />
-        <span className="absolute inset-y-0 right-3.5 flex items-center text-xs font-semibold text-slate-400">
+        <span className="absolute inset-y-0 right-3.5 flex items-center text-xs font-semibold text-[#A8A296]">
           {currency}
         </span>
       </div>
@@ -464,8 +464,8 @@ function RateField({
 function RecordDatum({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-[11px] text-slate-400">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-700">{value}</p>
+      <p className="text-[11px] text-[#A8A296]">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-[#5A5246]">{value}</p>
     </div>
   )
 }

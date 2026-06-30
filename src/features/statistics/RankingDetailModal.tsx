@@ -123,23 +123,23 @@ export function RankingDetailModal({
 
   return (
     <Modal open={Boolean(target)} title={title} onClose={onClose}>
-      <div className="border-b border-slate-100 p-5 sm:px-7">
+      <div className="border-b border-[#F4F1ED] p-5 sm:px-7">
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <label className="relative">
             <Search
               size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
             />
             <input
               value={search}
               placeholder="搜索新股或账户"
-              className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm"
+              className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-10 pr-3 text-sm"
               onChange={(event) => setSearch(event.target.value)}
             />
           </label>
           <select
             value={sort}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-600"
+            className="rounded-xl border border-[#E4DFD6] bg-white px-3 py-2.5 text-sm text-[#736A5C]"
             onChange={(event) => setSort(event.target.value as DetailSort)}
           >
             <option value="date_desc">日期：最新</option>
@@ -152,7 +152,7 @@ export function RankingDetailModal({
 
       <div className="max-h-[62vh] overflow-y-auto p-5 sm:px-7">
         {rows.length === 0 ? (
-          <p className="rounded-xl bg-slate-50 px-4 py-12 text-center text-sm text-slate-400">
+          <p className="rounded-xl bg-[#F4F1ED] px-4 py-12 text-center text-sm text-[#A8A296]">
             暂无匹配记录
           </p>
         ) : (
@@ -160,14 +160,14 @@ export function RankingDetailModal({
             {rows.map((row) => (
               <article
                 key={row.id}
-                className="rounded-xl border border-slate-100 p-4"
+                className="rounded-xl border border-[#F4F1ED] p-4"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-sm font-bold text-[#4A4540]">
                       {target?.scope === 'account' ? row.ipo : row.account}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-[#A8A296]">
                       申购日期 {row.date || '-'}
                       {target?.outcome === 'won' && (
                         <> · 上市日期 {row.listingDate || '-'}</>
@@ -193,7 +193,7 @@ export function RankingDetailModal({
                     </div>
                   )}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 border-t border-[#F4F1ED] pt-3 text-xs text-[#F4F1ED]0">
                   {target?.scope === 'account' &&
                     target.outcome === 'lost' && (
                       <>

@@ -63,12 +63,12 @@ export function HoldingsPage() {
         <StatCard label="可融资额度" value={formatHKD(totalCollateral)} hint="市值 × 抵押率" icon={Landmark} tone="emerald" />
       </section>
 
-      <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card sm:grid-cols-[1fr_auto]">
+      <div className="mt-6 grid gap-3 rounded-2xl border border-[#E4DFD6] bg-white p-4 shadow-card sm:grid-cols-[1fr_auto]">
         <label className="relative">
-          <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} placeholder="搜索股票、账户或后四位" className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm" onChange={(event) => setSearch(event.target.value)} />
+          <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]" />
+          <input value={search} placeholder="搜索股票、账户或后四位" className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-10 pr-4 text-sm" onChange={(event) => setSearch(event.target.value)} />
         </label>
-        <select value={accountFilter} className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm" onChange={(event) => setAccountFilter(event.target.value)}>
+        <select value={accountFilter} className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm" onChange={(event) => setAccountFilter(event.target.value)}>
           <option value="all">全部账户</option>
           {data.accounts.map((account) => <option key={account.id} value={account.id}>{formatAccountName(account)}</option>)}
         </select>
@@ -78,25 +78,25 @@ export function HoldingsPage() {
         {rows.map((holding) => {
           const financing = holding.marketValue * holding.collateralRate / 100
           return (
-            <article key={holding.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+            <article key={holding.id} className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
               <div className="flex items-start justify-between gap-3">
-                <div><h2 className="font-bold text-slate-900">{holding.stockName}（{holding.stockCode}）</h2></div>
+                <div><h2 className="font-bold text-[#2E2A24]">{holding.stockName}（{holding.stockCode}）</h2></div>
                 <div className="flex gap-1">
-                  <button type="button" className="grid h-11 w-11 place-items-center rounded-xl text-slate-400 hover:bg-slate-100" onClick={() => { setEditing(holding); setFormOpen(true) }}><Pencil size={16} /></button>
-                  <button type="button" className="grid h-11 w-11 place-items-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleting(holding)}><Trash2 size={16} /></button>
+                  <button type="button" className="grid h-11 w-11 place-items-center rounded-xl text-[#A8A296] hover:bg-[#F4F1ED]" onClick={() => { setEditing(holding); setFormOpen(true) }}><Pencil size={16} /></button>
+                  <button type="button" className="grid h-11 w-11 place-items-center rounded-xl text-[#A8A296] hover:bg-[#F9F2F0] hover:text-[#9A7468]" onClick={() => setDeleting(holding)}><Trash2 size={16} /></button>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3 text-sm">
+              <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-[#F4F1ED] p-3 text-sm">
                 <Datum label="持仓数量" value={holding.quantity.toLocaleString()} />
                 <Datum label="持仓成本" value={formatHKD(holding.cost)} />
                 <Datum label="当前市值" value={formatHKD(holding.marketValue)} />
                 <Datum label="抵押率" value={`${holding.collateralRate.toFixed(1)}%`} />
               </div>
-              <div className="mt-4 flex items-end justify-between"><span className="text-xs text-slate-400">可融资额度</span><strong className="text-xl text-slate-900">{formatHKD(financing)}</strong></div>
+              <div className="mt-4 flex items-end justify-between"><span className="text-xs text-[#A8A296]">可融资额度</span><strong className="text-xl text-[#2E2A24]">{formatHKD(financing)}</strong></div>
             </article>
           )
         })}
-        {rows.length === 0 && <p className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center text-sm text-slate-400 md:col-span-2 xl:col-span-3">暂无持仓记录</p>}
+        {rows.length === 0 && <p className="rounded-2xl border border-[#E4DFD6] bg-white px-6 py-16 text-center text-sm text-[#A8A296] md:col-span-2 xl:col-span-3">暂无持仓记录</p>}
       </section>
 
       <Modal open={formOpen} title={editing ? '编辑持仓' : '新增持仓'} fullScreenOnMobile onClose={() => { setFormOpen(false); setEditing(null) }}>
@@ -108,5 +108,5 @@ export function HoldingsPage() {
 }
 
 function Datum({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-[11px] text-slate-400">{label}</p><p className="mt-1 font-semibold text-slate-700">{value}</p></div>
+  return <div><p className="text-[11px] text-[#A8A296]">{label}</p><p className="mt-1 font-semibold text-[#5A5246]">{value}</p></div>
 }

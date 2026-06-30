@@ -49,7 +49,7 @@ export function CloudSyncModal({
           <SignedInPanel onClose={onClose} />
         ) : (
           <form onSubmit={submit}>
-            <div className="mb-5 flex rounded-xl bg-slate-100 p-1">
+            <div className="mb-5 flex rounded-xl bg-[#F4F1ED] p-1">
               <ModeButton
                 active={mode === 'sign_in'}
                 label="登录"
@@ -62,19 +62,19 @@ export function CloudSyncModal({
               />
             </div>
             <label className="block">
-              <span className="text-sm font-semibold text-slate-700">邮箱</span>
+              <span className="text-sm font-semibold text-[#5A5246]">邮箱</span>
               <input
                 required
                 type="email"
                 autoComplete="email"
                 value={email}
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="mt-2 w-full rounded-xl border border-[#E4DFD6] px-4 py-3 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
                 placeholder="name@example.com"
                 onChange={(event) => setEmail(event.target.value)}
               />
             </label>
             <label className="mt-4 block">
-              <span className="text-sm font-semibold text-slate-700">密码</span>
+              <span className="text-sm font-semibold text-[#5A5246]">密码</span>
               <input
                 required
                 minLength={6}
@@ -83,7 +83,7 @@ export function CloudSyncModal({
                   mode === 'sign_in' ? 'current-password' : 'new-password'
                 }
                 value={password}
-                className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="mt-2 w-full rounded-xl border border-[#E4DFD6] px-4 py-3 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
                 placeholder="至少 6 位"
                 onChange={(event) => setPassword(event.target.value)}
               />
@@ -104,7 +104,7 @@ export function CloudSyncModal({
               )}
               {mode === 'sign_in' ? '登录并同步' : '注册同步账号'}
             </button>
-            <p className="mt-4 text-xs leading-5 text-slate-400">
+            <p className="mt-4 text-xs leading-5 text-[#A8A296]">
               首次登录不会直接覆盖已有数据；如本机和云端不同，系统会让你选择保留哪一份。
             </p>
           </form>
@@ -161,37 +161,37 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div>
-      <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4">
+      <div className="flex items-start gap-3 rounded-2xl bg-[#F4F1ED] p-4">
         <CloudStatusIcon status={cloud.cloudStatus} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-bold text-slate-800">
+            <p className="truncate text-sm font-bold text-[#4A4540]">
               {cloud.cloudUser?.email}
             </p>
             <span
               className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
                 isHealthy
-                  ? 'bg-emerald-50 text-emerald-600'
-                  : 'bg-amber-50 text-amber-700'
+                  ? 'bg-[#F2F5F2] text-[#677A6F]'
+                  : 'bg-[#FAF6EF] text-[#7D653C]'
               }`}
             >
               {isHealthy ? '同步正常' : '同步异常'}
             </span>
           </div>
-          <p className="mt-1 text-xs leading-5 text-slate-500">
+          <p className="mt-1 text-xs leading-5 text-[#F4F1ED]0">
             {cloud.cloudMessage || cloudStatusText(cloud.cloudStatus)}
           </p>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
+      <div className="mt-4 grid gap-2 rounded-2xl border border-[#E4DFD6] bg-white p-4 text-xs text-[#736A5C]">
         <div className="mb-1 flex items-center justify-between gap-3">
-          <p className="text-sm font-bold text-slate-900">同步状态面板</p>
+          <p className="text-sm font-bold text-[#2E2A24]">同步状态面板</p>
           <span
             className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
               isHealthy
-                ? 'bg-emerald-50 text-emerald-600'
-                : 'bg-amber-50 text-amber-700'
+                ? 'bg-[#F2F5F2] text-[#677A6F]'
+                : 'bg-[#FAF6EF] text-[#7D653C]'
             }`}
           >
             {isHealthy ? '同步正常' : '同步异常'}
@@ -206,8 +206,8 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
           <SyncCountsCard title="本地统计" counts={localCounts} />
           <SyncCountsCard title="云端统计" counts={remoteCounts} />
         </div>
-        <div className="my-2 rounded-2xl bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-bold text-slate-900">
+        <div className="my-2 rounded-2xl bg-[#F4F1ED] p-3">
+          <p className="mb-2 text-xs font-bold text-[#2E2A24]">
             最后同步时间
           </p>
           <div className="grid gap-2">
@@ -241,8 +241,8 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
             />
           </div>
         </div>
-        <div className="my-2 rounded-2xl bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-bold text-slate-900">
+        <div className="my-2 rounded-2xl bg-[#F4F1ED] p-3">
+          <p className="mb-2 text-xs font-bold text-[#2E2A24]">
             当前使用数据源
           </p>
           <div className="grid gap-2">
@@ -323,16 +323,16 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       {cloud.cloudStatus === 'auth_expired' && (
-        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
-          <p className="text-sm font-bold text-red-700">
+        <div className="mt-4 rounded-2xl border border-[#E8D2CC] bg-[#F9F2F0] p-4">
+          <p className="text-sm font-bold text-[#7E5D53]">
             Supabase 登录已失效
           </p>
-          <p className="mt-1 text-xs leading-5 text-red-600">
+          <p className="mt-1 text-xs leading-5 text-[#9A7468]">
             Refresh Token 已被 Supabase 拒绝。系统不能在不知道密码的情况下自动重新登录，请重新登录同步账号后再上传或拉取数据。
           </p>
           <button
             type="button"
-            className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-xs font-semibold text-white"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-[#9A7468] px-4 py-2.5 text-xs font-semibold text-white"
             onClick={() => cloud.cloudSignOut()}
           >
             清除失效登录并重新登录
@@ -341,11 +341,11 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
       )}
 
       {cloud.cloudConflict && (
-        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div className="mt-4 rounded-2xl border border-[#EFE3D2] bg-[#FAF6EF] p-4">
           <p className="text-sm font-bold text-amber-900">
             本机和云端都有不同数据
           </p>
-          <p className="mt-1 text-xs leading-5 text-amber-700">
+          <p className="mt-1 text-xs leading-5 text-[#7D653C]">
             系统不会自动覆盖，请核对数量后选择保留哪一份。
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -402,7 +402,7 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             disabled={syncUnavailable}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] bg-white px-5 py-3 text-sm font-semibold text-[#736A5C] disabled:opacity-60"
             onClick={() => cloud.syncCloudNow()}
           >
             <RefreshCw
@@ -416,7 +416,7 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             disabled={syncUnavailable}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-[#F2F5F2] px-5 py-3 text-sm font-semibold text-emerald-700 disabled:opacity-60"
             onClick={() => cloud.pullCloudNow()}
           >
             <Cloud size={17} />
@@ -425,7 +425,7 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             disabled={syncUnavailable}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-800 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#EFE3D2] bg-[#FAF6EF] px-5 py-3 text-sm font-semibold text-amber-800 disabled:opacity-60"
             onClick={() => cloud.runCloudDiagnostic()}
           >
             <RefreshCw
@@ -436,34 +436,34 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
             />
             运行同步诊断
           </button>
-          <p className="text-xs leading-5 text-slate-400">
+          <p className="text-xs leading-5 text-[#A8A296]">
             电脑刚录入的数据请选择“上传本机数据”；手机不同步时请选择“强制使用云端数据”。
           </p>
         </div>
       )}
 
       {cloud.cloudDiagnostic && (
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="mt-4 rounded-2xl border border-[#E4DFD6] bg-white p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-bold text-slate-900">同步诊断结果</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
+              <p className="text-sm font-bold text-[#2E2A24]">同步诊断结果</p>
+              <p className="mt-1 text-xs leading-5 text-[#F4F1ED]0">
                 表名：{cloud.cloudDiagnostic.tableName}
               </p>
-              <p className="text-xs leading-5 text-slate-500">
+              <p className="text-xs leading-5 text-[#F4F1ED]0">
                 测试记录ID：{cloud.cloudDiagnostic.testRecordId}
               </p>
             </div>
             {cloud.cloudDiagnostic.lostAt ? (
-              <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-bold text-red-600">
+              <span className="rounded-full bg-[#F9F2F0] px-2.5 py-1 text-[11px] font-bold text-[#9A7468]">
                 丢失于：{cloud.cloudDiagnostic.lostAt}
               </span>
             ) : cloud.cloudDiagnostic.completedAt ? (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-600">
+              <span className="rounded-full bg-[#F2F5F2] px-2.5 py-1 text-[11px] font-bold text-[#677A6F]">
                 云端已验证
               </span>
             ) : (
-              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-600">
+              <span className="rounded-full bg-[#FAF6EF] px-2.5 py-1 text-[11px] font-bold text-[#9F814C]">
                 检查中
               </span>
             )}
@@ -472,19 +472,19 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
             {cloud.cloudDiagnostic.steps.map((step) => (
               <div
                 key={`${step.name}-${step.detail}`}
-                className="rounded-xl bg-slate-50 px-3 py-2"
+                className="rounded-xl bg-[#F4F1ED] px-3 py-2"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-bold text-slate-800">
+                  <p className="text-xs font-bold text-[#4A4540]">
                     {step.name}
                   </p>
                   <span
                     className={`text-[11px] font-bold ${
                       step.status === 'success'
-                        ? 'text-emerald-600'
+                        ? 'text-[#677A6F]'
                         : step.status === 'failed'
-                          ? 'text-red-600'
-                          : 'text-amber-600'
+                          ? 'text-[#9A7468]'
+                          : 'text-[#9F814C]'
                     }`}
                   >
                     {step.status === 'success'
@@ -494,7 +494,7 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
                         : '等待'}
                   </span>
                 </div>
-                <p className="mt-1 break-all text-xs leading-5 text-slate-500">
+                <p className="mt-1 break-all text-xs leading-5 text-[#F4F1ED]0">
                   {step.detail}
                 </p>
               </div>
@@ -505,7 +505,7 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
 
       <button
         type="button"
-        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600"
+        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-5 py-3 text-sm font-semibold text-[#736A5C]"
         onClick={async () => {
           await cloud.cloudSignOut()
           onClose()
@@ -525,18 +525,18 @@ function UploadReportPanel({ report }: { report: CloudUploadReport }) {
     <div className="mt-4 rounded-2xl border border-brand-100 bg-brand-50/50 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-slate-900">上传确认结果</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">
+          <p className="text-sm font-bold text-[#2E2A24]">上传确认结果</p>
+          <p className="mt-1 text-xs leading-5 text-[#F4F1ED]0">
             展示上传前云端数量、上传后云端数量，以及本次实际写入变化。
           </p>
         </div>
         <span
           className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
             report.status === 'success'
-              ? 'bg-emerald-50 text-emerald-600'
+              ? 'bg-[#F2F5F2] text-[#677A6F]'
               : report.status === 'failed'
-                ? 'bg-red-50 text-red-600'
-                : 'bg-amber-50 text-amber-600'
+                ? 'bg-[#F9F2F0] text-[#9A7468]'
+                : 'bg-[#FAF6EF] text-[#9F814C]'
           }`}
         >
           {report.status === 'success'
@@ -585,8 +585,8 @@ function UploadReportPanel({ report }: { report: CloudUploadReport }) {
         />
       </div>
 
-      <div className="mt-3 rounded-xl bg-white p-3 text-xs text-slate-600">
-        <p className="font-bold text-slate-800">Supabase返回结果</p>
+      <div className="mt-3 rounded-xl bg-white p-3 text-xs text-[#736A5C]">
+        <p className="font-bold text-[#4A4540]">Supabase返回结果</p>
         <div className="mt-2 grid gap-1.5">
           <SyncInfoRow
             label="返回行数"
@@ -631,21 +631,21 @@ function UploadCountRow({
   local: number
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg bg-slate-50 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-      <span className="font-bold text-slate-700">{label}</span>
-      <span className="font-semibold text-slate-500">
+    <div className="flex flex-col gap-1 rounded-lg bg-[#F4F1ED] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+      <span className="font-bold text-[#5A5246]">{label}</span>
+      <span className="font-semibold text-[#F4F1ED]0">
         本机 {local} · 云端{' '}
-        <span className="text-slate-900">
+        <span className="text-[#2E2A24]">
           {formatCount(before)} → {formatCount(after)}
         </span>
         {typeof written === 'number' && (
           <span
             className={`ml-2 font-bold ${
               written > 0
-                ? 'text-emerald-600'
+                ? 'text-[#677A6F]'
                 : written < 0
-                  ? 'text-amber-600'
-                  : 'text-slate-400'
+                  ? 'text-[#9F814C]'
+                  : 'text-[#A8A296]'
             }`}
           >
             {written > 0 ? `+${written}` : written}
@@ -673,8 +673,8 @@ function SyncCountsCard({
   counts: CloudDataCounts | null
 }) {
   return (
-    <div className="rounded-2xl bg-slate-50 p-3">
-      <p className="mb-2 text-xs font-bold text-slate-900">{title}</p>
+    <div className="rounded-2xl bg-[#F4F1ED] p-3">
+      <p className="mb-2 text-xs font-bold text-[#2E2A24]">{title}</p>
       <div className="grid gap-1.5">
         <SyncInfoRow
           label="账户数"
@@ -765,10 +765,10 @@ function SyncInfoRow({
 }) {
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-      <span className="font-semibold text-slate-400">{label}</span>
+      <span className="font-semibold text-[#A8A296]">{label}</span>
       <span
         className={`break-all text-left font-semibold sm:text-right ${
-          danger ? 'text-red-600' : 'text-slate-700'
+          danger ? 'text-[#9A7468]' : 'text-[#5A5246]'
         }`}
       >
         {value}
@@ -785,8 +785,8 @@ function VersionSummary({
   data: AppData
 }) {
   return (
-    <div className="rounded-xl bg-white/80 px-3 py-2.5 text-slate-600">
-      <p className="font-semibold text-slate-800">{label}</p>
+    <div className="rounded-xl bg-white/80 px-3 py-2.5 text-[#736A5C]">
+      <p className="font-semibold text-[#4A4540]">{label}</p>
       <p className="mt-1 leading-5">
         {data.ipos.length} 新股 · {data.subscriptions.length} 申购 ·{' '}
         {data.sales.length} 卖出
@@ -797,14 +797,14 @@ function VersionSummary({
 
 function ConfigurationGuide() {
   return (
-    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+    <div className="rounded-2xl border border-[#EFE3D2] bg-[#FAF6EF] p-4">
       <div className="flex gap-3">
-        <CloudOff size={20} className="mt-0.5 shrink-0 text-amber-600" />
+        <CloudOff size={20} className="mt-0.5 shrink-0 text-[#9F814C]" />
         <div>
           <p className="text-sm font-bold text-amber-900">
             Supabase 尚未连接
           </p>
-          <p className="mt-1 text-xs leading-5 text-amber-700">
+          <p className="mt-1 text-xs leading-5 text-[#7D653C]">
             请在 Vercel 环境变量中配置 VITE_SUPABASE_URL 和
             VITE_SUPABASE_PUBLISHABLE_KEY，然后重新部署。
           </p>
@@ -825,13 +825,13 @@ function CloudStatusIcon({
     )
   }
   if (status === 'synced') {
-    return <CheckCircle2 size={20} className="shrink-0 text-emerald-500" />
+    return <CheckCircle2 size={20} className="shrink-0 text-[#F2F5F2]0" />
   }
   if (status === 'offline' || status === 'error') {
-    return <CloudOff size={20} className="shrink-0 text-amber-500" />
+    return <CloudOff size={20} className="shrink-0 text-[#FAF6EF]0" />
   }
   if (status === 'auth_expired') {
-    return <CloudOff size={20} className="shrink-0 text-red-500" />
+    return <CloudOff size={20} className="shrink-0 text-[#F9F2F0]0" />
   }
   return <Cloud size={20} className="shrink-0 text-brand-600" />
 }
@@ -875,7 +875,7 @@ function ModeButton({
     <button
       type="button"
       className={`flex-1 rounded-lg px-4 py-2 text-xs font-semibold transition ${
-        active ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'
+        active ? 'bg-white text-brand-700 shadow-sm' : 'text-[#F4F1ED]'
       }`}
       onClick={onClick}
     >
@@ -895,7 +895,7 @@ function Message({
     <p
       className={`mt-4 rounded-xl px-4 py-3 text-xs leading-5 ${
         tone === 'error'
-          ? 'bg-red-50 text-red-700'
+          ? 'bg-[#F9F2F0] text-[#7E5D53]'
           : 'bg-brand-50 text-brand-700'
       }`}
     >

@@ -20,7 +20,6 @@ import type { Ipo }            from '../../types/ipo'
 import type { Subscription }   from '../../types/subscription'
 import { formatAccountName }   from '../../utils/account'
 import { formatHKD, formatPercent } from '../../utils/currency'
-import { getProfitColor }      from '../../utils/profit'
 import { getSubscriptionMethodLabel } from '../../utils/subscriptionMethod'
 import {
   getAccountStats,
@@ -575,7 +574,7 @@ function CompositionCard({
               <div>
                 <p className="text-[10px] font-medium" style={{ color: C.text3 }}>总收益</p>
                 <p className="text-[11px] font-bold" style={{ color: C.text1 }}>HK$</p>
-                <p className="text-[14px] font-extrabold leading-tight tracking-tight" style={{ color: getProfitColor(total) === 'text-red-500' ? C.danger : C.success }}>
+                <p className="text-[14px] font-extrabold leading-tight tracking-tight" style={{ color: total >= 0 ? C.danger : C.success }}>
                   {totalStr}
                 </p>
               </div>

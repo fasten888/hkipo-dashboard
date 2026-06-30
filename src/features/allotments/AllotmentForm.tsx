@@ -77,12 +77,12 @@ export function AllotmentForm({
         <ReadOnly label="发行价" value={formatHKD(ipo?.issuePrice ?? 0)} />
         <ReadOnly label="上市日期" value={ipo?.listingDate ?? '-'} />
         <label>
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             中签状态
           </span>
           <select
             value={status}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) =>
               setStatus(event.target.value as SubscriptionStatus)
             }
@@ -94,13 +94,13 @@ export function AllotmentForm({
           </select>
         </label>
         <label>
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             卖出方式
           </span>
           <select
             value={sellPlan}
             disabled={status !== 'won'}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm disabled:bg-slate-50"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm disabled:bg-[#F4F1ED]"
             onChange={(event) => setSellPlan(event.target.value as SellPlan)}
           >
             <option value="grey_market">暗盘</option>
@@ -122,16 +122,16 @@ export function AllotmentForm({
             />
           </>
         )}
-        <div className="rounded-xl bg-slate-50 p-4 sm:col-span-2">
-          <p className="text-xs text-slate-400">中签金额</p>
-          <p className="mt-1 text-xl font-bold text-slate-900">
+        <div className="rounded-xl bg-[#F4F1ED] p-4 sm:col-span-2">
+          <p className="text-xs text-[#A8A296]">中签金额</p>
+          <p className="mt-1 text-xl font-bold text-[#2E2A24]">
             {formatHKD(allotmentAmount, 'investment')}
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[#A8A296]">
             中签股数 × 发行价
           </p>
         </div>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions submitLabel="保存中签结果" onCancel={onCancel} />
     </form>
@@ -141,8 +141,8 @@ export function AllotmentForm({
 function ReadOnly({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="mb-2 text-sm font-semibold text-slate-700">{label}</p>
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-600">
+      <p className="mb-2 text-sm font-semibold text-[#5A5246]">{label}</p>
+      <div className="rounded-xl border border-[#E4DFD6] bg-[#F4F1ED] px-3.5 py-3 text-sm text-[#736A5C]">
         {value}
       </div>
     </div>
@@ -160,13 +160,13 @@ function NumberField({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <input
         value={value}
         inputMode="numeric"
-        className="focus-ring w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+        className="focus-ring w-full rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
         onChange={(event) => onChange(event.target.value.replace(/\D/g, ''))}
       />
     </label>

@@ -77,16 +77,16 @@ export function DataSafetyPage() {
       </section>
 
       {message && (
-        <div className="mt-4 rounded-xl bg-slate-950 px-4 py-3 text-sm text-white">
+        <div className="mt-4 rounded-xl bg-[#2E2A24] px-4 py-3 text-sm text-white">
           {message}
         </div>
       )}
 
-      <section className="mt-7 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
+      <section className="mt-7 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-bold text-slate-900">数据健康检查</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="font-bold text-[#2E2A24]">数据健康检查</h2>
+            <p className="mt-1 text-sm text-[#F4F1ED]0">
               自动检查持仓、收益率、重复记录、缺失字段和负数金额。
             </p>
           </div>
@@ -100,12 +100,12 @@ export function DataSafetyPage() {
           </button>
         </div>
         {issues.length === 0 ? (
-          <div className="mt-5 flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-5 text-sm font-semibold text-emerald-700">
+          <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#F2F5F2] px-4 py-5 text-sm font-semibold text-emerald-700">
             <CheckCircle2 size={20} />
             当前数据未发现异常
           </div>
         ) : (
-          <div className="mt-5 divide-y divide-slate-100">
+          <div className="mt-5 divide-y divide-[#F4F1ED]">
             {issues.map((issue) => (
               <div
                 key={issue.id}
@@ -120,15 +120,15 @@ export function DataSafetyPage() {
                     >
                       {severityLabels[issue.severity]}
                     </span>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-sm font-bold text-[#4A4540]">
                       {issue.title}
                     </p>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-[#F4F1ED]0">
                     {issue.objectName} · {issue.detail}
                   </p>
                 </div>
-                <span className="text-xs font-medium text-slate-400">
+                <span className="text-xs font-medium text-[#A8A296]">
                   {issue.fixable ? '可自动修复' : '需要人工确认'}
                 </span>
               </div>
@@ -138,17 +138,17 @@ export function DataSafetyPage() {
       </section>
 
       <div className="mt-7 grid gap-6 xl:grid-cols-2">
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-slate-900">版本快照</h2>
-              <p className="mt-1 text-xs text-slate-400">
+              <h2 className="font-bold text-[#2E2A24]">版本快照</h2>
+              <p className="mt-1 text-xs text-[#A8A296]">
                 关键操作前自动保存最近 10 个版本
               </p>
             </div>
             <FileClock size={19} className="text-brand-600" />
           </div>
-          <div className="mt-4 divide-y divide-slate-100">
+          <div className="mt-4 divide-y divide-[#F4F1ED]">
             {snapshots.length === 0 ? (
               <Empty label="暂无版本快照" />
             ) : (
@@ -165,17 +165,17 @@ export function DataSafetyPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+        <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-slate-900">自动备份中心</h2>
-              <p className="mt-1 text-xs text-slate-400">
+              <h2 className="font-bold text-[#2E2A24]">自动备份中心</h2>
+              <p className="mt-1 text-xs text-[#A8A296]">
                 每天一份，最多保留最近 30 份
               </p>
             </div>
             <HardDriveDownload size={19} className="text-brand-600" />
           </div>
-          <div className="mt-4 divide-y divide-slate-100">
+          <div className="mt-4 divide-y divide-[#F4F1ED]">
             {dailyBackups.length === 0 ? (
               <Empty label="暂无每日备份" />
             ) : (
@@ -214,11 +214,11 @@ export function DataSafetyPage() {
         </section>
       </div>
 
-      <section className="mt-7 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card sm:p-6">
+      <section className="mt-7 rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-bold text-slate-900">操作日志中心</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="font-bold text-[#2E2A24]">操作日志中心</h2>
+            <p className="mt-1 text-xs text-[#A8A296]">
               记录新股、申购、卖出、导入和恢复操作
             </p>
           </div>
@@ -236,18 +236,18 @@ export function DataSafetyPage() {
               return (
                 <article
                   key={log.id}
-                  className="rounded-xl border border-slate-100 p-4"
+                  className="rounded-xl border border-[#F4F1ED] p-4"
                 >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-sm font-bold text-slate-800">
+                      <p className="text-sm font-bold text-[#4A4540]">
                         {log.action}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-[#F4F1ED]0">
                         {log.objectName}
                       </p>
                     </div>
-                    <time className="text-xs text-slate-400">
+                    <time className="text-xs text-[#A8A296]">
                       {formatDateTime(log.createdAt)}
                     </time>
                   </div>
@@ -256,7 +256,7 @@ export function DataSafetyPage() {
                       {changes.slice(0, 8).map((change) => (
                         <span
                           key={change.field}
-                          className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs text-slate-500"
+                          className="rounded-lg bg-[#F4F1ED] px-2.5 py-1.5 text-xs text-[#F4F1ED]0"
                         >
                           {fieldLabels[change.field] ?? change.field}：
                           {displayValue(change.before)} →{' '}
@@ -321,18 +321,18 @@ function SafetyMetric({
   tone: 'blue' | 'violet' | 'emerald' | 'amber'
 }) {
   const styles = {
-    blue: 'bg-blue-50 text-blue-600',
-    violet: 'bg-violet-50 text-violet-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
+    blue: 'bg-[#F8F4F1] text-[#9A7468]',
+    violet: 'bg-[#F5F4F7] text-[#766E8E]',
+    emerald: 'bg-[#F2F5F2] text-[#677A6F]',
+    amber: 'bg-[#FAF6EF] text-[#9F814C]',
   }
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card">
+    <div className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card">
       <div className={`grid h-10 w-10 place-items-center rounded-xl ${styles[tone]}`}>
         <Icon size={19} />
       </div>
-      <p className="mt-4 text-xs text-slate-400">{label}</p>
-      <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
+      <p className="mt-4 text-xs text-[#A8A296]">{label}</p>
+      <p className="mt-1 text-xl font-bold text-[#2E2A24]">{value}</p>
     </div>
   )
 }
@@ -355,10 +355,10 @@ function BackupRow({
 function BackupSummary({ item }: { item: DataSnapshot }) {
   return (
     <div>
-      <p className="text-sm font-semibold text-slate-700">
+      <p className="text-sm font-semibold text-[#5A5246]">
         {formatDateTime(item.createdAt)}
       </p>
-      <p className="mt-1 text-xs text-slate-400">
+      <p className="mt-1 text-xs text-[#A8A296]">
         {item.reason} · {item.data.accounts.length} 账户 · {item.data.ipos.length}{' '}
         新股 · {item.data.subscriptions.length} 申购 · {item.data.sales.length}{' '}
         卖出
@@ -383,8 +383,8 @@ function IconButton({
       type="button"
       className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold ${
         danger
-          ? 'bg-red-50 text-red-600'
-          : 'bg-slate-100 text-slate-600'
+          ? 'bg-[#F9F2F0] text-[#9A7468]'
+          : 'bg-[#F4F1ED] text-[#736A5C]'
       }`}
       onClick={onClick}
     >
@@ -396,7 +396,7 @@ function IconButton({
 
 function Empty({ label }: { label: string }) {
   return (
-    <p className="rounded-xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-400">
+    <p className="rounded-xl bg-[#F4F1ED] px-4 py-10 text-center text-sm text-[#A8A296]">
       {label}
     </p>
   )
@@ -419,9 +419,9 @@ function displayValue(value: unknown) {
 
 const severityLabels = { high: '高风险', medium: '需检查', low: '提示' }
 const severityStyles = {
-  high: 'bg-red-50 text-red-600',
-  medium: 'bg-amber-50 text-amber-600',
-  low: 'bg-blue-50 text-blue-600',
+  high: 'bg-[#F9F2F0] text-[#9A7468]',
+  medium: 'bg-[#FAF6EF] text-[#9F814C]',
+  low: 'bg-[#F8F4F1] text-[#9A7468]',
 }
 const fieldLabels: Record<string, string> = {
   name: '名称',

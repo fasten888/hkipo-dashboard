@@ -108,7 +108,7 @@ function WdKpi({ label, value, hint, iconBg, iconColor, icon, profitVal }: { lab
 function TblBtn({ children, danger, onClick }: { children: React.ReactNode; danger?: boolean; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick}
-      className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#A8A296] hover:bg-red-50 hover:text-red-500' : 'text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]'}`}>
+      className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#A8A296] hover:bg-[#F9F2F0] hover:text-[#F9F2F0]' : 'text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]'}`}>
       {children}
     </button>
   )

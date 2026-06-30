@@ -185,17 +185,17 @@ export function SubscriptionForm({
         />
         <div />
         <label className="sm:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             备注
           </span>
           <textarea
             value={remarks}
             rows={3}
-            className="focus-ring w-full resize-none rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setRemarks(event.target.value)}
           />
         </label>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions
         submitLabel={subscription ? '保存记录' : '创建申购记录'}
@@ -220,12 +220,12 @@ function Input({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <div className="relative">
         {prefix && (
-          <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-slate-400">
+          <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-[#A8A296]">
             {prefix}
           </span>
         )}
@@ -233,7 +233,7 @@ function Input({
           type={type}
           value={value}
           inputMode={type === 'date' ? undefined : 'decimal'}
-          className={`focus-ring w-full rounded-xl border border-slate-200 py-3 text-sm ${
+          className={`focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 text-sm ${
             prefix ? 'pl-12 pr-3.5' : 'px-3.5'
           }`}
           onChange={(event) => onChange(event.target.value)}
@@ -256,12 +256,12 @@ function Select({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <select
         value={value}
-        className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+        className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
         onChange={(event) => onChange(event.target.value)}
       >
         {options.map((option) => (
@@ -282,10 +282,10 @@ export function FormActions({
   onCancel: () => void
 }) {
   return (
-    <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
+    <div className="flex flex-col-reverse gap-3 border-t border-[#F4F1ED] bg-[#F4F1ED]/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
       <button
         type="button"
-        className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700"
+        className="rounded-xl border border-[#E4DFD6] bg-white px-5 py-2.5 text-sm font-semibold text-[#5A5246]"
         onClick={onCancel}
       >
         取消

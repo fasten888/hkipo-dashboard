@@ -122,12 +122,12 @@ export function BatchSubscriptionForm({
     <form onSubmit={handleSubmit}>
       <div className="space-y-5 px-5 py-6 sm:px-7">
         <label>
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             新股
           </span>
           <select
             value={ipoId}
-            className="focus-ring w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setIpoId(event.target.value)}
           >
             {ipos.map((ipo) => (
@@ -139,10 +139,10 @@ export function BatchSubscriptionForm({
         </label>
         <fieldset>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <legend className="text-sm font-semibold text-slate-700">
+            <legend className="text-sm font-semibold text-[#5A5246]">
               参与账户
             </legend>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-[#A8A296]">
               已选 {accountIds.length} 个
             </span>
           </div>
@@ -150,18 +150,18 @@ export function BatchSubscriptionForm({
             <label className="relative">
               <Search
                 size={15}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A8A296]"
               />
               <input
                 value={search}
                 placeholder="搜索账户名称或后四位"
-                className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-9 pr-3 text-sm"
+                className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-9 pr-3 text-sm"
                 onChange={(event) => setSearch(event.target.value)}
               />
             </label>
             <select
               value={broker}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-600"
+              className="rounded-xl border border-[#E4DFD6] bg-white px-3 py-2.5 text-sm text-[#736A5C]"
               onChange={(event) => setBroker(event.target.value)}
             >
               <option value="all">全部券商</option>
@@ -172,11 +172,11 @@ export function BatchSubscriptionForm({
               ))}
             </select>
           </div>
-          <div className="mb-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+          <div className="mb-3 rounded-2xl border border-[#E4DFD6] bg-[#F4F1ED]/70 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#736A5C] shadow-sm ring-1 ring-[#E4DFD6] hover:bg-[#F4F1ED]"
                 onClick={() => {
                   setAccountIds((current) => [
                     ...new Set([...current, ...visibleIds]),
@@ -197,7 +197,7 @@ export function BatchSubscriptionForm({
               </button>
               <button
                 type="button"
-                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+                className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#736A5C] shadow-sm ring-1 ring-[#E4DFD6] hover:bg-[#F4F1ED]"
                 onClick={() =>
                   setAccountIds((current) => {
                     const selected = new Set(current)
@@ -211,15 +211,15 @@ export function BatchSubscriptionForm({
               >
                 反选
               </button>
-              <div className="hidden h-5 w-px bg-slate-200 sm:block" />
+              <div className="hidden h-5 w-px bg-[#E4DFD6] sm:block" />
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500">
+                <span className="text-xs font-semibold text-[#F4F1ED]0">
                   申购方式：
                 </span>
                 <button
                   type="button"
                   disabled={accountIds.length === 0}
-                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#736A5C] shadow-sm ring-1 ring-[#E4DFD6] hover:bg-[#F4F1ED] disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={() => updateSelectedMethods('cash')}
                 >
                   全部现金
@@ -227,24 +227,24 @@ export function BatchSubscriptionForm({
                 <button
                   type="button"
                   disabled={accountIds.length === 0}
-                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-[#736A5C] shadow-sm ring-1 ring-[#E4DFD6] hover:bg-[#F4F1ED] disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={() => updateSelectedMethods('10x')}
                 >
                   全部10x融资
                 </button>
               </div>
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-slate-500">
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-[#F4F1ED]0">
               <span>现金账户：{selectedMethodStats.cash}个</span>
               <span>融资账户：{selectedMethodStats.financing}个</span>
-              <span className="text-slate-400">仅修改已选账户</span>
+              <span className="text-[#A8A296]">仅修改已选账户</span>
             </div>
           </div>
-          <div className="grid max-h-60 gap-2 overflow-y-auto rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
+          <div className="grid max-h-60 gap-2 overflow-y-auto rounded-xl border border-[#E4DFD6] p-3 sm:grid-cols-2">
             {visibleAccounts.map((account) => (
               <label
                 key={account.id}
-                className="flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-slate-50"
+                className="flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-[#F4F1ED]"
               >
                 <input
                   type="checkbox"
@@ -264,10 +264,10 @@ export function BatchSubscriptionForm({
                   }}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-slate-700">
+                  <span className="block text-sm font-semibold text-[#5A5246]">
                     {formatAccountName(account)}
                   </span>
-                  <span className="mt-0.5 block text-[11px] text-slate-400">
+                  <span className="mt-0.5 block text-[11px] text-[#A8A296]">
                     {account.brokerName || '未填写券商'} · 初始资金{' '}
                     {formatHKD(account.initialDeposit, 'investment')}
                   </span>
@@ -277,7 +277,7 @@ export function BatchSubscriptionForm({
                         methods[account.id] ??
                         getAccountDefaultSubscriptionMethod(account)
                       }
-                      className="mt-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600"
+                      className="mt-2 rounded-lg border border-[#E4DFD6] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#736A5C]"
                       onClick={(event) => event.stopPropagation()}
                       onChange={(event) =>
                         setMethods((current) => ({
@@ -298,7 +298,7 @@ export function BatchSubscriptionForm({
               </label>
             ))}
             {visibleAccounts.length === 0 && (
-              <p className="py-6 text-center text-xs text-slate-400 sm:col-span-2">
+              <p className="py-6 text-center text-xs text-[#A8A296] sm:col-span-2">
                 没有匹配的账户
               </p>
             )}
@@ -313,12 +313,12 @@ export function BatchSubscriptionForm({
           <NumberField label="每账户手续费" value={fee} onChange={setFee} />
         </div>
         <label>
-          <span className="mb-2 block text-xs font-semibold text-slate-600">
+          <span className="mb-2 block text-xs font-semibold text-[#736A5C]">
             整批资金来源
           </span>
           <select
             value={fundingSource}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) =>
               setFundingSource(event.target.value as FundingSource)
             }
@@ -334,10 +334,10 @@ export function BatchSubscriptionForm({
           value={remarks}
           rows={2}
           placeholder="备注"
-          className="focus-ring w-full resize-none rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+          className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
           onChange={(event) => setRemarks(event.target.value)}
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468]">{error}</p>}
       </div>
       <FormActions
         submitLabel={`创建 ${accountIds.length} 条申购记录`}
@@ -358,17 +358,17 @@ function NumberField({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-xs font-semibold text-slate-600">
+      <span className="mb-2 block text-xs font-semibold text-[#736A5C]">
         {label}
       </span>
       <div className="relative">
-        <span className="absolute inset-y-0 left-3 flex items-center text-xs text-slate-400">
+        <span className="absolute inset-y-0 left-3 flex items-center text-xs text-[#A8A296]">
           HK$
         </span>
         <input
           value={value}
           inputMode="decimal"
-          className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-11 pr-3 text-sm"
+          className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-11 pr-3 text-sm"
           onChange={(event) => onChange(event.target.value)}
         />
       </div>

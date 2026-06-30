@@ -85,12 +85,12 @@ export function SaleForm({
           onChange={(value) => setShares(value.replace(/\D/g, ''))}
         />
         <label>
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             卖出方式
           </span>
           <select
             value={method}
-            className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
             onChange={(event) => setMethod(event.target.value as SaleMethod)}
           >
             <option value="grey_market">暗盘卖出</option>
@@ -106,21 +106,21 @@ export function SaleForm({
           inputMode="decimal"
           onChange={setCommission}
         />
-        <p className="-mt-3 text-xs text-slate-400 sm:col-span-2">
+        <p className="-mt-3 text-xs text-[#A8A296] sm:col-span-2">
           佣金会计入卖出成本，并从单笔收益、累计收益及收益率中自动扣除。
         </p>
         <label className="sm:col-span-2">
-          <span className="mb-2 block text-sm font-semibold text-slate-700">
+          <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
             备注
           </span>
           <textarea
             value={remarks}
             rows={2}
-            className="focus-ring w-full resize-none rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+            className="focus-ring w-full resize-none rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
             onChange={(event) => setRemarks(event.target.value)}
           />
         </label>
-        {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
+        {error && <p className="text-sm text-[#9A7468] sm:col-span-2">{error}</p>}
       </div>
       <FormActions submitLabel={sale ? '保存卖出' : '添加卖出'} onCancel={onCancel} />
     </form>
@@ -148,12 +148,12 @@ function Field({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
+      <span className="mb-2 block text-sm font-semibold text-[#5A5246]">
         {label}
       </span>
       <div className="relative">
         {prefix && (
-          <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-slate-400">
+          <span className="absolute inset-y-0 left-3.5 flex items-center text-sm text-[#A8A296]">
             {prefix}
           </span>
         )}
@@ -163,7 +163,7 @@ function Field({
           inputMode={type === 'date' ? undefined : inputMode}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className={`focus-ring w-full rounded-xl border border-slate-200 py-3 text-sm ${
+          className={`focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 text-sm ${
             prefix ? 'pl-12 pr-3.5' : 'px-3.5'
           }`}
           onChange={(event) => onChange(event.target.value)}

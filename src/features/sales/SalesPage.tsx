@@ -261,7 +261,7 @@ export function SalesPage() {
     <>
       <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
         <div>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-[#F4F1ED]0">
             支持中签股份分批、多次卖出，并自动计算收益和收益率。
           </p>
         </div>
@@ -275,7 +275,7 @@ export function SalesPage() {
         </button>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs shadow-sm">
-        <span className="text-slate-400">排序：</span>
+        <span className="text-[#A8A296]">排序：</span>
         {[
           ['name', '名称'],
           ['date', '日期'],
@@ -293,7 +293,7 @@ export function SalesPage() {
             }
           />
         ))}
-        {!sort && <span className="text-slate-400">默认最新录入</span>}
+        {!sort && <span className="text-[#A8A296]">默认最新录入</span>}
       </div>
 
       <section className="grid gap-4 md:grid-cols-2">
@@ -362,27 +362,27 @@ export function SalesPage() {
         />
       </section>
 
-      <section className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-xs leading-6 text-slate-500 sm:px-5">
-        <span className="font-semibold text-slate-700">计算说明：</span>
+      <section className="mt-4 rounded-2xl border border-[#E4DFD6]/80 bg-[#F4F1ED] px-4 py-3 text-xs leading-6 text-[#F4F1ED]0 sm:px-5">
+        <span className="font-semibold text-[#5A5246]">计算说明：</span>
         累计收益已减去发行成本、全部申购手续费和每笔卖出佣金；收益率按累计净收益除以全部已计成本计算；平均单签收益按全成本净利润除以中签次数计算。
       </section>
 
-      <div className="mt-8 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card sm:grid-cols-[1fr_auto]">
+      <div className="mt-8 grid gap-3 rounded-2xl border border-[#E4DFD6] bg-white p-4 shadow-card sm:grid-cols-[1fr_auto]">
         <label className="relative">
           <Search
             size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
           />
           <input
             value={search}
             placeholder="搜索账户、新股名称或代码"
-            className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-10 pr-4 text-sm"
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
         <select
           value={subscriptionFilter}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
           onChange={(event) => setSubscriptionFilter(event.target.value)}
         >
           <option value="all">全部申购记录</option>
@@ -402,13 +402,13 @@ export function SalesPage() {
         </select>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-[#E4DFD6] bg-white shadow-card">
         {rows.length === 0 ? (
-          <p className="px-6 py-14 text-center text-sm text-slate-400">
+          <p className="px-6 py-14 text-center text-sm text-[#A8A296]">
             暂无卖出记录
           </p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#F4F1ED]">
             {rows.map((sale) => {
               const subscription = subscriptions.find(
                 (item) => item.id === sale.subscriptionId,
@@ -431,15 +431,15 @@ export function SalesPage() {
                   className="grid gap-3 px-5 py-4 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-center"
                 >
                   <div>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-sm font-bold text-[#4A4540]">
                       {ipo?.name ?? '-'}（{ipo?.stockCode ?? '-'}）
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-[#A8A296]">
                       {formatAccountName(account)}{' '}
                       · {sale.date}
                     </p>
                   </div>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-[#736A5C]">
                     {sale.shares} 股 × {formatHKD(sale.price)}
                   </p>
                   <div>
@@ -462,14 +462,14 @@ export function SalesPage() {
                   <div className="flex gap-1">
                     <button
                       type="button"
-                      className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"
+                      className="rounded-lg p-2 text-[#A8A296] hover:bg-[#F4F1ED]"
                       onClick={() => openEdit(sale)}
                     >
                       <Pencil size={15} />
                     </button>
                     <button
                       type="button"
-                      className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                      className="rounded-lg p-2 text-[#A8A296] hover:bg-[#F9F2F0] hover:text-[#9A7468]"
                       onClick={() => setDeleting(sale)}
                     >
                       <Trash2 size={15} />
@@ -499,17 +499,17 @@ export function SalesPage() {
       >
         {!target && !editing && (
           <div className="px-5 py-12 text-center sm:px-7">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-600">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FAF6EF] text-[#9F814C]">
               <Tags size={22} />
             </div>
-            <p className="mt-4 font-bold text-slate-800">暂无可卖持仓</p>
-            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
+            <p className="mt-4 font-bold text-[#4A4540]">暂无可卖持仓</p>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#F4F1ED]0">
               请先在“中签管理”中把申购记录标记为已中签，并填写大于
               0 的中签股数。已经全部卖出的记录不会再次出现在这里。
             </p>
             <button
               type="button"
-              className="mt-6 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              className="mt-6 rounded-xl border border-[#E4DFD6] px-5 py-2.5 text-sm font-semibold text-[#736A5C] hover:bg-[#F4F1ED]"
               onClick={() => setSaleModalOpen(false)}
             >
               我知道了
@@ -519,10 +519,10 @@ export function SalesPage() {
         {target && (
           <>
             {!editing && (
-              <div className="border-b border-slate-100 px-5 py-4 sm:px-7">
+              <div className="border-b border-[#F4F1ED] px-5 py-4 sm:px-7">
                 <select
                   value={target.id}
-                  className="focus-ring w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm"
+                  className="focus-ring w-full rounded-xl border border-[#E4DFD6] px-3.5 py-3 text-sm"
                   onChange={(event) =>
                     setTarget(
                       availableSubscriptions.find(
@@ -572,25 +572,25 @@ export function SalesPage() {
       >
         {brokenIssueSales.length === 0 ? (
           <div className="px-5 py-16 text-center sm:px-7">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#F2F5F2] text-[#677A6F]">
               <TrendingUp size={22} />
             </div>
-            <p className="mt-4 font-bold text-slate-800">暂无破发卖出记录</p>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-4 font-bold text-[#4A4540]">暂无破发卖出记录</p>
+            <p className="mt-2 text-sm text-[#F4F1ED]0">
               当前没有上市后亏损卖出的成交。
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#F4F1ED]">
             {brokenIssueSales.map(
               ({ sale, account, ipo, profit, profitRate }) => (
                 <article key={sale.id} className="px-5 py-4 sm:px-7">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="break-words font-bold text-slate-800">
+                      <p className="break-words font-bold text-[#4A4540]">
                         {ipo?.name ?? '已删除新股'}（{ipo?.stockCode ?? '-'}）
                       </p>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-[#A8A296]">
                         {formatAccountName(account)} · {sale.date}
                       </p>
                     </div>
@@ -607,7 +607,7 @@ export function SalesPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#F4F1ED]0">
                     <span>{sale.shares} 股</span>
                     <span>卖出价 {formatHKD(sale.price)}</span>
                     <span>发行价 {formatHKD(ipo?.issuePrice ?? 0)}</span>
@@ -657,12 +657,12 @@ function SaleKpi({
   onClick?: () => void
 }) {
   const valueColor =
-    profitValue === undefined ? 'text-slate-950' : getProfitColor(profitValue)
+    profitValue === undefined ? 'text-[#2E2A24]' : getProfitColor(profitValue)
   const content = (
     <>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-slate-400">{label}</p>
+          <p className="text-xs font-medium text-[#A8A296]">{label}</p>
           <p
             className={`mt-3 break-words font-semibold leading-tight tracking-tight tabular-nums ${valueColor} ${
               secondary
@@ -675,26 +675,26 @@ function SaleKpi({
           <p
             className={`mt-3 text-xs font-medium leading-5 ${
               detailProfitValue === undefined
-                ? 'text-slate-400'
+                ? 'text-[#A8A296]'
                 : getProfitColor(detailProfitValue)
             }`}
           >
             {hint}
           </p>
         </div>
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#F4F1ED] text-[#F4F1ED]0">
           <Icon size={17} />
         </div>
       </div>
-      <div className="pointer-events-none absolute bottom-[calc(100%-0.25rem)] left-5 z-30 hidden max-w-72 rounded-xl bg-slate-950 px-3 py-2 text-xs font-medium leading-5 text-white shadow-xl group-hover:block">
+      <div className="pointer-events-none absolute bottom-[calc(100%-0.25rem)] left-5 z-30 hidden max-w-72 rounded-xl bg-[#2E2A24] px-3 py-2 text-xs font-medium leading-5 text-white shadow-xl group-hover:block">
         {tooltip}
       </div>
     </>
   )
   const className = `group relative rounded-2xl border bg-white text-left shadow-card ${
     prominent
-      ? 'border-slate-300 p-6'
-      : 'border-slate-200/80 p-5'
+      ? 'border-[#D2CBBF] p-6'
+      : 'border-[#E4DFD6]/80 p-5'
   } ${onClick ? 'transition hover:border-brand-200 hover:bg-brand-50/20' : ''}`
 
   return onClick ? (

@@ -84,7 +84,7 @@ export function AllotmentsPage() {
         </button>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-white px-4 py-3 text-xs shadow-sm">
-        <span className="text-slate-400">排序：</span>
+        <span className="text-[#A8A296]">排序：</span>
         {[
           ['name', '名称'],
           ['date', '日期'],
@@ -102,7 +102,7 @@ export function AllotmentsPage() {
             }
           />
         ))}
-        {!sort && <span className="text-slate-400">默认最新录入</span>}
+        {!sort && <span className="text-[#A8A296]">默认最新录入</span>}
       </div>
 
       <section className="grid gap-4 sm:grid-cols-3">
@@ -129,22 +129,22 @@ export function AllotmentsPage() {
         />
       </section>
 
-      <div className="mt-8 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card sm:grid-cols-[1fr_auto]">
+      <div className="mt-8 grid gap-3 rounded-2xl border border-[#E4DFD6] bg-white p-4 shadow-card sm:grid-cols-[1fr_auto]">
         <label className="relative">
           <Search
             size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
           />
           <input
             value={search}
             placeholder="搜索账户、新股名称或代码"
-            className="focus-ring w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-2.5 pl-10 pr-4 text-sm"
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
         <select
           value={status}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm"
+          className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
           onChange={(event) =>
             setStatus(
               event.target.value as
@@ -164,13 +164,13 @@ export function AllotmentsPage() {
         </select>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-[#E4DFD6] bg-white shadow-card">
         {rows.length === 0 ? (
-          <p className="px-6 py-14 text-center text-sm text-slate-400">
+          <p className="px-6 py-14 text-center text-sm text-[#A8A296]">
             暂无匹配的申购记录
           </p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#F4F1ED]">
             {rows.map((subscription) => {
               const ipo = ipos.find((item) => item.id === subscription.ipoId)
               const metrics = getSubscriptionMetrics(
@@ -184,22 +184,22 @@ export function AllotmentsPage() {
                   className="grid gap-3 px-5 py-4 sm:grid-cols-[1.2fr_1fr_1fr_1fr_auto] sm:items-center"
                 >
                   <div>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-sm font-bold text-[#4A4540]">
                       {ipo?.name ?? '-'}（{ipo?.stockCode ?? '-'}）
                     </p>
                     
                   </div>
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-[#736A5C]">
                     {subscription.status === 'won'
                       ? `${subscription.allottedShares} 股 / ${subscription.allottedLots} 手`
                       : statusLabel[subscription.status]}
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">中签金额</p>
+                    <p className="text-xs text-[#A8A296]">中签金额</p>
                     
                   </div>
                   <div>
-                    <p className="text-xs text-slate-400">浮盈浮亏</p>
+                    <p className="text-xs text-[#A8A296]">浮盈浮亏</p>
                     <p
                       className={`mt-1 text-sm font-semibold ${getProfitColor(
                         metrics.netProfit,
@@ -218,7 +218,7 @@ export function AllotmentsPage() {
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-3 py-2 text-xs font-semibold text-[#736A5C]"
                     onClick={() => setEditing(subscription)}
                   >
                     <Pencil size={14} />
@@ -379,10 +379,10 @@ function BatchAllotmentForm({
 
   return (
     <div className="mobile-safe-bottom">
-      <div className="sticky top-[77px] z-[5] space-y-3 border-b border-slate-100 bg-white px-5 py-4 sm:static sm:px-7">
+      <div className="sticky top-[77px] z-[5] space-y-3 border-b border-[#F4F1ED] bg-white px-5 py-4 sm:static sm:px-7">
         <select
           value={ipoId}
-          className="focus-ring w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm"
+          className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-3 text-sm"
           onChange={(event) => setIpoId(event.target.value)}
         >
           {ipoOptions.map((ipo) => (
@@ -394,12 +394,12 @@ function BatchAllotmentForm({
         <label className="relative block">
           <Search
             size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A8A296]"
           />
           <input
             value={search}
             placeholder="搜索账户姓名或后四位，如 7143"
-            className="focus-ring w-full rounded-xl border border-slate-200 py-3 pl-10 pr-4 text-sm"
+            className="focus-ring w-full rounded-xl border border-[#E4DFD6] py-3 pl-10 pr-4 text-sm"
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
@@ -415,9 +415,9 @@ function BatchAllotmentForm({
           return (
             <article
               key={subscription.id}
-              className="rounded-2xl border border-slate-200 p-4"
+              className="rounded-2xl border border-[#E4DFD6] p-4"
             >
-              <p className="font-bold text-slate-900">
+              <p className="font-bold text-[#2E2A24]">
                 {formatAccountName(account)}
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2">
@@ -432,11 +432,11 @@ function BatchAllotmentForm({
                     className={`rounded-xl px-2 py-2 text-xs font-semibold ${
                       draft.status === value
                         ? value === 'won'
-                          ? 'bg-red-500 text-white'
+                          ? 'bg-[#F9F2F0]0 text-white'
                           : value === 'lost'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-slate-800 text-white'
-                        : 'bg-slate-100 text-slate-500'
+                            ? 'bg-[#F2F5F2]0 text-white'
+                            : 'bg-[#4A4540] text-white'
+                        : 'bg-[#F4F1ED] text-[#F4F1ED]'
                     }`}
                     onClick={() =>
                       updateDraft(subscription.id, { status: value })
@@ -468,16 +468,16 @@ function BatchAllotmentForm({
           )
         })}
         {visibleRecords.length === 0 && (
-          <p className="rounded-2xl bg-slate-50 px-4 py-12 text-center text-sm text-slate-400">
+          <p className="rounded-2xl bg-[#F4F1ED] px-4 py-12 text-center text-sm text-[#A8A296]">
             暂无匹配账户
           </p>
         )}
       </div>
 
-      <div className="sticky bottom-0 flex gap-3 border-t border-slate-100 bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
+      <div className="sticky bottom-0 flex gap-3 border-t border-[#F4F1ED] bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
         <button
           type="button"
-          className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600"
+          className="flex-1 rounded-xl border border-[#E4DFD6] px-4 py-3 text-sm font-semibold text-[#736A5C]"
           onClick={onCancel}
         >
           取消
@@ -517,7 +517,7 @@ function BatchNumberField({
 }) {
   return (
     <label>
-      <span className="mb-1.5 block text-xs font-medium text-slate-500">
+      <span className="mb-1.5 block text-xs font-medium text-[#F4F1ED]0">
         {label}
       </span>
       <input
@@ -525,7 +525,7 @@ function BatchNumberField({
         min="0"
         inputMode="numeric"
         value={value}
-        className="focus-ring w-full rounded-xl border border-slate-200 px-3 py-2.5 text-base"
+        className="focus-ring w-full rounded-xl border border-[#E4DFD6] px-3 py-2.5 text-base"
         onChange={(event) => onChange(Number(event.target.value) || 0)}
       />
     </label>
