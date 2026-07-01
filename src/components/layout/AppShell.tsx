@@ -48,9 +48,14 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
   const [openFilter, setOpenFilter]         = useState<'account' | 'range' | null>(null)
   const [selectedAccountId, setSelectedAccountId] = useState('all')
   const [selectedRange, setSelectedRange]   = useState('近12个月')
+  const [customRange, setCustomRange]       = useState({ start: '', end: '' })
   const pageMeta = getPageMeta(activeNavigation)
   const selectedAccount = cloud.accounts.find((account) => account.id === selectedAccountId)
   const selectedAccountLabel = selectedAccount ? formatAccountName(selectedAccount) : '全部账户'
+  const selectedRangeLabel =
+    selectedRange === '自定义' && customRange.start && customRange.end
+      ? `${customRange.start} 至 ${customRange.end}`
+      : selectedRange
   const rangeOptions = ['近12个月', '近6个月', '近3个月', '自定义']
 
   useEffect(() => {
@@ -189,17 +194,20 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
             <div className="relative">
               <FilterPill
                 icon={CalendarRange}
-                label={selectedRange}
+                label={selectedRangeLabel}
                 active={openFilter === 'range'}
                 onClick={() => setOpenFilter((current) => current === 'range' ? null : 'range')}
               />
               {openFilter === 'range' && (
-                <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-40 overflow-hidden rounded-[14px] border border-[#E4DFD6] bg-white p-1.5 shadow-[0_18px_44px_rgba(74,69,64,0.14)]">
+                <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-[14px] border border-[#E4DFD6] bg-white p-1.5 shadow-[0_18px_44px_rgba(74,69,64,0.14)]">
                   {rangeOptions.map((option) => (
                     <button
                       key={option}
                       type="button"
-                      onClick={() => { setSelectedRange(option); setOpenFilter(null) }}
+                      onClick={() => {
+                        setSelectedRange(option)
+                        if (option !== '自定义') setOpenFilter(null)
+                      }}
                       className={[
                         'flex h-9 w-full items-center rounded-[10px] px-3 text-left text-[12px] font-medium transition',
                         selectedRange === option
@@ -210,6 +218,39 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
                       {option}
                     </button>
                   ))}
+                  {selectedRange === '自定义' && (
+                    <div className="mt-1 rounded-[12px] bg-[#F8F4F1] p-3">
+                      <p className="mb-2 text-[11px] font-semibold text-[#8C8273]">选择统计月份</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="text-[10px] font-medium text-[#A8A296]">
+                          开始月份
+                          <input
+                            type="month"
+                            value={customRange.start}
+                            onChange={(event) => setCustomRange((current) => ({ ...current, start: event.target.value }))}
+                            className="mt-1 h-8 w-full rounded-[8px] border border-[#E4DFD6] bg-white px-2 text-[12px] font-medium text-[#5A5246] outline-none transition focus:border-[#B08B7E]"
+                          />
+                        </label>
+                        <label className="text-[10px] font-medium text-[#A8A296]">
+                          结束月份
+                          <input
+                            type="month"
+                            value={customRange.end}
+                            onChange={(event) => setCustomRange((current) => ({ ...current, end: event.target.value }))}
+                            className="mt-1 h-8 w-full rounded-[8px] border border-[#E4DFD6] bg-white px-2 text-[12px] font-medium text-[#5A5246] outline-none transition focus:border-[#B08B7E]"
+                          />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!customRange.start || !customRange.end}
+                        onClick={() => setOpenFilter(null)}
+                        className="mt-3 h-8 w-full rounded-[8px] bg-[#B08B7E] text-[12px] font-semibold text-white transition hover:bg-[#9A7468] disabled:cursor-not-allowed disabled:bg-[#D2CBBF]"
+                      >
+                        应用自定义区间
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

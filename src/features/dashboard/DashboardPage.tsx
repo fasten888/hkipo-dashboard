@@ -9,14 +9,16 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useAppData }          from '../../hooks/useAppData'
 import { usePersistentState }  from '../../hooks/usePersistentState'
 import { CountUpNumber }       from '../../components/ui/CountUpNumber'
+import { Modal }               from '../../components/ui/Modal'
 import { getOperationLogs }    from '../../services/audit'
 import type { Account }        from '../../types/account'
 import type { OperationLog }   from '../../types/audit'
 import type { Ipo }            from '../../types/ipo'
+import type { Sale }           from '../../types/sale'
 import type { Subscription }   from '../../types/subscription'
 import { formatAccountName }   from '../../utils/account'
 import { formatHKD, formatPercent } from '../../utils/currency'
@@ -27,6 +29,7 @@ import {
   getPerformanceSummary,
   getProfitTrend,
   getSaleTypeStats,
+  getSubscriptionMetrics,
   getSystemStats,
   type TrendPeriod,
 } from '../../utils/statistics'
@@ -54,6 +57,7 @@ const C = {
 export function DashboardPage() {
   const { accounts, ipos, subscriptions, sales, withdrawals } = useAppData()
   const [trendPeriod, setTrendPeriod] = usePersistentState<TrendPeriod>('dashboard-trend-period', 'month')
+  const [detailType, setDetailType] = useState<DashboardDetailType | null>(null)
 
   /* ── computed stats ── */
   const stats         = getSystemStats(accounts, subscriptions, ipos, sales)
@@ -156,6 +160,7 @@ export function DashboardPage() {
           hint={`较上月 ${formatSignedDelta(monthDelta)}`}
           hintPositive={monthDelta >= 0}
           showHKPrefix
+          onClick={() => setDetailType('profit')}
         />
         <KpiLarge
           label="收益率"
@@ -177,6 +182,7 @@ export function DashboardPage() {
           hint="较上月 ↓ 4.1%"
           hintPositive={false}
           showHKPrefix
+          onClick={() => setDetailType('cost')}
         />
         <KpiLarge
           label="中签率"
@@ -186,6 +192,7 @@ export function DashboardPage() {
           iconBg="#F3EAD7"
           icon={<Target size={20} color={C.warning} />}
           hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
+          onClick={() => setDetailType('wins')}
         />
       </div>
 
@@ -222,6 +229,7 @@ export function DashboardPage() {
           hint="较上月 ↑ 15.3%"
           hintPositive
           showHKPrefix
+          onClick={() => setDetailType('grey')}
         />
         <KpiSmall
           label="首日收益"
@@ -233,6 +241,7 @@ export function DashboardPage() {
           hint="较上月 ↑ 19.8%"
           hintPositive
           showHKPrefix
+          onClick={() => setDetailType('firstDay')}
         />
       </div>
 
@@ -248,6 +257,15 @@ export function DashboardPage() {
         <TasksCard tasks={upcomingTasks} />
         <AiCard rows={aiRows} />
       </div>
+
+      <DashboardDetailModal
+        type={detailType}
+        accounts={accounts}
+        ipos={ipos}
+        subscriptions={subscriptions}
+        sales={sales}
+        onClose={() => setDetailType(null)}
+      />
     </div>
   )
 }
@@ -256,7 +274,7 @@ export function DashboardPage() {
    KPI Large card (row 1)
    ════════════════════════════════════════ */
 function KpiLarge({
-  label, value, formatter, color, iconBg, icon, hint, hintPositive, showHKPrefix,
+  label, value, formatter, color, iconBg, icon, hint, hintPositive, showHKPrefix, onClick,
 }: {
   label: string
   value: number
@@ -267,9 +285,18 @@ function KpiLarge({
   hint?: string
   hintPositive?: boolean
   showHKPrefix?: boolean
+  onClick?: () => void
 }) {
+  const Component = onClick ? 'button' : 'div'
   return (
-    <div className="os-card os-card-hover">
+    <Component
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={[
+        'os-card os-card-hover w-full text-left',
+        onClick ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B08B7E]/25' : '',
+      ].join(' ')}
+    >
       {/* Header row */}
       <div className="mb-4 flex items-start justify-between gap-2">
         <span className="text-[13px] font-medium" style={{ color: C.text2 }}>{label}</span>
@@ -317,7 +344,7 @@ function KpiLarge({
           ) : hint}
         </p>
       )}
-    </div>
+    </Component>
   )
 }
 
@@ -325,7 +352,7 @@ function KpiLarge({
    KPI Small card (row 2)
    ════════════════════════════════════════ */
 function KpiSmall({
-  label, value, formatter, color, iconBg, icon, hint, hintPositive, showHKPrefix,
+  label, value, formatter, color, iconBg, icon, hint, hintPositive, showHKPrefix, onClick,
 }: {
   label: string
   value: number
@@ -336,9 +363,18 @@ function KpiSmall({
   hint?: string
   hintPositive?: boolean
   showHKPrefix?: boolean
+  onClick?: () => void
 }) {
+  const Component = onClick ? 'button' : 'div'
   return (
-    <div className="os-card os-card-hover">
+    <Component
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={[
+        'os-card os-card-hover w-full text-left',
+        onClick ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#B08B7E]/25' : '',
+      ].join(' ')}
+    >
       {/* Icon + label row */}
       <div className="mb-3 flex items-center gap-2.5">
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px]" style={{ background: iconBg }}>
@@ -385,7 +421,7 @@ function KpiSmall({
           ) : hint}
         </p>
       )}
-    </div>
+    </Component>
   )
 }
 
@@ -747,6 +783,309 @@ function AiCard({
       </button>
     </div>
   )
+}
+
+/* ════════════════════════════════════════
+   KPI detail modal
+   ════════════════════════════════════════ */
+type DashboardDetailType = 'profit' | 'cost' | 'wins' | 'grey' | 'firstDay'
+
+interface DashboardDetailRow {
+  id: string
+  title: string
+  subtitle: string
+  meta: string
+  amount?: number
+  amountKind?: 'profit' | 'cost' | 'neutral'
+  extra?: ReactNode
+}
+
+function DashboardDetailModal({
+  type,
+  accounts,
+  ipos,
+  subscriptions,
+  sales,
+  onClose,
+}: {
+  type: DashboardDetailType | null
+  accounts: Account[]
+  ipos: Ipo[]
+  subscriptions: Subscription[]
+  sales: Sale[]
+  onClose: () => void
+}) {
+  const detail = useMemo(
+    () => type ? getDashboardDetail(type, accounts, ipos, subscriptions, sales) : null,
+    [accounts, ipos, sales, subscriptions, type],
+  )
+
+  if (!detail) return null
+
+  return (
+    <Modal
+      open={Boolean(type)}
+      title={detail.title}
+      description={detail.description}
+      onClose={onClose}
+      fullScreenOnMobile
+    >
+      <div className="px-5 py-5 sm:px-8">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {detail.summary.map((item) => (
+            <div key={item.label} className="rounded-[16px] bg-[#F8F4F1] p-4">
+              <p className="text-[11px] font-medium text-[#A8A296]">{item.label}</p>
+              <p className="mt-1 text-[18px] font-bold tabular-nums text-[#4A4540]">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {detail.rows.length === 0 ? (
+          <div className="grid min-h-40 place-items-center rounded-[18px] bg-[#F8F4F1] text-[13px] text-[#A8A296]">
+            暂无对应明细
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {detail.rows.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-[18px] border border-[#E4DFD6] bg-white p-4 transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(74,69,64,0.08)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-semibold text-[#4A4540]">{row.title}</p>
+                    <p className="mt-1 text-[12px] text-[#8C8273]">{row.subtitle}</p>
+                    <p className="mt-1 text-[11px] text-[#A8A296]">{row.meta}</p>
+                  </div>
+                  {row.amount !== undefined && (
+                    <p
+                      className="shrink-0 text-right text-[14px] font-bold tabular-nums"
+                      style={{
+                        color:
+                          row.amountKind === 'cost' ? C.success
+                          : row.amountKind === 'neutral' ? C.text1
+                          : row.amount >= 0 ? C.danger : C.success,
+                      }}
+                    >
+                      {formatHKD(row.amount, row.amountKind === 'cost' || row.amountKind === 'neutral' ? 'amount' : 'profit')}
+                    </p>
+                  )}
+                </div>
+                {row.extra && <div className="mt-3">{row.extra}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Modal>
+  )
+}
+
+function getDashboardDetail(
+  type: DashboardDetailType,
+  accounts: Account[],
+  ipos: Ipo[],
+  subscriptions: Subscription[],
+  sales: Sale[],
+) {
+  const accountOf = (subscription?: Subscription) => accounts.find((account) => account.id === subscription?.accountId)
+  const ipoOf = (subscription?: Subscription) => ipos.find((ipo) => ipo.id === subscription?.ipoId)
+  const saleRows = (method?: Sale['method']): DashboardDetailRow[] =>
+    sales
+      .filter((sale) => !method || sale.method === method)
+      .slice()
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map((sale) => {
+        const subscription = subscriptions.find((item) => item.id === sale.subscriptionId)
+        const ipo = ipoOf(subscription)
+        const account = accountOf(subscription)
+        const metrics = getSaleDetailMetrics(sale, subscription, ipo, sales)
+        return {
+          id: sale.id,
+          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          subtitle: account ? formatAccountName(account) : '已删除账户',
+          meta: `${formatSaleMethod(sale.method)} · ${sale.date || '-'} · ${sale.shares} 股 × HK$ ${sale.price.toFixed(2)}`,
+          amount: metrics.profit,
+          amountKind: 'profit',
+          extra: (
+            <div className="flex flex-wrap gap-2 text-[11px] font-medium text-[#8C8273]">
+              <span className="rounded-full bg-[#F8F4F1] px-2 py-1">发行成本 {formatHKD(metrics.issueCost, 'amount')}</span>
+              <span className="rounded-full bg-[#F8F4F1] px-2 py-1">分摊手续费 {formatHKD(metrics.allocatedFee, 'amount')}</span>
+              <span className="rounded-full bg-[#F8F4F1] px-2 py-1">卖出佣金 {formatHKD(sale.commission ?? 0, 'amount')}</span>
+            </div>
+          ),
+        }
+      })
+
+  if (type === 'grey' || type === 'firstDay') {
+    const method = type === 'grey' ? 'grey_market' : 'first_day'
+    const rows = saleRows(method)
+    const total = rows.reduce((sum, row) => sum + (row.amount ?? 0), 0)
+    return {
+      title: type === 'grey' ? '暗盘收益明细' : '首日收益明细',
+      description: '按卖出记录拆分，收益已扣除分摊申购手续费和卖出佣金。',
+      summary: [
+        { label: '记录数', value: `${rows.length}` },
+        { label: '总收益', value: formatHKD(total, 'profit') },
+        { label: '盈利记录', value: `${rows.filter((row) => (row.amount ?? 0) > 0).length}` },
+        { label: '亏损记录', value: `${rows.filter((row) => (row.amount ?? 0) < 0).length}` },
+      ],
+      rows,
+    }
+  }
+
+  if (type === 'cost') {
+    const subscriptionCosts: DashboardDetailRow[] = subscriptions
+      .filter((subscription) => subscription.fee > 0)
+      .slice()
+      .sort((a, b) => b.subscriptionDate.localeCompare(a.subscriptionDate))
+      .map((subscription) => {
+        const ipo = ipoOf(subscription)
+        const account = accountOf(subscription)
+        return {
+          id: `fee-${subscription.id}`,
+          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          subtitle: account ? formatAccountName(account) : '已删除账户',
+          meta: `申购手续费 · ${subscription.subscriptionDate || '-'} · ${getSubscriptionMethodLabel(subscription.subscriptionMethod ?? subscription.method)}`,
+          amount: subscription.fee,
+          amountKind: 'cost',
+        }
+      })
+    const commissionCosts: DashboardDetailRow[] = sales
+      .filter((sale) => (sale.commission ?? 0) > 0)
+      .slice()
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map((sale) => {
+        const subscription = subscriptions.find((item) => item.id === sale.subscriptionId)
+        const ipo = ipoOf(subscription)
+        const account = accountOf(subscription)
+        return {
+          id: `commission-${sale.id}`,
+          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          subtitle: account ? formatAccountName(account) : '已删除账户',
+          meta: `卖出佣金 · ${sale.date || '-'} · ${formatSaleMethod(sale.method)}`,
+          amount: sale.commission ?? 0,
+          amountKind: 'cost',
+        }
+      })
+    const rows = [...subscriptionCosts, ...commissionCosts]
+    const total = rows.reduce((sum, row) => sum + (row.amount ?? 0), 0)
+    return {
+      title: '累计成本明细',
+      description: '包含申购手续费、融资申购费和卖出佣金等已记录成本。',
+      summary: [
+        { label: '成本总额', value: formatHKD(total, 'amount') },
+        { label: '申购成本', value: formatHKD(subscriptionCosts.reduce((sum, row) => sum + (row.amount ?? 0), 0), 'amount') },
+        { label: '卖出佣金', value: formatHKD(commissionCosts.reduce((sum, row) => sum + (row.amount ?? 0), 0), 'amount') },
+        { label: '记录数', value: `${rows.length}` },
+      ],
+      rows,
+    }
+  }
+
+  if (type === 'wins') {
+    const rows: DashboardDetailRow[] = subscriptions
+      .filter((subscription) => subscription.status === 'won')
+      .slice()
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .map((subscription) => {
+        const ipo = ipoOf(subscription)
+        const account = accountOf(subscription)
+        const metrics = getSubscriptionMetrics(subscription, ipo, sales)
+        return {
+          id: subscription.id,
+          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          subtitle: account ? formatAccountName(account) : '已删除账户',
+          meta: `${subscription.subscriptionDate || '-'} · 中签 ${subscription.allottedShares} 股 / ${subscription.allottedLots} 手`,
+          amount: metrics.netProfit,
+          amountKind: 'profit',
+        }
+      })
+    return {
+      title: '中签记录明细',
+      description: '所有已标记为中签的申购记录。',
+      summary: [
+        { label: '中签次数', value: `${rows.length}` },
+        { label: '中签股数', value: `${subscriptions.filter((s) => s.status === 'won').reduce((sum, s) => sum + s.allottedShares, 0)}` },
+        { label: '中签手数', value: `${subscriptions.filter((s) => s.status === 'won').reduce((sum, s) => sum + s.allottedLots, 0)}` },
+        { label: '已实现收益', value: formatHKD(rows.reduce((sum, row) => sum + (row.amount ?? 0), 0), 'profit') },
+      ],
+      rows,
+    }
+  }
+
+  const rows: DashboardDetailRow[] = subscriptions
+    .slice()
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .map((subscription) => {
+      const ipo = ipoOf(subscription)
+      const account = accountOf(subscription)
+      const metrics = getSubscriptionMetrics(subscription, ipo, sales)
+      return {
+        id: subscription.id,
+        title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+        subtitle: account ? formatAccountName(account) : '已删除账户',
+        meta: `${subscription.subscriptionDate || '-'} · ${formatSubscriptionStatus(subscription.status)} · 已卖 ${metrics.soldShares} 股`,
+        amount: metrics.netProfit,
+        amountKind: 'profit',
+        extra: (
+          <div className="flex flex-wrap gap-2 text-[11px] font-medium text-[#8C8273]">
+            <span className="rounded-full bg-[#F8F4F1] px-2 py-1">卖出金额 {formatHKD(metrics.saleIncome, 'amount')}</span>
+            <span className="rounded-full bg-[#F8F4F1] px-2 py-1">发行成本 {formatHKD(metrics.issueCost, 'amount')}</span>
+            <span className="rounded-full bg-[#F8F4F1] px-2 py-1">手续费 {formatHKD(metrics.fee, 'amount')}</span>
+            <span className="rounded-full bg-[#F8F4F1] px-2 py-1">佣金 {formatHKD(metrics.commissions, 'amount')}</span>
+          </div>
+        ),
+      }
+    })
+  return {
+    title: '累计收益明细',
+    description: '按申购记录汇总，净收益 = 卖出金额 - 发行成本 - 申购手续费 - 卖出佣金。',
+    summary: [
+      { label: '累计收益', value: formatHKD(rows.reduce((sum, row) => sum + (row.amount ?? 0), 0), 'profit') },
+      { label: '申购记录', value: `${rows.length}` },
+      { label: '盈利记录', value: `${rows.filter((row) => (row.amount ?? 0) > 0).length}` },
+      { label: '亏损记录', value: `${rows.filter((row) => (row.amount ?? 0) < 0).length}` },
+    ],
+    rows,
+  }
+}
+
+function getSaleDetailMetrics(
+  sale: Sale,
+  subscription: Subscription | undefined,
+  ipo: Ipo | undefined,
+  sales: Sale[],
+) {
+  const totalSoldShares = sales
+    .filter((item) => item.subscriptionId === sale.subscriptionId)
+    .reduce((total, item) => total + item.shares, 0)
+  const allocatedFee =
+    totalSoldShares > 0
+      ? ((subscription?.fee ?? 0) * sale.shares) / totalSoldShares
+      : 0
+  const issueCost = sale.shares * (ipo?.issuePrice ?? 0)
+  const profit = sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) - allocatedFee - (sale.commission ?? 0)
+  return { issueCost, allocatedFee, profit }
+}
+
+function formatSaleMethod(method: Sale['method']) {
+  const map: Record<Sale['method'], string> = {
+    grey_market: '暗盘卖出',
+    first_day: '首日卖出',
+    held_sale: '持有后卖出',
+  }
+  return map[method]
+}
+
+function formatSubscriptionStatus(status: Subscription['status']) {
+  const map: Record<Subscription['status'], string> = {
+    applied: '已申购',
+    announced: '已公布',
+    won: '已中签',
+    lost: '未中签',
+  }
+  return map[status]
 }
 
 /* ════════════════════════════════════════
