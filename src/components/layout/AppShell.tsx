@@ -30,14 +30,23 @@ import { CloudSyncModal } from '../cloud/CloudSyncModal'
 import { useAppData } from '../../hooks/useAppData'
 import { APP_VERSION } from '../../app/version'
 import { formatAccountName } from '../../utils/account'
+import type { DashboardFilter, DashboardRangePreset } from '../../types/dashboardFilter'
 
 interface AppShellProps {
   children: ReactNode
   activeNavigation: NavigationKey
   onNavigate: (navigation: NavigationKey) => void
+  dashboardFilter: DashboardFilter
+  onDashboardFilterChange: (filter: DashboardFilter) => void
 }
 
-export function AppShell({ children, activeNavigation, onNavigate }: AppShellProps) {
+export function AppShell({
+  children,
+  activeNavigation,
+  onNavigate,
+  dashboardFilter,
+  onDashboardFilterChange,
+}: AppShellProps) {
   const cloud = useAppData()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [privacyOpen, setPrivacyOpen]       = useState(false)
@@ -46,17 +55,20 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
   const [installPrompt, setInstallPrompt]   = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled]           = useState(() => window.matchMedia('(display-mode: standalone)').matches)
   const [openFilter, setOpenFilter]         = useState<'account' | 'range' | null>(null)
-  const [selectedAccountId, setSelectedAccountId] = useState('all')
-  const [selectedRange, setSelectedRange]   = useState('近12个月')
-  const [customRange, setCustomRange]       = useState({ start: '', end: '' })
   const pageMeta = getPageMeta(activeNavigation)
-  const selectedAccount = cloud.accounts.find((account) => account.id === selectedAccountId)
+  const selectedAccount = cloud.accounts.find((account) => account.id === dashboardFilter.accountId)
   const selectedAccountLabel = selectedAccount ? formatAccountName(selectedAccount) : '全部账户'
+  const selectedRange = getRangeLabel(dashboardFilter.rangePreset)
   const selectedRangeLabel =
-    selectedRange === '自定义' && customRange.start && customRange.end
-      ? `${customRange.start} 至 ${customRange.end}`
+    dashboardFilter.rangePreset === 'custom' && dashboardFilter.customStartMonth && dashboardFilter.customEndMonth
+      ? `${dashboardFilter.customStartMonth} 至 ${dashboardFilter.customEndMonth}`
       : selectedRange
-  const rangeOptions = ['近12个月', '近6个月', '近3个月', '自定义']
+  const rangeOptions: Array<{ label: string; value: DashboardRangePreset }> = [
+    { label: '近12个月', value: '12m' },
+    { label: '近6个月', value: '6m' },
+    { label: '近3个月', value: '3m' },
+    { label: '自定义', value: 'custom' },
+  ]
 
   useEffect(() => {
     const onPrompt   = (e: Event) => { e.preventDefault(); setInstallPrompt(e as BeforeInstallPromptEvent) }
@@ -156,10 +168,13 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
                 <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-[14px] border border-[#E4DFD6] bg-white p-1.5 shadow-[0_18px_44px_rgba(74,69,64,0.14)]">
                   <button
                     type="button"
-                    onClick={() => { setSelectedAccountId('all'); setOpenFilter(null) }}
+                    onClick={() => {
+                      onDashboardFilterChange({ ...dashboardFilter, accountId: 'all' })
+                      setOpenFilter(null)
+                    }}
                     className={[
                       'flex h-9 w-full items-center rounded-[10px] px-3 text-left text-[12px] font-medium transition',
-                      selectedAccountId === 'all'
+                      dashboardFilter.accountId === 'all'
                         ? 'bg-[#F8F4F1] text-[#B08B7E]'
                         : 'text-[#5A5246] hover:bg-[#F4F1ED]',
                     ].join(' ')}
@@ -172,10 +187,13 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
                       <button
                         key={account.id}
                         type="button"
-                        onClick={() => { setSelectedAccountId(account.id); setOpenFilter(null) }}
+                        onClick={() => {
+                          onDashboardFilterChange({ ...dashboardFilter, accountId: account.id })
+                          setOpenFilter(null)
+                        }}
                         className={[
                           'flex w-full flex-col rounded-[10px] px-3 py-2 text-left transition',
-                          selectedAccountId === account.id
+                          dashboardFilter.accountId === account.id
                             ? 'bg-[#F8F4F1] text-[#B08B7E]'
                             : 'text-[#5A5246] hover:bg-[#F4F1ED]',
                         ].join(' ')}
@@ -202,23 +220,23 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
                 <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-[14px] border border-[#E4DFD6] bg-white p-1.5 shadow-[0_18px_44px_rgba(74,69,64,0.14)]">
                   {rangeOptions.map((option) => (
                     <button
-                      key={option}
+                      key={option.value}
                       type="button"
                       onClick={() => {
-                        setSelectedRange(option)
-                        if (option !== '自定义') setOpenFilter(null)
+                        onDashboardFilterChange({ ...dashboardFilter, rangePreset: option.value })
+                        if (option.value !== 'custom') setOpenFilter(null)
                       }}
                       className={[
                         'flex h-9 w-full items-center rounded-[10px] px-3 text-left text-[12px] font-medium transition',
-                        selectedRange === option
+                        dashboardFilter.rangePreset === option.value
                           ? 'bg-[#F8F4F1] text-[#B08B7E]'
                           : 'text-[#5A5246] hover:bg-[#F4F1ED]',
                       ].join(' ')}
                     >
-                      {option}
+                      {option.label}
                     </button>
                   ))}
-                  {selectedRange === '自定义' && (
+                  {dashboardFilter.rangePreset === 'custom' && (
                     <div className="mt-1 rounded-[12px] bg-[#F8F4F1] p-3">
                       <p className="mb-2 text-[11px] font-semibold text-[#8C8273]">选择统计月份</p>
                       <div className="grid grid-cols-2 gap-2">
@@ -226,8 +244,11 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
                           开始月份
                           <input
                             type="month"
-                            value={customRange.start}
-                            onChange={(event) => setCustomRange((current) => ({ ...current, start: event.target.value }))}
+                            value={dashboardFilter.customStartMonth}
+                            onChange={(event) => onDashboardFilterChange({
+                              ...dashboardFilter,
+                              customStartMonth: event.target.value,
+                            })}
                             className="mt-1 h-8 w-full rounded-[8px] border border-[#E4DFD6] bg-white px-2 text-[12px] font-medium text-[#5A5246] outline-none transition focus:border-[#B08B7E]"
                           />
                         </label>
@@ -235,15 +256,18 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
                           结束月份
                           <input
                             type="month"
-                            value={customRange.end}
-                            onChange={(event) => setCustomRange((current) => ({ ...current, end: event.target.value }))}
+                            value={dashboardFilter.customEndMonth}
+                            onChange={(event) => onDashboardFilterChange({
+                              ...dashboardFilter,
+                              customEndMonth: event.target.value,
+                            })}
                             className="mt-1 h-8 w-full rounded-[8px] border border-[#E4DFD6] bg-white px-2 text-[12px] font-medium text-[#5A5246] outline-none transition focus:border-[#B08B7E]"
                           />
                         </label>
                       </div>
                       <button
                         type="button"
-                        disabled={!customRange.start || !customRange.end}
+                        disabled={!dashboardFilter.customStartMonth || !dashboardFilter.customEndMonth}
                         onClick={() => setOpenFilter(null)}
                         className="mt-3 h-8 w-full rounded-[8px] bg-[#B08B7E] text-[12px] font-semibold text-white transition hover:bg-[#9A7468] disabled:cursor-not-allowed disabled:bg-[#D2CBBF]"
                       >
@@ -563,4 +587,14 @@ function getPageMeta(nav: NavigationKey) {
     settings:      { title: '设置中心',   subtitle: '配置你的个人投资驾驶舱。' },
   }
   return map[nav]
+}
+
+function getRangeLabel(preset: DashboardRangePreset) {
+  const labels: Record<DashboardRangePreset, string> = {
+    '12m': '近12个月',
+    '6m': '近6个月',
+    '3m': '近3个月',
+    custom: '自定义',
+  }
+  return labels[preset]
 }

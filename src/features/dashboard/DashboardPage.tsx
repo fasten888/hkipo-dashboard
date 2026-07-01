@@ -17,6 +17,7 @@ import { Modal }               from '../../components/ui/Modal'
 import { getOperationLogs }    from '../../services/audit'
 import type { Account }        from '../../types/account'
 import type { OperationLog }   from '../../types/audit'
+import type { DashboardFilter } from '../../types/dashboardFilter'
 import type { Ipo }            from '../../types/ipo'
 import type { Sale }           from '../../types/sale'
 import type { Subscription }   from '../../types/subscription'
@@ -30,7 +31,6 @@ import {
   getProfitTrend,
   getSaleTypeStats,
   getSubscriptionMetrics,
-  getSystemStats,
   type TrendPeriod,
 } from '../../utils/statistics'
 
@@ -54,19 +54,53 @@ const C = {
 /* ════════════════════════════════════════
    Main page
    ════════════════════════════════════════ */
-export function DashboardPage() {
+export function DashboardPage({ filter }: { filter: DashboardFilter }) {
   const { accounts, ipos, subscriptions, sales, withdrawals } = useAppData()
   const [trendPeriod, setTrendPeriod] = usePersistentState<TrendPeriod>('dashboard-trend-period', 'month')
   const [detailType, setDetailType] = useState<DashboardDetailType | null>(null)
+  const activeRange = useMemo(() => getActiveDateRange(filter), [filter])
+  const scopedAccounts = useMemo(
+    () => filter.accountId === 'all'
+      ? accounts
+      : accounts.filter((account) => account.id === filter.accountId),
+    [accounts, filter.accountId],
+  )
+  const scopedAccountIds = useMemo(
+    () => new Set(scopedAccounts.map((account) => account.id)),
+    [scopedAccounts],
+  )
+  const scopedSubscriptions = useMemo(
+    () => subscriptions.filter((subscription) =>
+      scopedAccountIds.has(subscription.accountId) &&
+      isDateInRange(subscription.subscriptionDate, activeRange),
+    ),
+    [activeRange, scopedAccountIds, subscriptions],
+  )
+  const accountMatchedSubscriptions = useMemo(
+    () => subscriptions.filter((subscription) => scopedAccountIds.has(subscription.accountId)),
+    [scopedAccountIds, subscriptions],
+  )
+  const accountMatchedSubscriptionIds = useMemo(
+    () => new Set(accountMatchedSubscriptions.map((subscription) => subscription.id)),
+    [accountMatchedSubscriptions],
+  )
+  const scopedSales = useMemo(
+    () => sales.filter((sale) =>
+      accountMatchedSubscriptionIds.has(sale.subscriptionId) &&
+      isDateInRange(sale.date, activeRange),
+    ),
+    [accountMatchedSubscriptionIds, activeRange, sales],
+  )
+  const scopedStats = useMemo(
+    () => getScopedDashboardStats(scopedAccounts, scopedSubscriptions, accountMatchedSubscriptions, ipos, scopedSales),
+    [accountMatchedSubscriptions, ipos, scopedAccounts, scopedSales, scopedSubscriptions],
+  )
 
   /* ── computed stats ── */
-  const stats         = getSystemStats(accounts, subscriptions, ipos, sales)
-  const performance   = getPerformanceSummary(subscriptions, ipos, sales)
-  const greyStats     = getSaleTypeStats('grey_market', subscriptions, ipos, sales)
-  const firstDayStats = getSaleTypeStats('first_day',   subscriptions, ipos, sales)
-  const heldStats     = getSaleTypeStats('held_sale',   subscriptions, ipos, sales)
-  const financingStats = getFinancingStats(subscriptions, ipos, sales, accounts)
-  const trend          = getProfitTrend(trendPeriod, subscriptions, ipos, sales)
+  const performance   = getPerformanceSummary(accountMatchedSubscriptions, ipos, scopedSales)
+  const heldStats     = getSaleTypeStats('held_sale',   accountMatchedSubscriptions, ipos, scopedSales)
+  const financingStats = getFinancingStats(scopedSubscriptions, ipos, scopedSales, scopedAccounts)
+  const trend          = getProfitTrend(trendPeriod, accountMatchedSubscriptions, ipos, scopedSales)
   const today          = new Date().toISOString().slice(0, 10)
 
   const currentMonthProfit  = trend[trend.length - 1]?.profit ?? 0
@@ -81,15 +115,15 @@ export function DashboardPage() {
   ).size
 
   const accountInsights = useMemo(
-    () => accounts.map((a) => ({ account: a, stats: getAccountStats(a, subscriptions, ipos, sales, withdrawals) })),
-    [accounts, ipos, sales, subscriptions, withdrawals],
+    () => scopedAccounts.map((a) => ({ account: a, stats: getAccountStats(a, scopedSubscriptions, ipos, scopedSales, withdrawals) })),
+    [ipos, scopedAccounts, scopedSales, scopedSubscriptions, withdrawals],
   )
 
   const capitalCandidate = [...accountInsights].filter((r) => r.account.initialDeposit > 0)
     .sort((a, b) => b.stats.totalProfit / b.account.initialDeposit - a.stats.totalProfit / a.account.initialDeposit)[0]
   const bestFinancing    = [...financingStats].filter((r) => r.participationCount > 0).sort((a, b) => b.averageProfitRate - a.averageProfitRate)[0]
 
-  const recent = subscriptions.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5)
+  const recent = scopedSubscriptions.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5)
 
   const upcomingIpos = ipos
     .filter((i) => (i.subscriptionDate && i.subscriptionDate >= today) || (i.listingDate && i.listingDate >= today))
@@ -100,14 +134,14 @@ export function DashboardPage() {
 
   /* ── composition chart data ── */
   const profitComposition = [
-    { label: '首日收益', value: Math.max(0, firstDayStats.profit), color: C.danger },
-    { label: '暗盘收益', value: Math.max(0, greyStats.profit),     color: C.info   },
+    { label: '首日收益', value: Math.max(0, scopedStats.firstDayProfit), color: C.danger },
+    { label: '暗盘收益', value: Math.max(0, scopedStats.greyProfit),     color: C.info   },
     { label: '长期持有', value: Math.max(0, heldStats.profit),      color: C.brand  },
-    { label: '手续费',   value: Math.max(0, stats.totalCost * 0.5), color: C.warning },
-    { label: '融资费',   value: Math.max(0, stats.totalCost * 0.5), color: C.success },
+    { label: '手续费',   value: Math.max(0, scopedStats.subscriptionFees), color: C.warning },
+    { label: '卖出佣金', value: Math.max(0, scopedStats.saleCommissions), color: C.success },
   ]
 
-  const pendingReleaseAmount = subscriptions
+  const pendingReleaseAmount = scopedSubscriptions
     .filter((s) => s.status === 'applied' || s.status === 'announced')
     .reduce((t, s) => t + s.subscriptionAmount + s.fee, 0)
 
@@ -152,7 +186,7 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiLarge
           label="累计收益"
-          value={stats.totalProfit}
+          value={scopedStats.totalProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F0E0DC"
@@ -164,7 +198,7 @@ export function DashboardPage() {
         />
         <KpiLarge
           label="收益率"
-          value={stats.profitRate}
+          value={scopedStats.profitRate}
           formatter={(v) => formatPercent(v, 'profitRate', 'dashboardKpi')}
           color={C.info}
           iconBg="#E9E7EE"
@@ -174,7 +208,7 @@ export function DashboardPage() {
         />
         <KpiLarge
           label="累计成本"
-          value={stats.totalCost}
+          value={scopedStats.totalCost}
           formatter={(v) => formatHKD(v, 'amount', 'dashboardKpi')}
           color={C.success}
           iconBg="#E5EBE5"
@@ -186,12 +220,12 @@ export function DashboardPage() {
         />
         <KpiLarge
           label="中签率"
-          value={stats.winRate}
+          value={scopedStats.winRate}
           formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
           color={C.warning}
           iconBg="#F3EAD7"
           icon={<Target size={20} color={C.warning} />}
-          hint={`${stats.winCount} 次中签 · ${stats.participationCount} 次参与`}
+          hint={`${scopedStats.winCount} 次中签 · ${scopedStats.participationCount} 次参与`}
           onClick={() => setDetailType('wins')}
         />
       </div>
@@ -209,8 +243,8 @@ export function DashboardPage() {
           hintPositive
         />
         <KpiSmall
-          label="本月收益"
-          value={performance.monthProfit}
+          label="区间收益"
+          value={scopedStats.totalProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F8F4F1"
@@ -221,7 +255,7 @@ export function DashboardPage() {
         />
         <KpiSmall
           label="暗盘收益"
-          value={greyStats.profit}
+          value={scopedStats.greyProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F0E0DC"
@@ -233,7 +267,7 @@ export function DashboardPage() {
         />
         <KpiSmall
           label="首日收益"
-          value={firstDayStats.profit}
+          value={scopedStats.firstDayProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F3EAD7"
@@ -248,7 +282,7 @@ export function DashboardPage() {
       {/* ══ Row 3: Trend chart + Composition ══ */}
       <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
         <TrendCard trend={trend} trendPeriod={trendPeriod} onPeriodChange={setTrendPeriod} />
-        <CompositionCard rows={profitComposition} total={stats.totalProfit} />
+        <CompositionCard rows={profitComposition} total={scopedStats.totalProfit} />
       </div>
 
       {/* ══ Row 4: Activity | Tasks | AI ══ */}
@@ -262,8 +296,8 @@ export function DashboardPage() {
         type={detailType}
         accounts={accounts}
         ipos={ipos}
-        subscriptions={subscriptions}
-        sales={sales}
+        subscriptions={scopedSubscriptions}
+        sales={scopedSales}
         onClose={() => setDetailType(null)}
       />
     </div>
@@ -1051,6 +1085,59 @@ function getDashboardDetail(
   }
 }
 
+function getScopedDashboardStats(
+  accounts: Account[],
+  scopedSubscriptions: Subscription[],
+  accountMatchedSubscriptions: Subscription[],
+  ipos: Ipo[],
+  scopedSales: Sale[],
+) {
+  const accountIds = new Set(accounts.map((account) => account.id))
+  const subscriptionMap = new Map(accountMatchedSubscriptions.map((subscription) => [subscription.id, subscription]))
+  const ipoMap = new Map(ipos.map((ipo) => [ipo.id, ipo]))
+  const decided = scopedSubscriptions.filter((subscription) => subscription.status === 'won' || subscription.status === 'lost')
+  const winCount = scopedSubscriptions.filter((subscription) => subscription.status === 'won').length
+  const saleRows = scopedSales
+    .map((sale) => {
+      const subscription = subscriptionMap.get(sale.subscriptionId)
+      if (!subscription || !accountIds.has(subscription.accountId)) return null
+      const ipo = ipoMap.get(subscription.ipoId)
+      return {
+        sale,
+        ...getSaleDetailMetrics(sale, subscription, ipo, scopedSales),
+      }
+    })
+    .filter((row): row is {
+      sale: Sale
+      issueCost: number
+      allocatedFee: number
+      profit: number
+    } => Boolean(row))
+  const subscriptionFees = scopedSubscriptions.reduce((sum, subscription) => sum + subscription.fee, 0)
+  const saleCommissions = scopedSales.reduce((sum, sale) => sum + (sale.commission ?? 0), 0)
+  const issueCost = saleRows.reduce((sum, row) => sum + row.issueCost, 0)
+  const totalProfit = saleRows.reduce((sum, row) => sum + row.profit, 0)
+  const totalCost = subscriptionFees + saleCommissions
+  const investedCost = issueCost + saleRows.reduce((sum, row) => sum + row.allocatedFee, 0) + saleCommissions
+
+  return {
+    participationCount: scopedSubscriptions.length,
+    winCount,
+    winRate: decided.length > 0 ? (winCount / decided.length) * 100 : 0,
+    totalProfit,
+    totalCost,
+    subscriptionFees,
+    saleCommissions,
+    profitRate: investedCost > 0 ? (totalProfit / investedCost) * 100 : 0,
+    greyProfit: saleRows
+      .filter((row) => row.sale.method === 'grey_market')
+      .reduce((sum, row) => sum + row.profit, 0),
+    firstDayProfit: saleRows
+      .filter((row) => row.sale.method === 'first_day')
+      .reduce((sum, row) => sum + row.profit, 0),
+  }
+}
+
 function getSaleDetailMetrics(
   sale: Sale,
   subscription: Subscription | undefined,
@@ -1067,6 +1154,42 @@ function getSaleDetailMetrics(
   const issueCost = sale.shares * (ipo?.issuePrice ?? 0)
   const profit = sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) - allocatedFee - (sale.commission ?? 0)
   return { issueCost, allocatedFee, profit }
+}
+
+function getActiveDateRange(filter: DashboardFilter) {
+  if (filter.rangePreset === 'custom' && filter.customStartMonth && filter.customEndMonth) {
+    const start = filter.customStartMonth <= filter.customEndMonth ? filter.customStartMonth : filter.customEndMonth
+    const end = filter.customStartMonth <= filter.customEndMonth ? filter.customEndMonth : filter.customStartMonth
+    return {
+      start: `${start}-01`,
+      end: monthEndDate(end),
+    }
+  }
+
+  const months = filter.rangePreset === '3m' ? 3 : filter.rangePreset === '6m' ? 6 : 12
+  const now = new Date()
+  const endMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const startDate = new Date(now.getFullYear(), now.getMonth() - months + 1, 1)
+  const startMonth = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`
+  return {
+    start: `${startMonth}-01`,
+    end: monthEndDate(endMonth),
+  }
+}
+
+function monthEndDate(month: string) {
+  const [yearText, monthText] = month.split('-')
+  const year = Number(yearText)
+  const monthIndex = Number(monthText)
+  if (!year || !monthIndex) return `${month}-31`
+  const end = new Date(year, monthIndex, 0)
+  return `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
+}
+
+function isDateInRange(value: string | undefined, range: { start: string; end: string }) {
+  if (!value) return false
+  const date = value.slice(0, 10)
+  return date >= range.start && date <= range.end
 }
 
 function formatSaleMethod(method: Sale['method']) {

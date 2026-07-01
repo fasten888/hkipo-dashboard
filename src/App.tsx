@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { NavigationKey } from './app/navigation'
 import { AppShell } from './components/layout/AppShell'
 import { usePrivacy } from './hooks/usePrivacy'
+import type { DashboardFilter } from './types/dashboardFilter'
 import {
   AccountDetailPage,
   AccountsPage,
@@ -28,6 +29,12 @@ type View =
 export default function App() {
   usePrivacy()
   const [view, setView] = useState<View>(readViewFromLocation)
+  const [dashboardFilter, setDashboardFilter] = useState<DashboardFilter>({
+    accountId: 'all',
+    rangePreset: '12m',
+    customStartMonth: '',
+    customEndMonth: '',
+  })
   const activeNavigation: NavigationKey =
     view.name === 'accountDetail'
       ? 'accounts'
@@ -70,8 +77,10 @@ export default function App() {
     <AppShell
       activeNavigation={activeNavigation}
       onNavigate={(navigation) => navigate({ name: navigation })}
+      dashboardFilter={dashboardFilter}
+      onDashboardFilterChange={setDashboardFilter}
     >
-      {view.name === 'dashboard' && <DashboardPage />}
+      {view.name === 'dashboard' && <DashboardPage filter={dashboardFilter} />}
       {view.name === 'accounts' && (
         <AccountsPage
           onViewAccount={(accountId) =>
@@ -106,7 +115,7 @@ export default function App() {
       {view.name === 'review' && <MonthlyReviewPage />}
       {view.name === 'data' && <DataExportPage />}
       {view.name === 'safety' && <DataSafetyPage />}
-      {view.name === 'settings' && <DashboardPage />}
+      {view.name === 'settings' && <DashboardPage filter={dashboardFilter} />}
     </AppShell>
   )
 }
