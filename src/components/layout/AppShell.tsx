@@ -15,6 +15,7 @@ import {
   Brain,
   BarChart3,
   Settings,
+  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import {
@@ -28,6 +29,7 @@ import { Modal } from '../ui/Modal'
 import { CloudSyncModal } from '../cloud/CloudSyncModal'
 import { useAppData } from '../../hooks/useAppData'
 import { APP_VERSION } from '../../app/version'
+import { formatAccountName } from '../../utils/account'
 
 interface AppShellProps {
   children: ReactNode
@@ -43,7 +45,13 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
   const [installHelpOpen, setInstallHelpOpen] = useState(false)
   const [installPrompt, setInstallPrompt]   = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled]           = useState(() => window.matchMedia('(display-mode: standalone)').matches)
+  const [openFilter, setOpenFilter]         = useState<'account' | 'range' | null>(null)
+  const [selectedAccountId, setSelectedAccountId] = useState('all')
+  const [selectedRange, setSelectedRange]   = useState('近12个月')
   const pageMeta = getPageMeta(activeNavigation)
+  const selectedAccount = cloud.accounts.find((account) => account.id === selectedAccountId)
+  const selectedAccountLabel = selectedAccount ? formatAccountName(selectedAccount) : '全部账户'
+  const rangeOptions = ['近12个月', '近6个月', '近3个月', '自定义']
 
   useEffect(() => {
     const onPrompt   = (e: Event) => { e.preventDefault(); setInstallPrompt(e as BeforeInstallPromptEvent) }
@@ -132,8 +140,79 @@ export function AppShell({ children, activeNavigation, onNavigate }: AppShellPro
 
           {/* Header controls */}
           <div className="flex shrink-0 items-center gap-2">
-            <FilterPill icon={SlidersHorizontal} label="全部账户" />
-            <FilterPill icon={CalendarRange}     label="近12个月" />
+            <div className="relative">
+              <FilterPill
+                icon={SlidersHorizontal}
+                label={selectedAccountLabel}
+                active={openFilter === 'account'}
+                onClick={() => setOpenFilter((current) => current === 'account' ? null : 'account')}
+              />
+              {openFilter === 'account' && (
+                <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-[14px] border border-[#E4DFD6] bg-white p-1.5 shadow-[0_18px_44px_rgba(74,69,64,0.14)]">
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedAccountId('all'); setOpenFilter(null) }}
+                    className={[
+                      'flex h-9 w-full items-center rounded-[10px] px-3 text-left text-[12px] font-medium transition',
+                      selectedAccountId === 'all'
+                        ? 'bg-[#F8F4F1] text-[#B08B7E]'
+                        : 'text-[#5A5246] hover:bg-[#F4F1ED]',
+                    ].join(' ')}
+                  >
+                    全部账户
+                  </button>
+                  <div className="my-1 h-px bg-[#F0ECE5]" />
+                  <div className="max-h-72 overflow-y-auto">
+                    {cloud.accounts.map((account) => (
+                      <button
+                        key={account.id}
+                        type="button"
+                        onClick={() => { setSelectedAccountId(account.id); setOpenFilter(null) }}
+                        className={[
+                          'flex w-full flex-col rounded-[10px] px-3 py-2 text-left transition',
+                          selectedAccountId === account.id
+                            ? 'bg-[#F8F4F1] text-[#B08B7E]'
+                            : 'text-[#5A5246] hover:bg-[#F4F1ED]',
+                        ].join(' ')}
+                      >
+                        <span className="text-[12px] font-semibold">{formatAccountName(account)}</span>
+                        {account.brokerName && (
+                          <span className="mt-0.5 text-[10px] font-medium text-[#A8A296]">{account.brokerName}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="relative">
+              <FilterPill
+                icon={CalendarRange}
+                label={selectedRange}
+                active={openFilter === 'range'}
+                onClick={() => setOpenFilter((current) => current === 'range' ? null : 'range')}
+              />
+              {openFilter === 'range' && (
+                <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-40 overflow-hidden rounded-[14px] border border-[#E4DFD6] bg-white p-1.5 shadow-[0_18px_44px_rgba(74,69,64,0.14)]">
+                  {rangeOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => { setSelectedRange(option); setOpenFilter(null) }}
+                      className={[
+                        'flex h-9 w-full items-center rounded-[10px] px-3 text-left text-[12px] font-medium transition',
+                        selectedRange === option
+                          ? 'bg-[#F8F4F1] text-[#B08B7E]'
+                          : 'text-[#5A5246] hover:bg-[#F4F1ED]',
+                      ].join(' ')}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Refresh */}
             <button type="button" onClick={() => void cloud.syncCloudNow()}
@@ -325,13 +404,30 @@ function NavItem({
 /* ════════════════════════════════════════
    Header sub-components
    ════════════════════════════════════════ */
-function FilterPill({ icon: Icon, label }: { icon: typeof SlidersHorizontal; label: string }) {
+function FilterPill({
+  icon: Icon,
+  label,
+  active = false,
+  onClick,
+}: {
+  icon: LucideIcon
+  label: string
+  active?: boolean
+  onClick: () => void
+}) {
   return (
-    <button type="button"
-      className="inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-[#E4DFD6] bg-white px-3 text-[12px] font-medium text-[#5A5246] transition hover:bg-[#F4F1ED] hover:border-[#D2CBBF]">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={active}
+      className={[
+        'inline-flex h-8 max-w-[220px] items-center gap-1.5 rounded-[8px] border bg-white px-3 text-[12px] font-medium text-[#5A5246] transition hover:bg-[#F4F1ED] hover:border-[#D2CBBF]',
+        active ? 'border-[#D2CBBF] bg-[#F8F4F1]' : 'border-[#E4DFD6]',
+      ].join(' ')}
+    >
       <Icon size={13} className="text-[#A8A296]" />
-      {label}
-      <ChevronDown size={12} className="text-[#D2CBBF]" />
+      <span className="truncate">{label}</span>
+      <ChevronDown size={12} className={['shrink-0 text-[#D2CBBF] transition', active ? 'rotate-180' : ''].join(' ')} />
     </button>
   )
 }
