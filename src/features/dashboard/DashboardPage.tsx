@@ -91,9 +91,13 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
     ),
     [accountMatchedSubscriptionIds, activeRange, sales],
   )
+  const accountMatchedSales = useMemo(
+    () => sales.filter((sale) => accountMatchedSubscriptionIds.has(sale.subscriptionId)),
+    [accountMatchedSubscriptionIds, sales],
+  )
   const scopedStats = useMemo(
-    () => getScopedDashboardStats(scopedAccounts, scopedSubscriptions, accountMatchedSubscriptions, ipos, scopedSales),
-    [accountMatchedSubscriptions, ipos, scopedAccounts, scopedSales, scopedSubscriptions],
+    () => getScopedDashboardStats(scopedAccounts, scopedSubscriptions, accountMatchedSubscriptions, ipos, scopedSales, accountMatchedSales),
+    [accountMatchedSales, accountMatchedSubscriptions, ipos, scopedAccounts, scopedSales, scopedSubscriptions],
   )
 
   /* ── computed stats ── */
@@ -1091,12 +1095,19 @@ function getScopedDashboardStats(
   accountMatchedSubscriptions: Subscription[],
   ipos: Ipo[],
   scopedSales: Sale[],
+  accountMatchedSales: Sale[],
 ) {
   const accountIds = new Set(accounts.map((account) => account.id))
   const subscriptionMap = new Map(accountMatchedSubscriptions.map((subscription) => [subscription.id, subscription]))
   const ipoMap = new Map(ipos.map((ipo) => [ipo.id, ipo]))
   const decided = scopedSubscriptions.filter((subscription) => subscription.status === 'won' || subscription.status === 'lost')
   const winCount = scopedSubscriptions.filter((subscription) => subscription.status === 'won').length
+  const scopedSubscriptionIds = new Set(scopedSubscriptions.map((subscription) => subscription.id))
+  const scopedSubscriptionSales = accountMatchedSales.filter((sale) => scopedSubscriptionIds.has(sale.subscriptionId))
+  const subscriptionMetrics = scopedSubscriptions.map((subscription) => {
+    const ipo = ipoMap.get(subscription.ipoId)
+    return getSubscriptionMetrics(subscription, ipo, accountMatchedSales)
+  })
   const saleRows = scopedSales
     .map((sale) => {
       const subscription = subscriptionMap.get(sale.subscriptionId)
@@ -1104,7 +1115,7 @@ function getScopedDashboardStats(
       const ipo = ipoMap.get(subscription.ipoId)
       return {
         sale,
-        ...getSaleDetailMetrics(sale, subscription, ipo, scopedSales),
+        ...getSaleDetailMetrics(sale, subscription, ipo, accountMatchedSales),
       }
     })
     .filter((row): row is {
@@ -1114,11 +1125,10 @@ function getScopedDashboardStats(
       profit: number
     } => Boolean(row))
   const subscriptionFees = scopedSubscriptions.reduce((sum, subscription) => sum + subscription.fee, 0)
-  const saleCommissions = scopedSales.reduce((sum, sale) => sum + (sale.commission ?? 0), 0)
-  const issueCost = saleRows.reduce((sum, row) => sum + row.issueCost, 0)
-  const totalProfit = saleRows.reduce((sum, row) => sum + row.profit, 0)
+  const saleCommissions = scopedSubscriptionSales.reduce((sum, sale) => sum + (sale.commission ?? 0), 0)
+  const totalProfit = subscriptionMetrics.reduce((sum, row) => sum + row.netProfit, 0)
   const totalCost = subscriptionFees + saleCommissions
-  const investedCost = issueCost + saleRows.reduce((sum, row) => sum + row.allocatedFee, 0) + saleCommissions
+  const investedCost = subscriptionMetrics.reduce((sum, row) => sum + row.investedCost, 0)
 
   return {
     participationCount: scopedSubscriptions.length,
