@@ -36,3 +36,16 @@ database before any page renders it.
 5. Calculator account-aware reads.
 6. Accounts and history aggregation.
 7. HKEX sync jobs.
+
+## Sync Engine
+
+All official IPO data sync should go through `SyncService`.
+
+- Providers implement the `SyncProvider` interface.
+- Supported tasks are `syncIPO`, `syncHearing`, `syncAllotment`, and `syncHistory`.
+- Every run writes to `sync_log`.
+- Pages must read database records only. They must not call HKEX, brokers, or
+  other external websites directly.
+
+The HKEX provider currently returns a disabled placeholder result. Real network
+sync will be added in a later increment.

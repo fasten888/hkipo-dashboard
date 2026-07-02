@@ -10,6 +10,7 @@ const prismaBin = process.platform === 'win32'
   : join(root, 'node_modules', '.bin', 'prisma')
 
 if (existsSync(databasePath)) {
+  initializeWithSqlite(databasePath)
   process.exit(0)
 }
 
@@ -50,6 +51,18 @@ CREATE TABLE IF NOT EXISTS "user_data" (
   "user_id" TEXT NOT NULL PRIMARY KEY,
   "data" TEXT NOT NULL DEFAULT '{}',
   "updated_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS "sync_log" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "provider" TEXT NOT NULL,
+  "status" TEXT NOT NULL,
+  "start_time" DATETIME NOT NULL,
+  "end_time" DATETIME,
+  "added" INTEGER NOT NULL DEFAULT 0,
+  "updated" INTEGER NOT NULL DEFAULT 0,
+  "failed" INTEGER NOT NULL DEFAULT 0,
+  "message" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "ipo" (
@@ -124,6 +137,9 @@ CREATE INDEX IF NOT EXISTS "ipo_event_event_date_idx" ON "ipo_event"("event_date
 CREATE INDEX IF NOT EXISTS "account_ipo_account_id_idx" ON "account_ipo"("account_id");
 CREATE INDEX IF NOT EXISTS "account_ipo_ipo_id_idx" ON "account_ipo"("ipo_id");
 CREATE INDEX IF NOT EXISTS "account_ipo_status_idx" ON "account_ipo"("status");
+CREATE INDEX IF NOT EXISTS "sync_log_provider_idx" ON "sync_log"("provider");
+CREATE INDEX IF NOT EXISTS "sync_log_status_idx" ON "sync_log"("status");
+CREATE INDEX IF NOT EXISTS "sync_log_start_time_idx" ON "sync_log"("start_time");
 `
 
   const sqlitePath = process.platform === 'win32' ? 'sqlite3.exe' : '/usr/bin/sqlite3'

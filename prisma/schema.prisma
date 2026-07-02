@@ -15,6 +15,23 @@ model UserData {
   @@map("user_data")
 }
 
+model SyncLog {
+  id        String    @id @default(cuid())
+  provider  String
+  status    String
+  startTime DateTime  @map("start_time")
+  endTime   DateTime? @map("end_time")
+  added     Int       @default(0)
+  updated   Int       @default(0)
+  failed    Int       @default(0)
+  message   String?
+
+  @@index([provider])
+  @@index([status])
+  @@index([startTime])
+  @@map("sync_log")
+}
+
 model Ipo {
   id                 String        @id @default(cuid())
   code               String        @unique
