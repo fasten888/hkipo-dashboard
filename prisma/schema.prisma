@@ -14,3 +14,89 @@ model UserData {
 
   @@map("user_data")
 }
+
+model Ipo {
+  id                 String        @id @default(cuid())
+  code               String        @unique
+  name               String
+  status             String        @default("draft")
+  board              String?
+  industry           String?
+  offerPriceMin      Float?        @map("offer_price_min")
+  offerPriceMax      Float?        @map("offer_price_max")
+  lotSize            Int?          @map("lot_size")
+  lotAmount          Float?        @map("lot_amount")
+  marginMultiple     Float?        @map("margin_multiple")
+  subscribeStart     DateTime?     @map("subscribe_start")
+  subscribeEnd       DateTime?     @map("subscribe_end")
+  listingDate        DateTime?     @map("listing_date")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @default(now()) @updatedAt @map("updated_at")
+  events             IpoEvent[]
+  accountIpos        AccountIpo[]
+  analysis           IpoAnalysis?
+
+  @@map("ipo")
+}
+
+model IpoEvent {
+  id        String   @id @default(cuid())
+  ipoId     String   @map("ipo_id")
+  type      String
+  title     String
+  eventDate DateTime @map("event_date")
+  pdfUrl    String?  @map("pdf_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  ipo       Ipo      @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+
+  @@index([ipoId])
+  @@index([eventDate])
+  @@map("ipo_event")
+}
+
+model Account {
+  id              String       @id @default(cuid())
+  name            String
+  broker          String?
+  currency        String       @default("HKD")
+  cash            Float        @default(0)
+  frozen          Float        @default(0)
+  marginLimit     Float        @default(0) @map("margin_limit")
+  availableMargin Float        @default(0) @map("available_margin")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  accountIpos     AccountIpo[]
+
+  @@map("account")
+}
+
+model AccountIpo {
+  id           String   @id @default(cuid())
+  accountId    String   @map("account_id")
+  ipoId        String   @map("ipo_id")
+  applyLots    Int      @default(0) @map("apply_lots")
+  applyAmount  Float    @default(0) @map("apply_amount")
+  status       String   @default("watching")
+  commission   Float    @default(0)
+  financingFee Float    @default(0) @map("financing_fee")
+  profit       Float    @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+  account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  ipo          Ipo      @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([ipoId])
+  @@index([status])
+  @@map("account_ipo")
+}
+
+model IpoAnalysis {
+  ipoId        String   @id @map("ipo_id")
+  rating       String?
+  recommendation String?
+  risk         String?
+  expectedDark Float?   @map("expected_dark")
+  note         String?
+  ipo          Ipo      @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+
+  @@map("ipo_analysis")
+}
