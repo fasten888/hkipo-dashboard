@@ -34,6 +34,8 @@ export type ProviderResult<TRecord = unknown> = {
   updated?: number
   skipped?: number
   failed?: number
+  lastCursor?: string
+  nextCursor?: string
   warnings?: string[]
   message?: string
 }
@@ -41,6 +43,8 @@ export type ProviderResult<TRecord = unknown> = {
 export type SyncContext = {
   runId: string
   startedAt: Date
+  signal?: AbortSignal
+  lastCursor?: string
   dryRun?: boolean
   force?: boolean
   providerIds?: string[]
@@ -58,6 +62,9 @@ export type SyncResult<TRecord = unknown> = {
   updated: number
   skipped: number
   failed: number
+  attempts?: number
+  lastCursor?: string
+  nextCursor?: string
   message?: string
 }
 
@@ -71,6 +78,33 @@ export type ProviderStatus = {
   failed: number
   items: number
   version: string
+  message?: string
+}
+
+export type ProviderMetrics = {
+  providerId: string
+  providerName: string
+  domain: ProviderDomain
+  tier: ProviderTier
+  durationMs: number
+  success: number
+  added: number
+  updated: number
+  skipped: number
+  failed: number
+  attempts: number
+  lastRunAt: Date
+}
+
+export type ProviderHealthStatus = 'healthy' | 'degraded' | 'offline' | 'disabled' | 'unknown'
+
+export type ProviderHealth = {
+  providerId: string
+  providerName: string
+  domain: ProviderDomain
+  status: ProviderHealthStatus
+  lastSync?: Date
+  durationMs?: number
   message?: string
 }
 
