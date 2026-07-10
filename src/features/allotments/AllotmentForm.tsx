@@ -28,6 +28,7 @@ export function AllotmentForm({
   const [lots, setLots] = useState(String(subscription.allottedLots))
   const [sellPlan, setSellPlan] = useState<SellPlan>(subscription.sellPlan)
   const [error, setError] = useState('')
+  const lotSize = ipo?.lotSize ?? 0
 
   useEffect(() => {
     setStatus(subscription.status)
@@ -41,14 +42,26 @@ export function AllotmentForm({
     event.preventDefault()
     const numericShares = Number(shares)
     const numericLots = Number(lots)
+    const resolvedLots =
+      numericLots > 0
+        ? numericLots
+        : lotSize > 0 && numericShares > 0
+          ? Math.ceil(numericShares / lotSize)
+          : 0
+    const resolvedShares =
+      numericShares > 0
+        ? numericShares
+        : lotSize > 0 && resolvedLots > 0
+          ? resolvedLots * lotSize
+          : 0
     if (
       status === 'won' &&
-      (!Number.isInteger(numericShares) ||
-        numericShares <= 0 ||
-        !Number.isInteger(numericLots) ||
-        numericLots <= 0)
+      (!Number.isInteger(resolvedShares) ||
+        resolvedShares <= 0 ||
+        !Number.isInteger(resolvedLots) ||
+        resolvedLots <= 0)
     ) {
-      setError('已中签记录必须填写有效的中签股数和中签手数。')
+      setError('已中签记录必须填写有效的中签股数或中签手数。')
       return
     }
     onSubmit({
@@ -61,8 +74,8 @@ export function AllotmentForm({
       subscriptionDate: subscription.subscriptionDate,
       remarks: subscription.remarks,
       status,
-      allottedShares: status === 'won' ? numericShares : 0,
-      allottedLots: status === 'won' ? numericLots : 0,
+      allottedShares: status === 'won' ? resolvedShares : 0,
+      allottedLots: status === 'won' ? resolvedLots : 0,
       sellPlan: status === 'won' ? sellPlan : 'hold',
       fundingSource: subscription.fundingSource,
     })
@@ -70,6 +83,24 @@ export function AllotmentForm({
 
   const allotmentAmount =
     status === 'won' ? Number(shares || 0) * (ipo?.issuePrice ?? 0) : 0
+
+  const updateShares = (value: string) => {
+    const cleanValue = value.replace(/\D/g, '')
+    setShares(cleanValue)
+    const numericShares = Number(cleanValue)
+    if (lotSize > 0) {
+      setLots(numericShares > 0 ? String(Math.ceil(numericShares / lotSize)) : '')
+    }
+  }
+
+  const updateLots = (value: string) => {
+    const cleanValue = value.replace(/\D/g, '')
+    setLots(cleanValue)
+    const numericLots = Number(cleanValue)
+    if (lotSize > 0) {
+      setShares(numericLots > 0 ? String(numericLots * lotSize) : '')
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -113,12 +144,12 @@ export function AllotmentForm({
             <NumberField
               label="中签股数"
               value={shares}
-              onChange={setShares}
+              onChange={updateShares}
             />
             <NumberField
               label="中签手数"
               value={lots}
-              onChange={setLots}
+              onChange={updateLots}
             />
           </>
         )}

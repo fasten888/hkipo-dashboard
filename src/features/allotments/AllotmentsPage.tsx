@@ -483,6 +483,7 @@ function BatchAllotmentForm({
   }, [records, selectedIpo?.lotSize])
 
   const query = search.trim().toLowerCase()
+  const lotSize = selectedIpo?.lotSize ?? 0
   const visibleRecords = records.filter((subscription) => {
     const account = accounts.find(
       (item) => item.id === subscription.accountId,
@@ -499,6 +500,38 @@ function BatchAllotmentForm({
       ...current,
       [id]: { ...current[id], ...changes },
     }))
+  }
+
+  const setDraftShares = (id: string, shares: number) => {
+    updateDraft(id, {
+      shares,
+      lots: lotSize > 0 && shares > 0 ? Math.ceil(shares / lotSize) : 0,
+    })
+  }
+
+  const setDraftLots = (id: string, lots: number) => {
+    updateDraft(id, {
+      lots,
+      shares: lotSize > 0 && lots > 0 ? lots * lotSize : 0,
+    })
+  }
+
+  const updateAllVisible = (changes: Partial<BatchDraft>) => {
+    setDrafts((current) => {
+      const next = { ...current }
+      visibleRecords.forEach((subscription) => {
+        const base = next[subscription.id] ?? {
+          status: 'announced',
+          shares: 0,
+          lots: 0,
+        }
+        next[subscription.id] = {
+          ...base,
+          ...changes,
+        }
+      })
+      return next
+    })
   }
 
   return (
@@ -527,6 +560,39 @@ function BatchAllotmentForm({
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
+        <div className="grid gap-2 rounded-2xl bg-[#F4F1ED] p-3 sm:grid-cols-3">
+          <button
+            type="button"
+            className="rounded-xl border border-[#E4DFD6] bg-white px-3 py-2 text-xs font-semibold text-[#736A5C]"
+            onClick={() =>
+              updateAllVisible({ status: 'lost', shares: 0, lots: 0 })
+            }
+          >
+            全部未中签
+          </button>
+          <button
+            type="button"
+            className="rounded-xl bg-[#4A4540] px-3 py-2 text-xs font-semibold text-white"
+            onClick={() =>
+              updateAllVisible({
+                status: 'won',
+                shares: lotSize,
+                lots: lotSize > 0 ? 1 : 0,
+              })
+            }
+          >
+            全部中签
+          </button>
+          <button
+            type="button"
+            className="rounded-xl border border-[#E4DFD6] bg-white px-3 py-2 text-xs font-semibold text-[#736A5C]"
+            onClick={() =>
+              updateAllVisible({ status: 'announced', shares: 0, lots: 0 })
+            }
+          >
+            清空输入
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3 px-5 py-4 sm:px-7">
@@ -572,20 +638,16 @@ function BatchAllotmentForm({
               </div>
               {draft.status === 'won' && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <BatchNumberField
-                    label="中签股数"
-                    value={draft.shares}
-                    onChange={(shares) =>
-                      updateDraft(subscription.id, { shares })
-                    }
-                  />
-                  <BatchNumberField
-                    label="中签手数"
-                    value={draft.lots}
-                    onChange={(lots) =>
-                      updateDraft(subscription.id, { lots })
-                    }
-                  />
+	                  <BatchNumberField
+	                    label="中签股数"
+	                    value={draft.shares}
+	                    onChange={(shares) => setDraftShares(subscription.id, shares)}
+	                  />
+	                  <BatchNumberField
+	                    label="中签手数"
+	                    value={draft.lots}
+	                    onChange={(lots) => setDraftLots(subscription.id, lots)}
+	                  />
                 </div>
               )}
             </article>
