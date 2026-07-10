@@ -22,6 +22,20 @@ import { getProfitColor } from '../../utils/profit'
 import { getSubscriptionMetrics } from '../../utils/statistics'
 import { AllotmentForm } from './AllotmentForm'
 
+type AllotmentRow =
+  | {
+      kind: 'subscription'
+      subscription: Subscription
+      ipo: ReturnType<typeof useAppData>['ipos'][number] | undefined
+      account: ReturnType<typeof useAppData>['accounts'][number] | undefined
+      createdAt: string
+    }
+  | {
+      kind: 'ipo'
+      ipo: ReturnType<typeof useAppData>['ipos'][number]
+      createdAt: string
+    }
+
 export function AllotmentsPage() {
   const { accounts, ipos, subscriptions, updateSubscription, sales, deleteSale } =
     useAppData()
@@ -37,11 +51,17 @@ export function AllotmentsPage() {
 
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase()
-    return subscriptions
+    const subscriptionRows: AllotmentRow[] = subscriptions
       .filter((item) => status === 'all' || item.status === status)
-      .filter((item) => {
-        const account = accounts.find((entry) => entry.id === item.accountId)
-        const ipo = ipos.find((entry) => entry.id === item.ipoId)
+      .map((subscription) => ({
+        kind: 'subscription' as const,
+        subscription,
+        ipo: ipos.find((entry) => entry.id === subscription.ipoId),
+        account: accounts.find((entry) => entry.id === subscription.accountId),
+        createdAt: subscription.createdAt,
+      }))
+      .filter((row) => {
+        const { account, ipo } = row
         return (
           !query ||
           account?.name.toLowerCase().includes(query) ||
@@ -50,15 +70,50 @@ export function AllotmentsPage() {
           ipo?.stockCode.toLowerCase().includes(query)
         )
       })
+
+    const ipoIdsWithSubscriptions = new Set(
+      subscriptions.map((item) => item.ipoId),
+    )
+    const emptyIpoRows: AllotmentRow[] =
+      status === 'all'
+        ? ipos
+            .filter((ipo) => !ipoIdsWithSubscriptions.has(ipo.id))
+            .filter(
+              (ipo) =>
+                !query ||
+                ipo.name.toLowerCase().includes(query) ||
+                ipo.stockCode.toLowerCase().includes(query),
+            )
+            .map((ipo) => ({
+              kind: 'ipo' as const,
+              ipo,
+              createdAt: ipo.createdAt,
+            }))
+        : []
+
+    return [...subscriptionRows, ...emptyIpoRows]
       .sort((a, b) => {
         if (!sort) return b.createdAt.localeCompare(a.createdAt)
-        const aIpo = ipos.find((item) => item.id === a.ipoId)
-        const bIpo = ipos.find((item) => item.id === b.ipoId)
-        const aMetrics = getSubscriptionMetrics(a, aIpo, sales)
-        const bMetrics = getSubscriptionMetrics(b, bIpo, sales)
+        const aIpo = a.ipo
+        const bIpo = b.ipo
+        const aMetrics =
+          a.kind === 'subscription'
+            ? getSubscriptionMetrics(a.subscription, aIpo, sales)
+            : { netProfit: 0, profitRate: 0 }
+        const bMetrics =
+          b.kind === 'subscription'
+            ? getSubscriptionMetrics(b.subscription, bIpo, sales)
+            : { netProfit: 0, profitRate: 0 }
         const values = {
           name: [aIpo?.name ?? '', bIpo?.name ?? ''],
-          date: [a.subscriptionDate, b.subscriptionDate],
+          date: [
+            a.kind === 'subscription'
+              ? a.subscription.subscriptionDate
+              : aIpo?.subscriptionDate ?? '',
+            b.kind === 'subscription'
+              ? b.subscription.subscriptionDate
+              : bIpo?.subscriptionDate ?? '',
+          ],
           profit: [aMetrics.netProfit, bMetrics.netProfit],
           profitRate: [aMetrics.profitRate, bMetrics.profitRate],
         }[sort.key]
@@ -66,6 +121,25 @@ export function AllotmentsPage() {
         return sort.direction === 'asc' ? compared : -compared
       })
   }, [accounts, ipos, sales, search, sort, status, subscriptions])
+
+  const ipoSummary = useMemo(() => {
+    const map = new Map<
+      string,
+      { participationCount: number; winCount: number }
+    >()
+    ipos.forEach((ipo) =>
+      map.set(ipo.id, { participationCount: 0, winCount: 0 }),
+    )
+    subscriptions.forEach((subscription) => {
+      const current =
+        map.get(subscription.ipoId) ??
+        { participationCount: 0, winCount: 0 }
+      current.participationCount += 1
+      if (subscription.status === 'won') current.winCount += 1
+      map.set(subscription.ipoId, current)
+    })
+    return map
+  }, [ipos, subscriptions])
 
   const wins = subscriptions.filter((item) => item.status === 'won').length
   const losses = subscriptions.filter((item) => item.status === 'lost').length
@@ -167,17 +241,63 @@ export function AllotmentsPage() {
       <div className="mt-4 overflow-hidden rounded-2xl border border-[#E4DFD6] bg-white shadow-card">
         {rows.length === 0 ? (
           <p className="px-6 py-14 text-center text-sm text-[#A8A296]">
-            暂无匹配的申购记录
+            暂无匹配的新股或申购记录
           </p>
         ) : (
           <div className="divide-y divide-[#F4F1ED]">
-            {rows.map((subscription) => {
-              const ipo = ipos.find((item) => item.id === subscription.ipoId)
-              const metrics = getSubscriptionMetrics(
-                subscription,
-                ipo,
-                sales,
-              )
+            {rows.map((row) => {
+              const ipo = row.ipo
+              const summary = ipo
+                ? ipoSummary.get(ipo.id) ?? {
+                    participationCount: 0,
+                    winCount: 0,
+                  }
+                : { participationCount: 0, winCount: 0 }
+              if (row.kind === 'ipo') {
+                return (
+                  <div
+                    key={`ipo-${row.ipo.id}`}
+                    className="grid gap-3 px-5 py-4 sm:grid-cols-[1.2fr_1fr_1fr_1fr_auto] sm:items-center"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-[#4A4540]">
+                        {row.ipo.name}（{row.ipo.stockCode || '-'}）
+                      </p>
+                      <p className="mt-1 text-xs text-[#A8A296]">
+                        参与账户：0 · 中签账户：0
+                      </p>
+                    </div>
+                    <div className="text-sm text-[#736A5C]">暂无申购记录</div>
+                    <div>
+                      <p className="text-xs text-[#A8A296]">中签金额</p>
+                      <p className="mt-1 text-sm font-semibold text-[#736A5C]">
+                        {formatHKD(0, 'investment')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#A8A296]">浮盈浮亏</p>
+                      <p className="mt-1 text-sm font-semibold text-[#736A5C]">
+                        {formatHKD(0, 'profit')}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-[#A8A296]">
+                        收益率 {formatPercent(0, 'profitRate')}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled
+                      className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-3 py-2 text-xs font-semibold text-[#A8A296]"
+                    >
+                      待创建申购
+                    </button>
+                  </div>
+                )
+              }
+
+              const { subscription, account } = row
+              const metrics = getSubscriptionMetrics(subscription, ipo, sales)
+              const allottedAmount =
+                subscription.allottedShares * (ipo?.issuePrice ?? 0)
               return (
                 <div
                   key={subscription.id}
@@ -187,7 +307,11 @@ export function AllotmentsPage() {
                     <p className="text-sm font-bold text-[#4A4540]">
                       {ipo?.name ?? '-'}（{ipo?.stockCode ?? '-'}）
                     </p>
-                    
+                    <p className="mt-1 text-xs text-[#A8A296]">
+                      {formatAccountName(account)} · 参与账户：
+                      {summary.participationCount} · 中签账户：
+                      {summary.winCount}
+                    </p>
                   </div>
                   <div className="text-sm text-[#736A5C]">
                     {subscription.status === 'won'
@@ -196,7 +320,9 @@ export function AllotmentsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-[#A8A296]">中签金额</p>
-                    
+                    <p className="mt-1 text-sm font-semibold text-[#736A5C]">
+                      {formatHKD(allottedAmount, 'investment')}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-[#A8A296]">浮盈浮亏</p>
@@ -324,9 +450,7 @@ function BatchAllotmentForm({
   ) => void
   onCancel: () => void
 }) {
-  const ipoOptions = ipos.filter((ipo) =>
-    subscriptions.some((subscription) => subscription.ipoId === ipo.id),
-  )
+  const ipoOptions = ipos
   const [ipoId, setIpoId] = useState(ipoOptions[0]?.id ?? '')
   const [search, setSearch] = useState('')
   const [drafts, setDrafts] = useState<Record<string, BatchDraft>>({})
@@ -469,7 +593,7 @@ function BatchAllotmentForm({
         })}
         {visibleRecords.length === 0 && (
           <p className="rounded-2xl bg-[#F4F1ED] px-4 py-12 text-center text-sm text-[#A8A296]">
-            暂无匹配账户
+            这只新股暂无申购记录，可先到申购记录页面创建参与账户。
           </p>
         )}
       </div>
