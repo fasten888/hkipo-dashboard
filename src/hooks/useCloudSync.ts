@@ -47,7 +47,7 @@ export function useCloudSync(
   )
   const [message, setMessage] = useState('')
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(() =>
-    session ? loadSyncMeta(session.user.id)?.remoteUpdatedAt ?? null : null,
+    session ? loadSyncMeta(session.user.id)?.updatedAt ?? null : null,
   )
   const [pendingChanges, setPendingChanges] = useState(false)
   const [conflict, setConflict] = useState<CloudConflict | null>(null)
@@ -62,8 +62,8 @@ export function useCloudSync(
   const [syncTimes, setSyncTimes] = useState<CloudSyncTimes>(() => {
     const meta = session ? loadSyncMeta(session.user.id) : null
     return {
-      lastUploadedAt: meta?.lastUploadedAt ?? null,
-      lastDownloadedAt: meta?.lastDownloadedAt ?? null,
+      lastUploadedAt: null,
+      lastDownloadedAt: meta?.lastSyncAt ?? null,
     }
   })
   const dataRef = useRef(data)
@@ -122,11 +122,15 @@ export function useCloudSync(
       remoteUpdatedAt: string,
       nextData: AppData,
       event?: 'upload' | 'download',
+      rowId?: string | null,
     ) => {
-      const meta = saveSyncMeta(userId, remoteUpdatedAt, nextData, event)
-      setSyncTimes({
-        lastUploadedAt: meta.lastUploadedAt ?? null,
-        lastDownloadedAt: meta.lastDownloadedAt ?? null,
+      const meta = saveSyncMeta(userId, remoteUpdatedAt, nextData, event, rowId)
+      setSyncTimes((current) => {
+        const lastUploadedAt =
+          event === 'upload' ? meta.lastSyncAt : current.lastUploadedAt
+        const lastDownloadedAt =
+          event === 'download' ? meta.lastSyncAt : current.lastDownloadedAt
+        return { lastUploadedAt, lastDownloadedAt }
       })
       return meta
     },
@@ -250,6 +254,7 @@ export function useCloudSync(
           result.snapshot.updatedAt,
           result.snapshot.data,
           'upload',
+          result.snapshot.rowId ?? null,
         )
         setLastSyncedAt(result.snapshot.updatedAt)
         setPendingChanges(false)
@@ -330,6 +335,8 @@ export function useCloudSync(
         const localHash = hashAppData(local)
         const remoteHash = hashAppData(remote.data)
         const meta = loadSyncMeta(result.session.user.id)
+        const localUpdatedAt = getAppDataUpdatedAt(local)
+        const remoteUpdatedAt = remote.updatedAt
 
         if (localHash === remoteHash) {
           saveMeta(result.session.user.id, remote.updatedAt, remote.data)
@@ -339,7 +346,13 @@ export function useCloudSync(
           setMessage('数据已同步')
         } else if (isEmptyAppData(local)) {
           applyRemoteData(remote.data, 'cloud-download-empty-local')
-          saveMeta(result.session.user.id, remote.updatedAt, remote.data, 'download')
+          saveMeta(
+            result.session.user.id,
+            remote.updatedAt,
+            remote.data,
+            'download',
+            remote.rowId ?? null,
+          )
           setLastSyncedAt(remote.updatedAt)
           setPendingChanges(false)
           setStatus('synced')
@@ -353,8 +366,9 @@ export function useCloudSync(
           setStatus('conflict')
           setMessage('本机和云端都有数据，请选择保留哪一份')
         } else {
-          const localChanged = meta.dataHash !== localHash
-          const remoteChanged = meta.dataHash !== remoteHash
+          const lastSyncedUpdatedAt = meta.updatedAt
+          const localChanged = localUpdatedAt > lastSyncedUpdatedAt
+          const remoteChanged = remoteUpdatedAt > lastSyncedUpdatedAt
           if (remoteChanged && !localChanged) {
             setConflict({
               local,
@@ -374,7 +388,13 @@ export function useCloudSync(
             setStatus('conflict')
             setMessage('检测到两台设备都修改过数据，请选择保留版本')
           } else {
-            saveMeta(result.session.user.id, remote.updatedAt, remote.data)
+            saveMeta(
+              result.session.user.id,
+              remote.updatedAt,
+              remote.data,
+              undefined,
+              remote.rowId ?? null,
+            )
             setLastSyncedAt(remote.updatedAt)
             setPendingChanges(false)
             setStatus('synced')
@@ -425,7 +445,7 @@ export function useCloudSync(
       return
     }
     const meta = loadSyncMeta(session.user.id)
-    if (meta?.dataHash === hashAppData(data)) {
+    if (meta && getAppDataUpdatedAt(data) <= meta.updatedAt) {
       setPendingChanges(false)
       return
     }
@@ -482,8 +502,8 @@ export function useCloudSync(
         setDiagnostic(null)
         const meta = loadSyncMeta(next.user.id)
         setSyncTimes({
-          lastUploadedAt: meta?.lastUploadedAt ?? null,
-          lastDownloadedAt: meta?.lastDownloadedAt ?? null,
+          lastUploadedAt: null,
+          lastDownloadedAt: meta?.lastSyncAt ?? null,
         })
         updateSession(next)
         await reconcile(next)
@@ -581,12 +601,13 @@ export function useCloudSync(
         return
       }
       applyRemoteData(result.snapshot.data, 'cloud-force-download')
-      saveMeta(
-        result.session.user.id,
-        result.snapshot.updatedAt,
-        result.snapshot.data,
-        'download',
-      )
+          saveMeta(
+            result.session.user.id,
+            result.snapshot.updatedAt,
+            result.snapshot.data,
+            'download',
+            result.snapshot.rowId ?? null,
+          )
       setLastSyncedAt(result.snapshot.updatedAt)
       setPendingChanges(false)
       setConflict(null)
@@ -617,6 +638,7 @@ export function useCloudSync(
             conflict.remoteUpdatedAt,
             conflict.remote,
             'download',
+            currentSession.user.id,
           )
           setLastSyncedAt(conflict.remoteUpdatedAt)
           setPendingChanges(false)
@@ -818,6 +840,24 @@ function diffCounts(
     allotments: after.allotments - before.allotments,
     sales: after.sales - before.sales,
   }
+}
+
+function getAppDataUpdatedAt(data: AppData) {
+  const timestamps = [
+    ...data.accounts.map((item) => item.updatedAt),
+    ...data.ipos.map((item) => item.updatedAt),
+    ...data.subscriptions.map((item) => item.updatedAt),
+    ...data.sales.map((item) => item.updatedAt),
+    ...data.withdrawals.map((item) => item.updatedAt),
+    ...(data.exchangeRecords ?? []).map((item) => item.updatedAt),
+    ...(data.holdings ?? []).map((item) => item.updatedAt),
+    data.fxRates?.updatedAt,
+  ].filter(Boolean)
+
+  const sorted = timestamps.sort()
+  return sorted.length > 0
+    ? sorted[sorted.length - 1]
+    : new Date(0).toISOString()
 }
 
 function formatCloudReadDebug(debug: {

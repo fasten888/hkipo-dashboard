@@ -15,6 +15,7 @@ import type {
 import { createId } from '../utils/id'
 import { normalizeIndustry } from '../utils/industry'
 import { normalizeSubscriptionMethod } from '../utils/subscriptionMethod'
+import { safeSetLocalStorageItem } from './storageMaintenance'
 
 export const APP_STORAGE_KEY = 'hkipo-dashboard:data:v3'
 export const AUTO_BACKUP_KEY = 'hkipo-dashboard:auto-backup:v3'
@@ -362,13 +363,13 @@ export function saveAppData(data: AppData) {
           exportedAt: '',
         })
     ) {
-      window.localStorage.setItem(
+      safeSetLocalStorageItem(
         PREVIOUS_BACKUP_KEY,
         JSON.stringify(currentBackup),
       )
     }
-    window.localStorage.setItem(APP_STORAGE_KEY, serialized)
-    window.localStorage.setItem(AUTO_BACKUP_KEY, JSON.stringify(nextBackup))
+    safeSetLocalStorageItem(APP_STORAGE_KEY, serialized)
+    safeSetLocalStorageItem(AUTO_BACKUP_KEY, JSON.stringify(nextBackup))
   } catch {
     // Keep the UI usable if browser storage is unavailable or full.
   }
@@ -457,7 +458,7 @@ export function getAutoBackupTime() {
 export function backupBeforeImport(data: AppData) {
   try {
     const backup = createBackup(data)
-    window.localStorage.setItem(
+    safeSetLocalStorageItem(
       PREVIOUS_BACKUP_KEY,
       JSON.stringify(backup),
     )
@@ -468,7 +469,7 @@ export function backupBeforeImport(data: AppData) {
       createdAt: new Date().toISOString(),
       backup,
     }
-    window.localStorage.setItem(
+    safeSetLocalStorageItem(
       IMPORT_BACKUP_HISTORY_KEY,
       JSON.stringify([entry, ...history].slice(0, 20)),
     )
@@ -489,7 +490,7 @@ export function restoreImportBackup(id: string) {
 export function deleteImportBackup(id: string) {
   try {
     const next = getImportBackups().filter((item) => item.id !== id)
-    window.localStorage.setItem(
+    safeSetLocalStorageItem(
       IMPORT_BACKUP_HISTORY_KEY,
       JSON.stringify(next),
     )

@@ -5,6 +5,7 @@ import type {
 } from '../types/audit'
 import type { AppData } from '../types/store'
 import { createId } from '../utils/id'
+import { safeSetLocalStorageItem } from './storageMaintenance'
 
 const LOG_KEY = 'hkipo-dashboard:operation-logs:v1'
 const SNAPSHOT_KEY = 'hkipo-dashboard:version-snapshots:v1'
@@ -21,7 +22,7 @@ function readJson<T>(key: string, fallback: T): T {
 
 function writeJson(key: string, value: unknown) {
   try {
-    window.localStorage.setItem(key, JSON.stringify(value))
+    safeSetLocalStorageItem(key, JSON.stringify(value))
   } catch {
     // Business data remains usable if local audit storage is full.
   }
@@ -76,7 +77,7 @@ export function ensureDailyBackup(data: AppData) {
     reason: '每日自动备份',
     data,
   }
-  const next = [backup, ...backups].slice(0, 30)
+  const next = [backup, ...backups].slice(0, 10)
   writeJson(DAILY_BACKUP_KEY, next)
   return next
 }

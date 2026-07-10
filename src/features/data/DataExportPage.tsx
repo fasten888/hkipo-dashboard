@@ -37,6 +37,11 @@ import {
   getImportBackups,
   restoreImportBackup,
 } from '../../services/storage'
+import {
+  cleanupOldBackups,
+  clearOperationLogs,
+  getStorageUsage,
+} from '../../services/storageMaintenance'
 
 const csvExports: {
   type: ExportType
@@ -98,6 +103,7 @@ export function DataExportPage() {
   const [legacySummary, setLegacySummary] =
     useState<LegacyImportResult['summary'] | null>(null)
   const [importBackups, setImportBackups] = useState(getImportBackups)
+  const [storageUsage, setStorageUsage] = useState(getStorageUsage)
   const backupTime = getAutoBackupTime()
 
   const restoreEmergencyBackup = async () => {
@@ -145,6 +151,53 @@ export function DataExportPage() {
 
   return (
     <>
+      <section className="mt-7 rounded-2xl border border-[#E4DFD6] bg-white p-5 shadow-card sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-bold text-[#2E2A24]">LocalStorage 占用</h2>
+            <p className="mt-1 text-sm text-[#A8A296]">
+              {storageUsage.usedMB.toFixed(2)} MB / 5 MB · 已用{' '}
+              {storageUsage.percent}%
+            </p>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-[#F4F1ED] lg:w-72">
+            <div
+              className="h-full rounded-full bg-brand-600 transition-all"
+              style={{ width: `${storageUsage.percent}%` }}
+            />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white"
+              onClick={() => {
+                const result = cleanupOldBackups()
+                setStorageUsage(result.after)
+                setMessage('已清理旧备份')
+              }}
+            >
+              清理旧备份
+            </button>
+            <button
+              type="button"
+              className="rounded-xl bg-[#F4F1ED] px-4 py-2.5 text-sm font-semibold text-[#5A5246]"
+              onClick={() => {
+                setStorageUsage(clearOperationLogs())
+                setMessage('已清理操作日志')
+              }}
+            >
+              清理日志
+            </button>
+            <button
+              type="button"
+              className="rounded-xl bg-[#2E2A24] px-4 py-2.5 text-sm font-semibold text-white"
+              onClick={() => downloadJsonBackup(data)}
+            >
+              导出备份
+            </button>
+          </div>
+        </div>
+      </section>
 
       <section className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ActionCard

@@ -6,6 +6,7 @@ import type {
 } from '../types/cloud'
 import type { AppData } from '../types/store'
 import { normalizeAppData } from './storage'
+import { safeSetLocalStorageItem } from './storageMaintenance'
 
 const SESSION_KEY = 'hkipo-dashboard:supabase-session:v1'
 const SYNC_META_KEY = 'hkipo-dashboard:supabase-sync-meta:v1'
@@ -35,11 +36,9 @@ interface AuthResponse {
 }
 
 interface SyncMeta {
-  userId: string
-  remoteUpdatedAt: string
-  dataHash: string
-  lastUploadedAt?: string | null
-  lastDownloadedAt?: string | null
+  lastSyncAt: string
+  rowId: string | null
+  updatedAt: string
 }
 
 export class CloudAuthError extends Error {
@@ -71,14 +70,15 @@ export function saveCloudSession(session: CloudSession | null) {
     window.localStorage.removeItem(SESSION_KEY)
     return
   }
-  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  safeSetLocalStorageItem(SESSION_KEY, JSON.stringify(session))
 }
 
 export function loadSyncMeta(userId: string) {
+  void userId
   try {
     const value = window.localStorage.getItem(SYNC_META_KEY)
     const meta = value ? (JSON.parse(value) as SyncMeta) : null
-    return meta?.userId === userId ? meta : null
+    return meta?.updatedAt ? meta : null
   } catch {
     return null
   }
@@ -89,19 +89,18 @@ export function saveSyncMeta(
   remoteUpdatedAt: string,
   data: AppData,
   event?: 'upload' | 'download',
+  rowId?: string | null,
 ) {
-  const previous = loadSyncMeta(userId)
+  void userId
+  void data
+  void event
   const now = new Date().toISOString()
   const meta: SyncMeta = {
-    userId,
-    remoteUpdatedAt,
-    dataHash: hashAppData(data),
-    lastUploadedAt:
-      event === 'upload' ? now : previous?.lastUploadedAt ?? null,
-    lastDownloadedAt:
-      event === 'download' ? now : previous?.lastDownloadedAt ?? null,
+    lastSyncAt: now,
+    rowId: rowId ?? null,
+    updatedAt: remoteUpdatedAt,
   }
-  window.localStorage.setItem(SYNC_META_KEY, JSON.stringify(meta))
+  safeSetLocalStorageItem(SYNC_META_KEY, JSON.stringify(meta))
   return meta
 }
 
