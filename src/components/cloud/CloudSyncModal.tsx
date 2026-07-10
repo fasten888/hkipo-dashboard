@@ -348,6 +348,24 @@ function SignedInPanel({ onClose }: { onClose: () => void }) {
           <p className="mt-1 text-xs leading-5 text-[#7D653C]">
             系统不会自动覆盖，请核对数量后选择保留哪一份。
           </p>
+          <div className="mt-3 rounded-xl bg-white p-3 text-xs text-[#736A5C]">
+            <SyncInfoRow
+              label="冲突判断"
+              value={formatConflictWinner(cloud.cloudConflict.newer)}
+            />
+            <SyncInfoRow
+              label="本地更新时间"
+              value={formatDateTime(cloud.cloudConflict.localUpdatedAt)}
+            />
+            <SyncInfoRow
+              label="云端更新时间"
+              value={formatDateTime(cloud.cloudConflict.remoteUpdatedAt)}
+            />
+            <SyncInfoRow
+              label="时间差"
+              value={formatDuration(cloud.cloudConflict.timeDiffMs)}
+            />
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <VersionSummary
               label="当前本机数据"
@@ -752,6 +770,22 @@ function getCurrentDataSource({
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString('zh-CN')
+}
+
+function formatConflictWinner(value: 'local' | 'remote' | 'same') {
+  if (value === 'local') return '本地较新'
+  if (value === 'remote') return '云端较新'
+  return '更新时间相同'
+}
+
+function formatDuration(ms: number) {
+  const seconds = Math.round(ms / 1000)
+  if (seconds < 60) return `${seconds} 秒`
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes} 分钟`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} 小时`
+  return `${Math.round(hours / 24)} 天`
 }
 
 function SyncInfoRow({

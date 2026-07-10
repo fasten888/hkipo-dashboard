@@ -78,7 +78,10 @@ export type CloudSyncStatus =
 export interface CloudConflict {
   local: AppData
   remote: AppData
+  localUpdatedAt: string
   remoteUpdatedAt: string
+  newer: 'local' | 'remote' | 'same'
+  timeDiffMs: number
 }
 
 export interface CloudDiagnosticStep {

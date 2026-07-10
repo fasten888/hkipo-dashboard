@@ -358,11 +358,9 @@ export function useCloudSync(
           setStatus('synced')
           setMessage('已从云端恢复数据')
         } else if (!meta) {
-          setConflict({
-            local,
-            remote: remote.data,
-            remoteUpdatedAt: remote.updatedAt,
-          })
+          setConflict(
+            createCloudConflict(local, remote.data, localUpdatedAt, remoteUpdatedAt),
+          )
           setStatus('conflict')
           setMessage('本机和云端都有数据，请选择保留哪一份')
         } else {
@@ -370,21 +368,27 @@ export function useCloudSync(
           const localChanged = localUpdatedAt > lastSyncedUpdatedAt
           const remoteChanged = remoteUpdatedAt > lastSyncedUpdatedAt
           if (remoteChanged && !localChanged) {
-            setConflict({
-              local,
-              remote: remote.data,
-              remoteUpdatedAt: remote.updatedAt,
-            })
+            setConflict(
+              createCloudConflict(
+                local,
+                remote.data,
+                localUpdatedAt,
+                remoteUpdatedAt,
+              ),
+            )
             setStatus('conflict')
             setMessage('云端有新版本，请确认后再覆盖本机数据')
           } else if (localChanged && !remoteChanged) {
             await upload(local, result.session)
           } else if (localChanged && remoteChanged) {
-            setConflict({
-              local,
-              remote: remote.data,
-              remoteUpdatedAt: remote.updatedAt,
-            })
+            setConflict(
+              createCloudConflict(
+                local,
+                remote.data,
+                localUpdatedAt,
+                remoteUpdatedAt,
+              ),
+            )
             setStatus('conflict')
             setMessage('检测到两台设备都修改过数据，请选择保留版本')
           } else {
@@ -858,6 +862,26 @@ function getAppDataUpdatedAt(data: AppData) {
   return sorted.length > 0
     ? sorted[sorted.length - 1]
     : new Date(0).toISOString()
+}
+
+function createCloudConflict(
+  local: AppData,
+  remote: AppData,
+  localUpdatedAt: string,
+  remoteUpdatedAt: string,
+): CloudConflict {
+  const localTime = new Date(localUpdatedAt).getTime()
+  const remoteTime = new Date(remoteUpdatedAt).getTime()
+  const timeDiffMs = Math.abs(localTime - remoteTime)
+  return {
+    local,
+    remote,
+    localUpdatedAt,
+    remoteUpdatedAt,
+    newer:
+      localTime > remoteTime ? 'local' : remoteTime > localTime ? 'remote' : 'same',
+    timeDiffMs,
+  }
 }
 
 function formatCloudReadDebug(debug: {
