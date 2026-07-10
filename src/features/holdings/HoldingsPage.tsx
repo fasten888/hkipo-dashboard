@@ -56,7 +56,7 @@ export function HoldingsPage() {
         </button>
       </div>
 
-      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         <StatCard label="持仓数量" value={String(rows.length)} hint="当前筛选范围" icon={WalletCards} tone="blue" />
         <StatCard label="持仓成本" value={formatHKD(totalCost)} hint="录入成本合计" icon={Landmark} tone="violet" />
         <StatCard label="持仓市值" value={formatHKD(totalMarketValue)} hint="当前市值合计" icon={WalletCards} tone="amber" />

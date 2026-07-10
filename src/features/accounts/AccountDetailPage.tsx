@@ -317,7 +317,7 @@ export function AccountDetailPage({
         </div>
       </div>
 
-      <section className="mt-7 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <section className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         <Summary
           label="总收益"
           value={formatHKD(stats.totalProfit, 'profit')}

@@ -52,10 +52,10 @@ export function Modal({
         onClick={onClose}
       />
       <div
-        className={`relative w-full overflow-y-auto border border-white/70 bg-white shadow-modal sm:max-h-[94vh] sm:max-w-2xl sm:rounded-[28px] ${
+        className={`relative w-full max-h-[90vh] overflow-y-auto overscroll-contain border border-white/70 bg-white shadow-modal sm:max-w-2xl sm:rounded-[28px] ${
           fullScreenOnMobile
-            ? 'h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[94vh]'
-            : 'max-h-[94vh] rounded-t-3xl'
+            ? 'h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[90vh]'
+            : 'rounded-t-3xl'
         }`}
       >
         <div className="sticky top-0 z-10 flex items-start justify-between border-b border-[#F4F1ED] bg-white/95 px-5 py-5 backdrop-blur sm:px-8 sm:py-6">
