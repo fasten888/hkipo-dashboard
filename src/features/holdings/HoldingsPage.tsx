@@ -99,6 +99,29 @@ export function HoldingsPage() {
         {rows.length === 0 && <p className="rounded-2xl border border-[#E4DFD6] bg-white px-6 py-16 text-center text-sm text-[#A8A296] md:col-span-2 xl:col-span-3">暂无持仓记录</p>}
       </section>
 
+      <section className="mt-6 grid gap-4 lg:grid-cols-3">
+        <HoldingInsight title="持仓结构" eyebrow="PORTFOLIO" description="观察市值、成本和抵押融资能力。">
+          <div className="mt-4 space-y-3">
+            <InsightRow label="持仓市值" value={formatHKD(totalMarketValue)} />
+            <InsightRow label="持仓成本" value={formatHKD(totalCost)} />
+            <InsightRow label="可融资额度" value={formatHKD(totalCollateral)} />
+          </div>
+        </HoldingInsight>
+        <HoldingInsight title="最近持仓" eyebrow="ACTIVITY" description="按录入时间展示最近持仓。">
+          <div className="mt-4 space-y-3">
+            {rows.slice(0, 3).map((item) => (
+              <InsightRow key={item.id} label={`${item.stockName}（${item.stockCode}）`} value={formatHKD(item.marketValue)} />
+            ))}
+            {rows.length === 0 && <p className="text-sm font-medium text-[#A8A296]">暂无持仓动态</p>}
+          </div>
+        </HoldingInsight>
+        <HoldingInsight title="AI 建议" eyebrow="AI" description="预留后续持仓与打新额度分析。">
+          <p className="mt-4 text-sm font-semibold leading-6 text-[#5A5246]">
+            当前可融资额度为 {formatHKD(totalCollateral)}，后续可与申购计划联动，判断现金打新和抵押融资的资金分配。
+          </p>
+        </HoldingInsight>
+      </section>
+
       <Modal open={formOpen} title={editing ? '编辑持仓' : '新增持仓'} fullScreenOnMobile onClose={() => { setFormOpen(false); setEditing(null) }}>
         <HoldingForm accounts={data.accounts} holding={editing} onSubmit={save} onCancel={() => { setFormOpen(false); setEditing(null) }} />
       </Modal>
@@ -109,4 +132,24 @@ export function HoldingsPage() {
 
 function Datum({ label, value }: { label: string; value: string }) {
   return <div><p className="text-[11px] text-[#A8A296]">{label}</p><p className="mt-1 font-semibold text-[#5A5246]">{value}</p></div>
+}
+
+function HoldingInsight({ title, eyebrow, description, children }: { title: string; eyebrow: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">{eyebrow}</p>
+      <h2 className="mt-2 text-lg font-bold text-[#2E2A24]">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-[#8C8273]">{description}</p>
+      {children}
+    </section>
+  )
+}
+
+function InsightRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#F4F1ED]/70 px-3 py-2">
+      <span className="min-w-0 truncate text-sm font-medium text-[#8C8273]">{label}</span>
+      <span className="shrink-0 whitespace-nowrap text-sm font-bold tabular-nums text-[#4A4540]">{value}</span>
+    </div>
+  )
 }

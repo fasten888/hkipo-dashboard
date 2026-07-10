@@ -380,6 +380,39 @@ export function ExchangePage() {
         )}
       </section>
 
+      <section className="mt-6 grid gap-4 lg:grid-cols-3">
+        <ExchangeInsight title="汇率损益" eyebrow="FX RESULT" description="将真实换汇成本和期末参考汇率放在一起看。">
+          <div className="mt-4 space-y-3">
+            <ExchangeInsightRow label="人民币总成本" value={formatCNY(metrics.cost)} />
+            <ExchangeInsightRow
+              label="外币当前估值"
+              value={metrics.valuedCount > 0 ? formatCNY(metrics.currentValue) : '待设置汇率'}
+            />
+            <ExchangeInsightRow label="汇兑损益" value={formatCNY(metrics.profit)} className={getProfitColor(metrics.profit)} />
+          </div>
+        </ExchangeInsight>
+        <ExchangeInsight title="最近换汇" eyebrow="ACTIVITY" description="最近三笔换汇，方便回看资金来源。">
+          <div className="mt-4 space-y-3">
+            {rows.slice(0, 3).map((record) => {
+              const account = accounts.find((item) => item.id === record.accountId)
+              return (
+                <ExchangeInsightRow
+                  key={record.id}
+                  label={account ? formatAccountName(account) : '已删除账户'}
+                  value={formatForeign(record.targetAmount, record.targetCurrency)}
+                />
+              )
+            })}
+            {rows.length === 0 && <p className="text-sm font-medium text-[#A8A296]">暂无换汇动态</p>}
+          </div>
+        </ExchangeInsight>
+        <ExchangeInsight title="AI 建议" eyebrow="AI" description="预留年度人民币口径复盘。">
+          <p className="mt-4 text-sm font-semibold leading-6 text-[#5A5246]">
+            已估值 {metrics.valuedCount} / {rows.length} 笔换汇。年底复盘时建议先补齐 HKD/USD 期末参考汇率。
+          </p>
+        </ExchangeInsight>
+      </section>
+
       <Modal
         open={formOpen}
         title={editing ? '编辑换汇记录' : '新增换汇记录'}
@@ -466,6 +499,26 @@ function RecordDatum({ label, value }: { label: string; value: string }) {
     <div className="min-w-0">
       <p className="text-[11px] text-[#A8A296]">{label}</p>
       <p className="mt-1 break-words text-sm font-semibold text-[#5A5246]">{value}</p>
+    </div>
+  )
+}
+
+function ExchangeInsight({ title, eyebrow, description, children }: { title: string; eyebrow: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">{eyebrow}</p>
+      <h2 className="mt-2 text-lg font-bold text-[#2E2A24]">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-[#8C8273]">{description}</p>
+      {children}
+    </section>
+  )
+}
+
+function ExchangeInsightRow({ label, value, className = '' }: { label: string; value: string; className?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#F4F1ED]/70 px-3 py-2">
+      <span className="min-w-0 truncate text-sm font-medium text-[#8C8273]">{label}</span>
+      <span className={`shrink-0 whitespace-nowrap text-sm font-bold tabular-nums text-[#4A4540] ${className}`}>{value}</span>
     </div>
   )
 }

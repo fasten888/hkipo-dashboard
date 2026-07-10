@@ -31,7 +31,7 @@ export function WithdrawalsPage() {
 
   return (
     <>
-      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: C.text3 }}>资金管理</p>
           <p className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>记录各账户出金，并计算净投入和账户实际收益。</p>
@@ -82,6 +82,36 @@ export function WithdrawalsPage() {
         )}
       </div>
 
+      <section className="mt-6 grid gap-4 lg:grid-cols-3">
+        <InsightPanel title="资金趋势" eyebrow="TREND" description="净投入、出金和实际收益合并观察。">
+          <div className="mt-4 space-y-3">
+            <InsightLine label="净入金" value={formatHKD(initialDeposit, 'investment')} />
+            <InsightLine label="累计净出金" value={formatHKD(withdrawalTotal)} />
+            <InsightLine label="实际收益" value={formatHKD(actualProfit, 'profit')} className={getProfitColor(actualProfit)} />
+          </div>
+        </InsightPanel>
+        <InsightPanel title="最近动态" eyebrow="ACTIVITY" description="最近出金动作，方便快速核对现金流。">
+          <div className="mt-4 space-y-3">
+            {rows.slice(0, 3).map((item) => {
+              const account = accounts.find((entry) => entry.id === item.accountId)
+              return (
+                <InsightLine
+                  key={item.id}
+                  label={`${account ? formatAccountName(account) : '已删除账户'} · ${item.date}`}
+                  value={formatHKD(item.amount)}
+                />
+              )
+            })}
+            {rows.length === 0 && <p className="text-sm font-medium text-[#A8A296]">暂无出金动态</p>}
+          </div>
+        </InsightPanel>
+        <InsightPanel title="AI 建议" eyebrow="AI" description="先保留分析入口，后续接入真实建议。">
+          <p className="mt-4 text-sm font-semibold leading-6 text-[#5A5246]">
+            当前净投入为 {formatHKD(initialDeposit - withdrawalTotal, 'investment')}，建议年底复盘时与账户资产、汇率损益一起核对。
+          </p>
+        </InsightPanel>
+      </section>
+
       <Modal open={formOpen} title={editing ? '编辑出金记录' : '记录出金'} fullScreenOnMobile onClose={() => { setFormOpen(false); setEditing(null) }}>
         <WithdrawalForm accounts={accounts} withdrawal={editing} onSubmit={save} onCancel={() => { setFormOpen(false); setEditing(null) }} />
       </Modal>
@@ -111,5 +141,25 @@ function TblBtn({ children, danger, onClick }: { children: React.ReactNode; dang
       className={`grid h-8 w-8 place-items-center rounded-[8px] transition ${danger ? 'text-[#A8A296] hover:bg-[#F9F2F0] hover:text-[#F9F2F0]' : 'text-[#A8A296] hover:bg-[#F4F1ED] hover:text-[#5A5246]'}`}>
       {children}
     </button>
+  )
+}
+
+function InsightPanel({ title, eyebrow, description, children }: { title: string; eyebrow: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-[#E4DFD6]/80 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">{eyebrow}</p>
+      <h2 className="mt-2 text-lg font-bold text-[#2E2A24]">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-[#8C8273]">{description}</p>
+      {children}
+    </section>
+  )
+}
+
+function InsightLine({ label, value, className = '' }: { label: string; value: string; className?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#F4F1ED]/70 px-3 py-2">
+      <span className="min-w-0 truncate text-sm font-medium text-[#8C8273]">{label}</span>
+      <span className={`shrink-0 whitespace-nowrap text-sm font-bold tabular-nums text-[#4A4540] ${className}`}>{value}</span>
+    </div>
   )
 }
