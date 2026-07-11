@@ -5,7 +5,7 @@ import type {
   SyncRunSummary,
   SyncState,
   SyncTask,
-} from './types'
+} from './types.js'
 
 const syncTasks: Array<{
   task: SyncTask
@@ -76,15 +76,13 @@ export class SyncService {
     })
 
     try {
-      const result = await this.logStore.transaction(async () => {
-        const taskResults: SyncProviderResult[] = []
+      const taskResults: SyncProviderResult[] = []
 
-        for (const task of syncTasks) {
-          taskResults.push(await task.run(provider, startTime))
-        }
+      for (const task of syncTasks) {
+        taskResults.push(await task.run(provider, startTime))
+      }
 
-        return mergeResults(taskResults)
-      })
+      const result = mergeResults(taskResults)
 
       const endTime = new Date()
       await this.logStore.update(log.id, {

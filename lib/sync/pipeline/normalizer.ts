@@ -1,4 +1,4 @@
-import type { NormalizedIpoMasterRecord, ParsedProviderRecord } from './types'
+import type { NormalizedIpoMasterRecord, ParsedProviderRecord } from './types.js'
 
 export function createNormalizer() {
   return {
@@ -30,6 +30,7 @@ function normalizeRecord(record: ParsedProviderRecord): NormalizedIpoMasterRecor
       lotAmount: readOptionalNumber(record.data, ['lotAmount']),
       currency: readOptionalString(record.data, ['currency']) || 'HKD',
     },
+    timeline: createTimeline(record.data),
     source: {
       provider: record.provider,
       sourceType: record.sourceType,
@@ -40,6 +41,35 @@ function normalizeRecord(record: ParsedProviderRecord): NormalizedIpoMasterRecor
       rawPayload: record.data,
       fetchedAt: record.fetchedAt,
     },
+  }
+}
+
+function createTimeline(data: Record<string, unknown>) {
+  return [
+    createTimelineEvent(data, 'subscribeStart', 'subscribe_start', 'Subscription starts'),
+    createTimelineEvent(data, 'subscribeEnd', 'subscribe_end', 'Subscription closes'),
+    createTimelineEvent(data, 'listingDate', 'listing_date', 'Listing date'),
+  ].filter((event) => event !== undefined)
+}
+
+function createTimelineEvent(
+  data: Record<string, unknown>,
+  sourceKey: string,
+  type: string,
+  title: string,
+) {
+  const value = readOptionalString(data, [sourceKey])
+  if (!value) return undefined
+
+  const eventAt = new Date(`${value}T00:00:00+08:00`)
+  if (Number.isNaN(eventAt.getTime())) return undefined
+
+  return {
+    type,
+    title,
+    eventAt,
+    timezone: 'Asia/Hong_Kong',
+    isConfirmed: true,
   }
 }
 

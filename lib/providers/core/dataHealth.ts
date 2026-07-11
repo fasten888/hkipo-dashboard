@@ -3,7 +3,7 @@ import type {
   FieldSourceMap,
   ProviderDomain,
   ProviderTier,
-} from '../shared'
+} from '../shared/index.js'
 
 export type DataHealthInput = {
   domain: ProviderDomain

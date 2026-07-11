@@ -1,4 +1,4 @@
-import type { FieldSource, FieldSourceMap, ProviderDescriptor } from '../shared'
+import type { FieldSource, FieldSourceMap, ProviderDescriptor } from '../shared/index.js'
 
 export type MergeableRecord = Record<string, unknown>
 

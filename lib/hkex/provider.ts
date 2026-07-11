@@ -1,11 +1,11 @@
-import { prisma } from '../database/prisma'
-import { ProviderRuntime } from '../providers/core'
+import { prisma } from '../database/prisma.js'
+import { ProviderRuntime } from '../providers/core/index.js'
 import {
   hkexOfficialProvider,
   type HkexOfficialDocument,
   type HkexOfficialIpoRecord,
-} from '../providers/hkex'
-import type { SyncProvider, SyncProviderResult } from '../sync'
+} from '../providers/hkex/index.js'
+import type { SyncProvider, SyncProviderResult } from '../sync/index.js'
 
 const skippedResult = (task: string): SyncProviderResult => ({
   added: 0,

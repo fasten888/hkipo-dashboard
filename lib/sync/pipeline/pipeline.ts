@@ -8,7 +8,7 @@ import type {
   PipelineRunResult,
   UpsertEngine,
   Validator,
-} from './types'
+} from './types.js'
 
 export type PipelineDependencies = {
   provider: string

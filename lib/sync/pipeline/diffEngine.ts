@@ -3,7 +3,7 @@ import type {
   ExistingIpoSnapshot,
   IpoDiffItem,
   NormalizedIpoMasterRecord,
-} from './types'
+} from './types.js'
 
 export function createDiffEngine() {
   return {
@@ -30,7 +30,7 @@ export function createDiffEngine() {
 
         const changedFields = getChangedFields(current, record)
 
-        if (changedFields.length === 0 && current.sourceHash === record.source.payloadHash) {
+        if (changedFields.length === 0) {
           skips.push({
             operation: 'skip',
             record,
@@ -86,7 +86,6 @@ function getChangedFields(
 
   if (existing.name !== incoming.name) changedFields.push('name')
   if (existing.status !== incoming.status) changedFields.push('status')
-  if (existing.sourceHash !== incoming.source.payloadHash) changedFields.push('source.payloadHash')
 
   return changedFields
 }

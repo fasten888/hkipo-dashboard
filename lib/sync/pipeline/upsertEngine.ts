@@ -1,4 +1,4 @@
-import type { DiffResult, UpsertResult } from './types'
+import type { DiffResult, UpsertResult } from './types.js'
 
 export type IpoMasterStore = {
   transaction: <T>(operation: () => Promise<T>) => Promise<T>

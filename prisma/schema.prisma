@@ -72,18 +72,39 @@ model IpoEvent {
 }
 
 model Account {
-  id              String       @id @default(cuid())
-  name            String
-  broker          String?
-  currency        String       @default("HKD")
-  cash            Float        @default(0)
-  frozen          Float        @default(0)
-  marginLimit     Float        @default(0) @map("margin_limit")
-  availableMargin Float        @default(0) @map("available_margin")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  accountIpos     AccountIpo[]
+  id                 String         @id @default(cuid())
+  name               String
+  broker             String?
+  brokerProfileId    String?        @map("broker_profile_id")
+  currency           String         @default("HKD")
+  cash               Float          @default(0)
+  frozen             Float          @default(0)
+  marginLimit        Float          @default(0) @map("margin_limit")
+  availableMargin    Float          @default(0) @map("available_margin")
+  financingMultiple  Float          @default(10) @map("financing_multiple")
+  status             String         @default("active")
+  note               String?
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @default(now()) @updatedAt @map("updated_at")
+  brokerProfile      BrokerProfile? @relation(fields: [brokerProfileId], references: [id], onDelete: SetNull)
+  accountIpos        AccountIpo[]
 
+  @@index([brokerProfileId])
+  @@index([status])
   @@map("account")
+}
+
+model BrokerProfile {
+  id                   String    @id @default(cuid())
+  name                 String    @unique
+  defaultMarginMultiple Float    @default(10) @map("default_margin_multiple")
+  defaultFee           Float     @default(100) @map("default_fee")
+  defaultFinancingRate Float     @default(0) @map("default_financing_rate")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at")
+  accounts             Account[]
+
+  @@map("broker_profile")
 }
 
 model AccountIpo {

@@ -1,5 +1,5 @@
-import type { Provider } from '../core'
-import { PROVIDER_PRIORITY, type IPORecord, type ProviderFetchResult } from '../shared'
+import type { Provider } from '../core/index.js'
+import { PROVIDER_PRIORITY, type IPORecord, type ProviderFetchResult } from '../shared/index.js'
 
 const HKEX_APP_BASE_URL = 'https://www1.hkexnews.hk/app/'
 const HKEX_EDS_BASE_URL = 'https://www1.hkexnews.hk/ncms/json/eds/'

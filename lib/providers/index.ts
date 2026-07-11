@@ -1,2 +1,2 @@
-export * from './core'
-export * from './shared'
+export * from './core/index.js'
+export * from './shared/index.js'

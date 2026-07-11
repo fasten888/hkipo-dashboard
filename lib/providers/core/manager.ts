@@ -1,5 +1,5 @@
-import type { Provider } from './provider'
-import type { ProviderStatus, SyncContext, SyncResult } from '../shared'
+import type { Provider } from './provider.js'
+import type { ProviderStatus, SyncContext, SyncResult } from '../shared/index.js'
 
 export class ProviderManager {
   private providers = new Map<string, Provider>()

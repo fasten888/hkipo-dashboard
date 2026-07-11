@@ -1,10 +1,10 @@
-import { prisma } from './prisma'
+import { prisma } from './prisma.js'
 import type {
   SyncLogCreateInput,
   SyncLogEntry,
   SyncLogStore,
   SyncLogUpdateInput,
-} from '../sync/types'
+} from '../sync/types.js'
 
 function toSyncLogEntry(record: {
   id: string

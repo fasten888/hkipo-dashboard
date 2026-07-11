@@ -1,5 +1,5 @@
-import type { Provider } from './provider'
-import { ProviderManager, sortProviders } from './manager'
+import type { Provider } from './provider.js'
+import { ProviderManager, sortProviders } from './manager.js'
 import type {
   ProviderDomain,
   ProviderHealth,
@@ -8,7 +8,7 @@ import type {
   ProviderStatusCode,
   SyncContext,
   SyncResult,
-} from '../shared'
+} from '../shared/index.js'
 
 export type ProviderCursorStore = {
   getLastCursor(providerId: string): string | undefined | Promise<string | undefined>

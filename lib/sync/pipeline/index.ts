@@ -1,8 +1,8 @@
-export { createDiffEngine } from './diffEngine'
-export { createNormalizer } from './normalizer'
-export { runIpoPipeline } from './pipeline'
-export { createUpsertEngine } from './upsertEngine'
-export { createIpoValidator } from './validator'
+export { createDiffEngine } from './diffEngine.js'
+export { createNormalizer } from './normalizer.js'
+export { runIpoPipeline } from './pipeline.js'
+export { createUpsertEngine } from './upsertEngine.js'
+export { createIpoValidator } from './validator.js'
 export type {
   DiffEngine,
   DiffOperation,
@@ -24,4 +24,4 @@ export type {
   ValidationIssue,
   ValidationResult,
   Validator,
-} from './types'
+} from './types.js'

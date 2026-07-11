@@ -2,7 +2,7 @@ import type {
   NormalizedIpoMasterRecord,
   ValidationIssue,
   ValidationResult,
-} from './types'
+} from './types.js'
 
 const validStatuses = new Set([
   'unknown',

@@ -1,4 +1,4 @@
-export { SyncService } from './service'
+export { SyncService } from './service.js'
 export type {
   SyncContext,
   SyncLogEntry,
@@ -9,4 +9,4 @@ export type {
   SyncState,
   SyncStatus,
   SyncTask,
-} from './types'
+} from './types.js'

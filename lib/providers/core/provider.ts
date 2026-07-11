@@ -3,11 +3,11 @@ import type {
   ProviderFetchResult,
   ProviderResult,
   SyncContext,
-} from '../shared'
+} from '../shared/index.js'
 
-export interface Provider<TPayload = unknown, TParsed = unknown, TRecord = unknown>
-  extends ProviderDescriptor {
-  fetch(context: SyncContext): Promise<ProviderFetchResult<TPayload>>
-  parse(payload: ProviderFetchResult<TPayload>, context: SyncContext): Promise<ProviderResult<TParsed>>
-  normalize(parsed: ProviderResult<TParsed>, context: SyncContext): Promise<ProviderResult<TRecord>>
-}
+export type Provider<TPayload = unknown, TParsed = unknown, TRecord = unknown> =
+  ProviderDescriptor & {
+    fetch(context: SyncContext): Promise<ProviderFetchResult<TPayload>>
+    parse(payload: ProviderFetchResult<TPayload>, context: SyncContext): Promise<ProviderResult<TParsed>>
+    normalize(parsed: ProviderResult<TParsed>, context: SyncContext): Promise<ProviderResult<TRecord>>
+  }
