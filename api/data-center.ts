@@ -1,4 +1,4 @@
-import { prisma } from '../lib/database/prisma'
+import { prisma } from '../lib/database/prisma.js'
 
 type VercelRequest = {
   method?: string
