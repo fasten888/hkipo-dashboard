@@ -13,6 +13,7 @@ import {
   Tags,
   WalletCards,
   ChartCandlestick,
+  Database,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -35,6 +36,7 @@ export type NavigationKey =
   | 'sales'
   | 'statistics'
   | 'review'
+  | 'dataCenter'
   | 'data'
   | 'safety'
   | 'settings'
@@ -64,6 +66,7 @@ export const mainNavigation: NavigationItem[] = [
 ]
 
 export const secondaryNavigation: NavigationItem[] = [
+  { id: 'dataCenter', label: '数据中心', icon: Database, available: true },
   { id: 'data', label: '数据管理', icon: ReceiptText, available: true },
   { id: 'safety', label: '数据安全', icon: ShieldCheck, available: true },
   { id: 'settings', label: '设置', icon: Settings, available: false },

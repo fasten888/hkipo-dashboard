@@ -488,7 +488,7 @@ function SidebarContent({
     { label: '驾驶舱',  ids: ['dashboard', 'statistics', 'review'] },
     { label: '新股管理', ids: ['ipos', 'subscriptions', 'allotments', 'sales'] },
     { label: '资金中心', ids: ['accounts', 'deposits', 'exchange', 'holdings'] },
-    { label: '系统',    ids: ['data', 'safety', 'settings'] },
+    { label: '系统',    ids: ['dataCenter', 'data', 'safety', 'settings'] },
   ]
 
   const aiItems = [
@@ -715,6 +715,7 @@ function getPageMeta(nav: NavigationKey) {
     sales:         { title: '卖出记录',   subtitle: '记录暗盘、首日和持有后卖出的净收益。' },
     statistics:    { title: '数据统计',   subtitle: '用排行、趋势和策略分析复盘打新表现。' },
     review:        { title: '月度复盘',   subtitle: '按月份回看参与、中签、收益和最佳新股。' },
+    dataCenter:    { title: '数据中心',   subtitle: '查看 IPO 同步、Provider 状态和导入入口。' },
     data:          { title: '数据管理',   subtitle: '导入导出、备份恢复和迁移数据。' },
     safety:        { title: '数据安全',   subtitle: '操作日志、版本快照和数据健康检查。' },
     settings:      { title: '设置中心',   subtitle: '配置你的个人投资驾驶舱。' },

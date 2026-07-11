@@ -8,6 +8,7 @@ import {
   AccountsPage,
   AllotmentsPage,
   DashboardPage,
+  DataCenterPage,
   DataExportPage,
   DataSafetyPage,
   ExchangePage,
@@ -113,6 +114,7 @@ export default function App() {
       {view.name === 'sales' && <SalesPage />}
       {view.name === 'statistics' && <StatisticsPage />}
       {view.name === 'review' && <MonthlyReviewPage />}
+      {view.name === 'dataCenter' && <DataCenterPage />}
       {view.name === 'data' && <DataExportPage />}
       {view.name === 'safety' && <DataSafetyPage />}
       {view.name === 'settings' && <DashboardPage filter={dashboardFilter} />}
@@ -132,6 +134,7 @@ const navigationKeys = new Set<NavigationKey>([
   'sales',
   'statistics',
   'review',
+  'dataCenter',
   'data',
   'safety',
   'settings',
