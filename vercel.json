@@ -9,6 +9,22 @@
   },
   "rewrites": [
     {
+      "source": "/api/broker-profiles",
+      "destination": "/api/resource?resource=broker-profiles"
+    },
+    {
+      "source": "/api/sell-records",
+      "destination": "/api/resource?resource=sell-records"
+    },
+    {
+      "source": "/api/withdrawals",
+      "destination": "/api/resource?resource=withdrawals"
+    },
+    {
+      "source": "/api/exchange-records",
+      "destination": "/api/resource?resource=exchange-records"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
