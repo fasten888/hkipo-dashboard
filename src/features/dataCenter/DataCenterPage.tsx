@@ -46,6 +46,15 @@ interface DataCenterPayload {
     failed: number
     message: string | null
   }>
+  providerMetrics: Array<{
+    provider: string
+    status: ProviderStatus
+    lastSyncTime: string | null
+    added: number
+    updated: number
+    failed: number
+    message: string | null
+  }>
   syncLogs: SyncLogRow[]
   accountCount: number
   ipoCount: number
@@ -86,8 +95,8 @@ export function DataCenterPage() {
       const response = await fetch('/api/data-center', {
         headers: { accept: 'application/json' },
       })
-      const payload = await response.json() as { ok?: boolean; data?: DataCenterPayload; message?: string }
-      if (!response.ok || !payload.ok || !payload.data) {
+      const payload = await response.json() as { ok: boolean; data: DataCenterPayload; message?: string }
+      if (!response.ok) {
         throw new Error(payload.message ?? '读取数据中心失败')
       }
       setData(payload.data)
@@ -104,7 +113,7 @@ export function DataCenterPage() {
 
   const latestLog = data?.syncLogs[0]
   const totalProviderFailures = useMemo(
-    () => data?.providerStatus.reduce((total, provider) => total + provider.failed, 0) ?? 0,
+    () => data?.providerMetrics.reduce((total, provider) => total + provider.failed, 0) ?? 0,
     [data],
   )
 
@@ -324,9 +333,15 @@ function StatusBadge({ status }: { status: ProviderStatus }) {
     Degraded: 'bg-amber-50 text-amber-700',
     Disabled: 'bg-[#F4F1ED] text-[#A8A296]',
   }
+  const labels: Record<ProviderStatus, string> = {
+    Healthy: 'Provider 正常',
+    Offline: 'Provider 未连接',
+    Degraded: 'Provider 异常',
+    Disabled: 'Provider 未启用',
+  }
   return (
     <span className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-bold ${styles[status]}`}>
-      {status}
+      {labels[status]}
     </span>
   )
 }

@@ -3,7 +3,6 @@ import {
   CalendarRange,
   ChevronDown,
   Cloud,
-  CloudOff,
   Download,
   Eye,
   Menu,
@@ -26,7 +25,6 @@ import {
 } from '../../app/navigation'
 import { PrivacySettingsModal } from '../privacy/PrivacySettingsModal'
 import { Modal } from '../ui/Modal'
-import { CloudSyncModal } from '../cloud/CloudSyncModal'
 import { useAppData } from '../../hooks/useAppData'
 import { APP_VERSION } from '../../app/version'
 import { formatAccountName } from '../../utils/account'
@@ -50,7 +48,6 @@ export function AppShell({
   const cloud = useAppData()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [privacyOpen, setPrivacyOpen]       = useState(false)
-  const [cloudOpen, setCloudOpen]           = useState(false)
   const [installHelpOpen, setInstallHelpOpen] = useState(false)
   const [installPrompt, setInstallPrompt]   = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled]           = useState(() => window.matchMedia('(display-mode: standalone)').matches)
@@ -99,7 +96,7 @@ export function AppShell({
         style={{ boxShadow: '0 1px 0 #E4DFD6' }}>
         <Brand />
         <div className="flex items-center gap-1.5">
-          <CloudButton connected={Boolean(cloud.cloudUser)} status={cloud.cloudStatus} pending={cloud.cloudPendingChanges} onClick={() => setCloudOpen(true)} compact />
+          <CloudButton compact />
           {!installed && <InstallButton onClick={handleInstall} compact />}
           <button type="button" onClick={() => setMobileMenuOpen(true)}
             className="grid h-8 w-8 place-items-center rounded-[10px] text-[#8C8273] transition hover:bg-[#F4F1ED]">
@@ -415,7 +412,7 @@ export function AppShell({
               <RefreshCw size={13} className={cloud.cloudStatus === 'syncing' ? 'animate-spin' : ''} />
             </button>
 
-            <CloudButton connected={Boolean(cloud.cloudUser)} status={cloud.cloudStatus} pending={cloud.cloudPendingChanges} onClick={() => setCloudOpen(true)} />
+            <CloudButton />
             {!installed && <InstallButton onClick={handleInstall} />}
 
             {/* Privacy */}
@@ -447,7 +444,6 @@ export function AppShell({
       </main>
 
       <PrivacySettingsModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
-      <CloudSyncModal      open={cloudOpen}   onClose={() => setCloudOpen(false)} />
       <InstallHelpModal    open={installHelpOpen} onClose={() => setInstallHelpOpen(false)} />
     </div>
   )
@@ -631,34 +627,15 @@ function FilterPill({
 }
 
 function CloudButton({
-  connected, status, pending, compact = false, onClick,
+  compact = false,
 }: {
-  connected: boolean
-  status: ReturnType<typeof useAppData>['cloudStatus']
-  pending: boolean
   compact?: boolean
-  onClick: () => void
 }) {
-  const Icon      = connected ? Cloud : CloudOff
-  const syncing   = status === 'syncing' || status === 'loading'
-  const hasProblem = status === 'error' || status === 'offline' || status === 'auth_expired'
-  const label     = !connected ? '云同步'
-    : syncing ? '同步中'
-    : pending ? '待上传'
-    : hasProblem ? '同步异常'
-    : '已同步'
-
   return (
-    <button type="button" onClick={onClick}
-      className={[
-        'inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-3 text-[12px] font-medium transition',
-        hasProblem          ? 'border-[#F3EAD7] bg-[#FAF6EF] text-[#9F814C]'
-        : connected && pending ? 'border-[#E8D9D3] bg-[#F8F4F1] text-[#B08B7E]'
-        : connected            ? 'border-[#E5EBE5] bg-[#F2F5F2] text-[#677A6F]'
-        :                        'border-[#E4DFD6] bg-white text-[#8C8273]',
-      ].join(' ')}>
-      <Icon size={13} className={syncing ? 'animate-pulse' : ''} />
-      {!compact && label}
+    <button type="button"
+      className="inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-[#E5EBE5] bg-[#F2F5F2] px-3 text-[12px] font-medium text-[#677A6F]">
+      <Cloud size={13} />
+      {!compact && '已自动同步'}
     </button>
   )
 }
@@ -692,7 +669,7 @@ function InstallHelpModal({ open, onClose }: { open: boolean; onClose: () => voi
           </p>
         </div>
         <p className="text-[11px] leading-5 text-[#9F814C]">
-          登录同一个云同步账号后，电脑和手机会共享数据；未登录时仍使用本机存储。
+          业务数据通过 API 和数据库自动同步，电脑和手机打开后会读取同一份数据。
         </p>
       </div>
     </Modal>
