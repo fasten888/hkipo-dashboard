@@ -1,6 +1,7 @@
 export { AccountDetailPage } from './AccountDetailPage'
 export { AccountsPage } from './AccountsPage'
 export { AllotmentsPage } from './AllotmentsPage'
+export { CapitalAllocationPage } from './CapitalAllocationPage'
 export { DashboardPage } from './DashboardPage'
 export { DataCenterPage } from './DataCenterPage'
 export { DataExportPage } from './DataExportPage'

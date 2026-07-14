@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -8,17 +9,33 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import {
-  loadAppData,
-  loadAutoBackup,
-  normalizeAppData,
-  saveAppData,
-} from '../services/storage'
+import { normalizeAppData } from '../services/storage'
 import {
   addOperationLog,
   createVersionSnapshot,
-  ensureDailyBackup,
 } from '../services/audit'
+import {
+  createAccountInDatabase,
+  createExchangeRecordInDatabase,
+  createIpoInDatabase,
+  createSaleInDatabase,
+  createSubscriptionsInDatabase,
+  createWithdrawalInDatabase,
+  deleteAccountInDatabase,
+  deleteExchangeRecordInDatabase,
+  deleteIpoInDatabase,
+  deleteSaleInDatabase,
+  deleteSubscriptionInDatabase,
+  deleteSubscriptionsInDatabase,
+  deleteWithdrawalInDatabase,
+  loadDatabaseAppData,
+  updateAccountInDatabase,
+  updateExchangeRecordInDatabase,
+  updateIpoInDatabase,
+  updateSaleInDatabase,
+  updateSubscriptionInDatabase,
+  updateWithdrawalInDatabase,
+} from '../services/databaseApi'
 import type { AccountInput } from '../types/account'
 import type { Ipo, IpoInput } from '../types/ipo'
 import type { Sale, SaleInput } from '../types/sale'
@@ -47,7 +64,6 @@ import type {
   CloudUploadReport,
   CloudUser,
 } from '../types/cloud'
-import { useCloudSync } from './useCloudSync'
 
 interface AppDataContextValue extends AppData {
   cloudConfigured: boolean
@@ -115,19 +131,91 @@ function timestamped<T>(input: T) {
   return { ...input, id: createId(), createdAt: now, updatedAt: now }
 }
 
+function subscriptionToInput(subscription: Subscription): SubscriptionInput {
+  return {
+    accountId: subscription.accountId,
+    ipoId: subscription.ipoId,
+    method: subscription.method,
+    subscriptionMethod: subscription.subscriptionMethod ?? subscription.method,
+    subscriptionAmount: subscription.subscriptionAmount,
+    fee: subscription.fee,
+    subscriptionDate: subscription.subscriptionDate,
+    remarks: subscription.remarks,
+    status: subscription.status,
+    allottedShares: subscription.allottedShares,
+    allottedLots: subscription.allottedLots,
+    sellPlan: subscription.sellPlan,
+    fundingSource: subscription.fundingSource,
+  }
+}
+
+function databaseCloudFacade(refreshData: () => Promise<void>) {
+  const now = new Date().toISOString()
+  const run = async () => {
+    await refreshData()
+  }
+
+  return {
+    configured: false,
+    user: null as CloudUser | null,
+    status: 'synced' as CloudSyncStatus,
+    message: '数据库模式：业务数据直接通过 API / Prisma 读取。',
+    lastSyncedAt: now,
+    pendingChanges: false,
+    conflict: null as CloudConflict | null,
+    diagnostic: null as CloudDiagnosticResult | null,
+    remoteSummary: null as CloudRemoteSummary | null,
+    uploadReport: null as CloudUploadReport | null,
+    syncTimes: {
+      lastUploadedAt: null,
+      lastDownloadedAt: now,
+    } satisfies CloudSyncTimes,
+    sessionExpiresAt: null as number | null,
+    hasRefreshToken: false,
+    signIn: async () => undefined,
+    signUp: async () => undefined,
+    signOut: async () => undefined,
+    syncNow: run,
+    refreshRemoteSummaryNow: run,
+    uploadNow: run,
+    pullRemoteNow: run,
+    resolveConflict: async () => undefined,
+    runDiagnostic: run,
+  }
+}
+
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(loadAppData)
-  const cloud = useCloudSync(data, setData)
+  const [data, setData] = useState<AppData>(() => normalizeAppData({}))
   const lastSubscriptionBatch = useRef<{
     before: AppData
     after: AppData
   } | null>(null)
   const [subscriptionBatchRevision, setSubscriptionBatchRevision] = useState(0)
 
+  const refreshData = useCallback(async () => {
+    const nextData = await loadDatabaseAppData()
+    setData(normalizeAppData(nextData))
+  }, [])
+
   useEffect(() => {
-    saveAppData(data)
-    ensureDailyBackup(data)
-  }, [data])
+    void refreshData().catch((error) => {
+      console.error('[app-data] failed to load database data', error)
+    })
+  }, [refreshData])
+
+  const persistAndRefresh = useCallback(
+    (action: Promise<unknown>) => {
+      void action
+        .then(refreshData)
+        .catch((error) => console.error('[app-data] database write failed', error))
+    },
+    [refreshData],
+  )
+
+  const cloud = useMemo(
+    () => databaseCloudFacade(refreshData),
+    [refreshData],
+  )
 
   const value = useMemo<AppDataContextValue>(
     () => ({
@@ -154,7 +242,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pullCloudNow: cloud.pullRemoteNow,
       resolveCloudConflict: cloud.resolveConflict,
       runCloudDiagnostic: cloud.runDiagnostic,
-      addAccount: (input) =>
+      addAccount: (input) => {
+        persistAndRefresh(createAccountInDatabase(input))
         setData((current) => {
           createVersionSnapshot(current, '新增账户前')
           return {
@@ -168,8 +257,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
               ...current.accounts,
             ],
           }
-        }),
-      updateAccount: (id, input) =>
+        })
+      },
+      updateAccount: (id, input) => {
+        persistAndRefresh(updateAccountInDatabase(id, input))
         setData((current) => {
           const account = current.accounts.find((item) => item.id === id)
           if (!account) return current
@@ -179,11 +270,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             accounts: current.accounts.map((item) =>
               item.id === id
                 ? { ...item, ...input, updatedAt: new Date().toISOString() }
-                : item,
+              : item,
             ),
           }
-        }),
-      deleteAccount: (id) =>
+        })
+      },
+      deleteAccount: (id) => {
+        persistAndRefresh(deleteAccountInDatabase(id))
         setData((current) => {
           const account = current.accounts.find((item) => item.id === id)
           if (!account) return current
@@ -212,8 +305,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
               (item) => item.accountId !== id,
             ),
           }
-        }),
-      addIpos: (inputs) =>
+        })
+      },
+      addIpos: (inputs) => {
+        inputs.forEach((input) => persistAndRefresh(createIpoInDatabase(input)))
         setData((current) => {
           createVersionSnapshot(current, '新增新股前')
           const created = inputs.map((input) => timestamped(input) as Ipo)
@@ -229,8 +324,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             ...current,
             ipos: [...created, ...current.ipos],
           }
-        }),
-      updateIpo: (id, input) =>
+        })
+      },
+      updateIpo: (id, input) => {
+        persistAndRefresh(updateIpoInDatabase(id, input))
         setData((current) => {
           const before = current.ipos.find((ipo) => ipo.id === id)
           if (!before) return current
@@ -251,8 +348,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             ...current,
             ipos: current.ipos.map((ipo) => (ipo.id === id ? after : ipo)),
           }
-        }),
-      deleteIpo: (id) =>
+        })
+      },
+      deleteIpo: (id) => {
+        persistAndRefresh(deleteIpoInDatabase(id))
         setData((current) => {
           const before = current.ipos.find((item) => item.id === id)
           if (!before) return current
@@ -278,8 +377,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
               (item) => !subscriptionIds.has(item.subscriptionId),
             ),
           }
-        }),
-      addSubscriptions: (inputs) =>
+        })
+      },
+      addSubscriptions: (inputs) => {
+        persistAndRefresh(createSubscriptionsInDatabase(inputs))
         setData((current) => {
           createVersionSnapshot(current, '新增申购前')
           const created = inputs.map((input) => {
@@ -317,8 +418,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             ...current,
             subscriptions: [...created, ...current.subscriptions],
           }
-        }),
-      updateSubscription: (id, input) =>
+        })
+      },
+      updateSubscription: (id, input) => {
+        persistAndRefresh(updateSubscriptionInDatabase(id, input))
         setData((current) => {
           const before = current.subscriptions.find(
             (item) => item.id === id,
@@ -352,8 +455,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
               subscription.id === id ? after : subscription,
             ),
           }
-        }),
-      deleteSubscription: (id) =>
+        })
+      },
+      deleteSubscription: (id) => {
+        persistAndRefresh(deleteSubscriptionInDatabase(id))
         setData((current) => {
           const before = current.subscriptions.find((item) => item.id === id)
           if (!before) return current
@@ -379,7 +484,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
               (item) => item.subscriptionId !== id,
             ),
           }
-        }),
+        })
+      },
       batchUpdateSubscriptions: (ids, changes) => {
         const selectedIds = new Set(ids)
         if (selectedIds.size === 0) return
@@ -429,6 +535,34 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             subscriptions: nextSubscriptions,
             ipos: nextIpos,
           }
+          const updatedSubscriptions = nextSubscriptions.filter((item) =>
+            selectedIds.has(item.id),
+          )
+          const updatedIpos =
+            changes.listingDate
+              ? nextIpos.filter((ipo) => affectedIpoIds.has(ipo.id))
+              : []
+          persistAndRefresh(
+            Promise.all([
+              ...updatedSubscriptions.map((subscription) =>
+                updateSubscriptionInDatabase(
+                  subscription.id,
+                  subscriptionToInput(subscription),
+                ),
+              ),
+              ...updatedIpos.map((ipo) =>
+                updateIpoInDatabase(ipo.id, {
+                  name: ipo.name,
+                  stockCode: ipo.stockCode,
+                  issuePrice: ipo.issuePrice,
+                  lotSize: ipo.lotSize,
+                  subscriptionDate: ipo.subscriptionDate,
+                  listingDate: ipo.listingDate,
+                  industry: ipo.industry,
+                }),
+              ),
+            ]),
+          )
 
           createVersionSnapshot(current, `批量修改申购前（${selected.length}条）`)
           addOperationLog({
@@ -453,6 +587,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       batchDeleteSubscriptions: (ids) => {
         const selectedIds = new Set(ids)
         if (selectedIds.size === 0) return
+        persistAndRefresh(deleteSubscriptionsInDatabase(ids))
         setData((current) => {
           const selected = current.subscriptions.filter((item) =>
             selectedIds.has(item.id),
@@ -525,6 +660,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       },
       addSale: (input) =>
         setData((current) => {
+          persistAndRefresh(createSaleInDatabase(input))
           createVersionSnapshot(current, '新增卖出前')
           const after = timestamped(input) as Sale
           const subscription = current.subscriptions.find(
@@ -546,6 +682,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       updateSale: (id, input) =>
         setData((current) => {
+          persistAndRefresh(updateSaleInDatabase(id, input))
           const before = current.sales.find((item) => item.id === id)
           if (!before) return current
           const subscription = current.subscriptions.find(
@@ -576,6 +713,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       deleteSale: (id) =>
         setData((current) => {
+          persistAndRefresh(deleteSaleInDatabase(id))
           const before = current.sales.find((item) => item.id === id)
           if (!before) return current
           const subscription = current.subscriptions.find(
@@ -598,6 +736,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       addWithdrawal: (input) =>
         setData((current) => {
+          persistAndRefresh(createWithdrawalInDatabase(input))
           createVersionSnapshot(current, '新增出金前')
           return {
             ...current,
@@ -609,6 +748,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       updateWithdrawal: (id, input) =>
         setData((current) => {
+          persistAndRefresh(updateWithdrawalInDatabase(id, input))
           const withdrawal = current.withdrawals.find(
             (item) => item.id === id,
           )
@@ -629,6 +769,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       deleteWithdrawal: (id) =>
         setData((current) => {
+          persistAndRefresh(deleteWithdrawalInDatabase(id))
           const withdrawal = current.withdrawals.find(
             (item) => item.id === id,
           )
@@ -641,6 +782,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       addExchangeRecord: (input) =>
         setData((current) => {
+          persistAndRefresh(createExchangeRecordInDatabase(input))
           const account = current.accounts.find(
             (item) => item.id === input.accountId,
           )
@@ -659,6 +801,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       updateExchangeRecord: (id, input) =>
         setData((current) => {
+          persistAndRefresh(updateExchangeRecordInDatabase(id, input))
           const before = current.exchangeRecords.find(
             (item) => item.id === id,
           )
@@ -688,6 +831,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }),
       deleteExchangeRecord: (id) =>
         setData((current) => {
+          persistAndRefresh(deleteExchangeRecordInDatabase(id))
           const before = current.exchangeRecords.find(
             (item) => item.id === id,
           )
@@ -795,33 +939,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           return normalizedNextData
         }),
       restoreAutoBackup: () => {
-        const backup = loadAutoBackup()
-        if (!backup) return false
-        setData((current) => {
-          createVersionSnapshot(current, '恢复自动备份前')
-          addOperationLog({
-            action: '恢复备份',
-            objectType: '系统数据',
-            objectName: '最近自动备份',
-            before: {
-              accounts: current.accounts.length,
-              ipos: current.ipos.length,
-              subscriptions: current.subscriptions.length,
-              sales: current.sales.length,
-            },
-            after: {
-              accounts: backup.accounts.length,
-              ipos: backup.ipos.length,
-              subscriptions: backup.subscriptions.length,
-              sales: backup.sales.length,
-            },
-          })
-          return backup
-        })
-        return true
+        return false
       },
     }),
-    [cloud, data, subscriptionBatchRevision],
+    [cloud, data, persistAndRefresh, subscriptionBatchRevision],
   )
 
   return (

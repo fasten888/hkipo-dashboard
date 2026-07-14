@@ -1,246 +1,725 @@
 import {
-  Activity,
-  BarChart3,
+  Ban,
+  Building2,
   CircleDollarSign,
-  Gauge,
+  Download,
+  Edit3,
+  Layers3,
+  Loader2,
   Plus,
+  Power,
+  Save,
   Search,
-  TrendingUp,
-  Trophy,
-  Users,
+  Trash2,
+  Upload,
+  WalletCards,
 } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
-import { Modal } from '../../components/ui/Modal'
-import { useIpos } from '../ipos/useIpos'
-import { useSubscriptions } from '../subscriptions/useSubscriptions'
-import { useAppData } from '../../hooks/useAppData'
-import { compareValues, useThreeStateSort } from '../../hooks/useThreeStateSort'
-import type { Account, AccountInput, AccountStats } from '../../types/account'
-import { formatAccountName } from '../../utils/account'
-import { formatHKD, formatPercent, formatSignedPercent } from '../../utils/currency'
-import { getProfitColor } from '../../utils/profit'
-import { getAccountStats, getPerformanceSummary } from '../../utils/statistics'
-import { AccountForm } from './AccountForm'
-import { AccountList, type AccountSortKey, WinRateNote } from './AccountList'
-import { useAccounts } from './useAccounts'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 
-// ── Design tokens ──────────────────────────────
-const C = {
-  text1: '#4A4540', text2: '#8C8273', text3: '#A8A296',
-  brand: '#B08B7E', danger: '#9A7468', success: '#7E9587',
-  warning: '#BC9A5F', info: '#8E87A6', border: '#E4DFD6', bg: '#F4F1ED',
+type BrokerProfile = {
+  id: string
+  name: string
+  defaultMarginMultiple: number
+  defaultFee: number
+  defaultFinancingRate: number
 }
 
-interface AccountsPageProps { onViewAccount: (accountId: string) => void }
+type DbAccount = {
+  id: string
+  name: string
+  broker: string | null
+  brokerProfileId: string | null
+  currency: string
+  cash: number
+  frozen: number
+  marginLimit: number
+  availableMargin: number
+  financingMultiple: number
+  status: 'active' | 'disabled' | string
+  note: string | null
+  createdAt: string
+  updatedAt: string
+  brokerProfile: BrokerProfile | null
+  accountIpos: Array<{
+    id: string
+    status: string
+    profit: number
+    ipo: {
+      code: string
+      name: string
+      subscribeEnd: string | null
+    }
+  }>
+  _count?: {
+    accountIpos: number
+  }
+}
+
+type AccountSummary = {
+  accounts: number
+  activeAccounts: number
+  disabledAccounts: number
+  cash: number
+  frozen: number
+  marginLimit: number
+  availableMargin: number
+}
+
+type AccountPayload = {
+  ok: boolean
+  message?: string
+  data?: {
+    accounts: DbAccount[]
+    brokerProfiles: BrokerProfile[]
+    summary: AccountSummary
+  }
+  result?: {
+    received: number
+    imported: number
+    created: number
+    updated: number
+  }
+}
+
+type AccountFormState = {
+  id?: string
+  name: string
+  broker: string
+  brokerProfileId: string
+  currency: string
+  cash: string
+  frozen: string
+  marginLimit: string
+  availableMargin: string
+  financingMultiple: string
+  status: 'active' | 'disabled'
+  note: string
+}
+
+type BrokerFormState = {
+  id?: string
+  name: string
+  defaultMarginMultiple: string
+  defaultFee: string
+  defaultFinancingRate: string
+}
+
+interface AccountsPageProps {
+  onViewAccount: (accountId: string) => void
+}
+
+const emptyAccountForm: AccountFormState = {
+  name: '',
+  broker: '',
+  brokerProfileId: '',
+  currency: 'HKD',
+  cash: '0',
+  frozen: '0',
+  marginLimit: '0',
+  availableMargin: '0',
+  financingMultiple: '10',
+  status: 'active',
+  note: '',
+}
+
+const emptyBrokerForm: BrokerFormState = {
+  name: '',
+  defaultMarginMultiple: '10',
+  defaultFee: '100',
+  defaultFinancingRate: '0',
+}
 
 export function AccountsPage({ onViewAccount }: AccountsPageProps) {
-  const { accounts, summary, addAccount, updateAccount, deleteAccount } = useAccounts()
-  const { ipos } = useIpos()
-  const { subscriptions } = useSubscriptions()
-  const { sales, withdrawals, exchangeRecords } = useAppData()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [rankingMetric, setRankingMetric] = useState<'profit' | 'profitRate' | 'winRate' | 'participation'>('profit')
-  const { sort, toggleSort } = useThreeStateSort<AccountSortKey>('accounts')
-  const [formOpen, setFormOpen] = useState(false)
-  const [editingAccount, setEditingAccount] = useState<Account | null>(null)
-  const [deletingAccount, setDeletingAccount] = useState<Account | null>(null)
+  const [accounts, setAccounts] = useState<DbAccount[]>([])
+  const [brokerProfiles, setBrokerProfiles] = useState<BrokerProfile[]>([])
+  const [summary, setSummary] = useState<AccountSummary | null>(null)
+  const [accountForm, setAccountForm] = useState<AccountFormState>(emptyAccountForm)
+  const [brokerForm, setBrokerForm] = useState<BrokerFormState>(emptyBrokerForm)
+  const [search, setSearch] = useState('')
+  const [importText, setImportText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
-  const noticeTimer = useRef<number>()
+  const [error, setError] = useState('')
 
-  const accountStats = useMemo(
-    () => Object.fromEntries(accounts.map((a) => [a.id, getAccountStats(a, subscriptions, ipos, sales, withdrawals)])) as Record<string, AccountStats>,
-    [accounts, subscriptions, ipos, sales, withdrawals],
-  )
+  useEffect(() => {
+    void loadAccounts()
+  }, [])
 
   const filteredAccounts = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase()
-    return accounts
-      .filter((a) => !query || a.name.toLowerCase().includes(query) || a.accountSuffix.includes(query) || a.brokerName.toLowerCase().includes(query))
-      .sort((a, b) => {
-        if (!sort) return b.createdAt.localeCompare(a.createdAt)
-        const compared = compareValues(accountSortValue(sort.key, a, accountStats[a.id]), accountSortValue(sort.key, b, accountStats[b.id]))
-        return sort.direction === 'asc' ? compared : -compared
-      })
-  }, [accountStats, accounts, searchTerm, sort])
-
-  const totals = Object.values(accountStats).reduce(
-    (r, s) => ({ participationCount: r.participationCount + s.participationCount, winCount: r.winCount + s.winCount, totalProfit: r.totalProfit + s.totalProfit }),
-    { participationCount: 0, winCount: 0, totalProfit: 0 },
-  )
-  const decidedCount = subscriptions.filter((s) => s.status === 'won' || s.status === 'lost').length
-  const historicalCount = accounts.reduce((t, a) => t + a.legacyParticipationCount, 0)
-  const overallWinRate = historicalCount + decidedCount > 0 ? (totals.winCount / (historicalCount + decidedCount)) * 100 : 0
-  const netInvestment = Math.max(0, summary.initialDeposit - withdrawals.reduce((t, i) => t + i.amount, 0))
-  const totalProfitRate = netInvestment > 0 ? (totals.totalProfit / netInvestment) * 100 : 0
-  const performance = getPerformanceSummary(subscriptions, ipos, sales)
-  const rankings = accounts.map((a) => ({ account: a, stats: accountStats[a.id] }))
-    .sort((l, r) => {
-      const vals = { profit: [l.stats.totalProfit, r.stats.totalProfit], profitRate: [l.stats.profitRate, r.stats.profitRate], winRate: [l.stats.winRate, r.stats.winRate], participation: [l.stats.participationCount, r.stats.participationCount] }[rankingMetric]
-      return vals[1] - vals[0]
+    const query = search.trim().toLowerCase()
+    return accounts.filter((account) => {
+      if (!query) return true
+      return [
+        account.name,
+        account.broker,
+        account.currency,
+        account.status,
+        account.note,
+      ].some((value) => value?.toLowerCase().includes(query))
     })
+  }, [accounts, search])
 
-  const showNotice = (msg: string) => { window.clearTimeout(noticeTimer.current); setNotice(msg); noticeTimer.current = window.setTimeout(() => setNotice(''), 2200) }
-  const handleSubmit = (input: AccountInput) => {
-    if (editingAccount) { updateAccount(editingAccount.id, input); showNotice('账户信息已更新') }
-    else { addAccount(input); showNotice('账户已创建') }
-    setFormOpen(false); setEditingAccount(null)
+  const activeAccounts = summary?.activeAccounts ?? accounts.filter((account) => account.status === 'active').length
+  const totalCapacity = (summary?.cash ?? 0) + (summary?.availableMargin ?? 0) - (summary?.frozen ?? 0)
+
+  async function loadAccounts() {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await fetch('/api/accounts', { headers: { accept: 'application/json' } })
+      const body = (await response.json()) as AccountPayload
+      if (!response.ok || !body.ok || !body.data) throw new Error(body.message || '账户数据读取失败')
+      setAccounts(body.data.accounts)
+      setBrokerProfiles(body.data.brokerProfiles)
+      setSummary(body.data.summary)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '账户数据读取失败')
+    } finally {
+      setLoading(false)
+    }
   }
-  const handleDelete = () => { if (!deletingAccount) return; deleteAccount(deletingAccount.id); setDeletingAccount(null); showNotice('账户及关联申购记录已删除') }
+
+  async function saveAccount(event: FormEvent) {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      const payload = {
+        account: {
+          name: accountForm.name,
+          broker: accountForm.broker,
+          brokerProfileId: accountForm.brokerProfileId || null,
+          currency: accountForm.currency,
+          cash: toNumber(accountForm.cash),
+          frozen: toNumber(accountForm.frozen),
+          marginLimit: toNumber(accountForm.marginLimit),
+          availableMargin: toNumber(accountForm.availableMargin),
+          financingMultiple: toNumber(accountForm.financingMultiple),
+          status: accountForm.status,
+          note: accountForm.note,
+        },
+      }
+      const response = await fetch('/api/accounts', {
+        method: accountForm.id ? 'PATCH' : 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(accountForm.id ? { id: accountForm.id, ...payload } : payload),
+      })
+      const body = (await response.json()) as AccountPayload
+      if (!response.ok || !body.ok) throw new Error(body.message || '账户保存失败')
+      setNotice(accountForm.id ? '账户已更新' : '账户已新增')
+      setAccountForm(emptyAccountForm)
+      await loadAccounts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '账户保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveBrokerProfile(event: FormEvent) {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      const response = await fetch('/api/broker-profiles', {
+        method: brokerForm.id ? 'PATCH' : 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({
+          id: brokerForm.id,
+          name: brokerForm.name,
+          defaultMarginMultiple: toNumber(brokerForm.defaultMarginMultiple),
+          defaultFee: toNumber(brokerForm.defaultFee),
+          defaultFinancingRate: toNumber(brokerForm.defaultFinancingRate),
+        }),
+      })
+      const body = (await response.json()) as { ok: boolean; message?: string }
+      if (!response.ok || !body.ok) throw new Error(body.message || '券商配置保存失败')
+      setNotice(brokerForm.id ? '券商配置已更新' : '券商配置已新增')
+      setBrokerForm(emptyBrokerForm)
+      await loadAccounts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '券商配置保存失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function removeAccount(account: DbAccount) {
+    if (!window.confirm(`确定删除账户「${account.name}」吗？相关 ACCOUNT_IPO 记录会一并删除。`)) return
+    setSaving(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/accounts?id=${encodeURIComponent(account.id)}`, {
+        method: 'DELETE',
+        headers: { accept: 'application/json' },
+      })
+      const body = (await response.json()) as AccountPayload
+      if (!response.ok || !body.ok) throw new Error(body.message || '删除账户失败')
+      setNotice('账户已删除')
+      await loadAccounts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '删除账户失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function toggleStatus(account: DbAccount) {
+    const nextStatus = account.status === 'disabled' ? 'active' : 'disabled'
+    setSaving(true)
+    setError('')
+    try {
+      const response = await fetch('/api/accounts', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ id: account.id, action: 'status', status: nextStatus }),
+      })
+      const body = (await response.json()) as AccountPayload
+      if (!response.ok || !body.ok) throw new Error(body.message || '账户状态更新失败')
+      setNotice(nextStatus === 'active' ? '账户已启用' : '账户已禁用')
+      await loadAccounts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '账户状态更新失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function importAccounts() {
+    const rows = parseAccountRows(importText)
+    if (rows.length === 0) {
+      setError('没有识别到账户数据，请粘贴 CSV 或从 Excel 复制表格。')
+      return
+    }
+
+    setSaving(true)
+    setError('')
+    try {
+      const response = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ action: 'import', rows }),
+      })
+      const body = (await response.json()) as AccountPayload
+      if (!response.ok || !body.ok || !body.result) throw new Error(body.message || '导入失败')
+      setNotice(`导入完成：新增 ${body.result.created}，更新 ${body.result.updated}`)
+      setImportText('')
+      await loadAccounts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '导入失败')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function editAccount(account: DbAccount) {
+    setAccountForm({
+      id: account.id,
+      name: account.name,
+      broker: account.broker ?? '',
+      brokerProfileId: account.brokerProfileId ?? '',
+      currency: account.currency,
+      cash: String(account.cash),
+      frozen: String(account.frozen),
+      marginLimit: String(account.marginLimit),
+      availableMargin: String(account.availableMargin),
+      financingMultiple: String(account.financingMultiple),
+      status: account.status === 'disabled' ? 'disabled' : 'active',
+      note: account.note ?? '',
+    })
+  }
+
+  function editBroker(profile: BrokerProfile) {
+    setBrokerForm({
+      id: profile.id,
+      name: profile.name,
+      defaultMarginMultiple: String(profile.defaultMarginMultiple),
+      defaultFee: String(profile.defaultFee),
+      defaultFinancingRate: String(profile.defaultFinancingRate),
+    })
+  }
+
+  function handleFile(file: File | undefined) {
+    if (!file) return
+    if (/\.(xlsx|xls)$/i.test(file.name)) {
+      setError('Excel 文件直读将在下一版接入。当前请从 Excel 复制表格粘贴，或另存为 CSV 后导入。')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => setImportText(String(reader.result ?? ''))
+    reader.readAsText(file)
+  }
 
   return (
-    <>
-      {/* ── Page header ── */}
-      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: C.text3 }}>账户中心</p>
-          <p className="mt-1.5 text-[13px]" style={{ color: C.text2 }}>管理账户资料，并自动汇总打新参与、中签与收益。</p>
-        </div>
-        <button type="button" className="os-button-primary gap-2" onClick={() => { setEditingAccount(null); setFormOpen(true) }}>
-          <Plus size={15} />新增账户
-        </button>
-      </div>
-
-      {/* ── KPI row 1 ── */}
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <PageKpi label="总收益" value={formatHKD(totals.totalProfit, 'profit')} hint="全部账户累计净收益" iconBg="#E5EBE5" iconColor={C.success} icon={<TrendingUp size={18} />} profitVal={totals.totalProfit} />
-        <PageKpi label="总收益率" value={formatPercent(totalProfitRate, 'profitRate')} hint="总收益 ÷ 当前投入资金" iconBg="#E9E7EE" iconColor={C.info} icon={<Gauge size={18} />} profitVal={totalProfitRate} />
-        <PageKpi label="总投入资金" value={formatHKD(netInvestment, 'investment')} hint="初始入金减累计出金" iconBg="#E8D9D3" iconColor={C.brand} icon={<CircleDollarSign size={18} />} />
-        <PageKpi label="整体中签率" value={formatPercent(overallWinRate)} hint={`${totals.winCount} 次中签`} iconBg="#F3EAD7" iconColor={C.warning} icon={<Trophy size={18} />} />
-      </div>
-
-      {/* ── KPI row 2 ── */}
-      <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <PageKpiSm label="账户数量" value={String(accounts.length)} hint="当前管理账户" icon={<Users size={15} />} iconBg="#E8D9D3" iconColor={C.brand} />
-        <PageKpiSm label="参与次数" value={String(totals.participationCount)} hint="全部账户累计参与" icon={<Activity size={15} />} iconBg="#E8D9D3" iconColor={C.brand} />
-        <PageKpiSm label="中签次数" value={String(totals.winCount)} hint={`${historicalCount + decidedCount} 次已确定结果`} icon={<Trophy size={15} />} iconBg="#F3EAD7" iconColor={C.warning} />
-        <PageKpiSm label="打新胜率" value={formatPercent(performance.overallWinRate)} hint="已卖出申购中的盈利占比" icon={<BarChart3 size={15} />} iconBg="#E9E7EE" iconColor={C.info} />
-      </div>
-
-      {/* ── Ranking section ── */}
-      <div className="os-card mt-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-6">
+      <section className="rounded-[30px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] md:p-7">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h2 className="text-[15px] font-semibold" style={{ color: C.text1 }}>账户盈利排行榜</h2>
-            <p className="mt-1 text-[12px]" style={{ color: C.text3 }}>快速识别最赚钱、效率最高和最值得继续参与的账户</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-500/80">Account Management Center</p>
+            <h1 className="mt-3 text-[34px] font-bold tracking-[-0.05em] text-slate-950 md:text-[44px]">账户管理中心</h1>
+            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500 md:text-base">
+              所有账户、券商配置和余额导入统一进入数据库，Planner 将直接读取这里的真实 Account。
+            </p>
           </div>
-          <div className="flex flex-wrap gap-1 rounded-[10px] p-1" style={{ background: C.bg }}>
-            {([['profit', '收益排行'], ['profitRate', '收益率排行'], ['winRate', '中签率排行'], ['participation', '参与次数排行']] as const).map(([key, label]) => (
-              <button key={key} type="button"
-                className={`whitespace-nowrap rounded-[8px] px-3 py-1.5 text-[12px] font-medium transition ${rankingMetric === key ? 'bg-white shadow-sm font-semibold' : ''}`}
-                style={{ color: rankingMetric === key ? C.text1 : C.text2 }}
-                onClick={() => setRankingMetric(key)}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setAccountForm(emptyAccountForm)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white shadow-[0_16px_40px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:bg-blue-500"
+          >
+            <Plus size={17} />
+            新增账户
+          </button>
         </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {rankings.slice(0, 4).map(({ account, stats }, i) => (
-            <button key={account.id} type="button"
-              className="rounded-[12px] border p-4 text-left transition hover:-translate-y-0.5"
-              style={{ borderColor: C.border }}
-              onClick={() => onViewAccount(account.id)}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[10px] font-bold" style={{ color: C.text3 }}>TOP {i + 1}</p>
-                  <p className="mt-1 truncate text-[13px] font-semibold" style={{ color: C.text1 }}>{formatAccountName(account)}</p>
-                </div>
-                <Trophy size={14} style={{ color: i === 0 ? C.warning : C.text3, flexShrink: 0 }} />
+      </section>
+
+      {error && (
+        <div className="rounded-[22px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">{error}</div>
+      )}
+      {notice && (
+        <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">{notice}</div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="账户总数" value={summary?.accounts ?? accounts.length} hint={`${activeAccounts} 个启用`} icon={<WalletCards size={18} />} tone="blue" />
+        <MetricCard label="现金余额" value={formatMoney(summary?.cash ?? 0)} hint="所有账户现金合计" icon={<CircleDollarSign size={18} />} tone="emerald" />
+        <MetricCard label="冻结资金" value={formatMoney(summary?.frozen ?? 0)} hint="正在占用资金" icon={<Layers3 size={18} />} tone="amber" />
+        <MetricCard label="总打新能力" value={formatMoney(totalCapacity)} hint="现金 + 可用融资 - 冻结" icon={<Building2 size={18} />} tone="purple" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
+        <div className="space-y-6">
+          <Panel title={accountForm.id ? '编辑账户' : '新增账户'} subtitle="账户字段来自 ACCOUNT，保存后 Planner 可立即读取。">
+            <form onSubmit={saveAccount} className="grid gap-4 md:grid-cols-2">
+              <Field label="账户名称">
+                <input className="form-input" value={accountForm.name} onChange={(event) => setAccountForm({ ...accountForm, name: event.target.value })} required />
+              </Field>
+              <Field label="券商">
+                <input className="form-input" value={accountForm.broker} onChange={(event) => setAccountForm({ ...accountForm, broker: event.target.value })} placeholder="致富证券 / 富途 / 辉立" />
+              </Field>
+              <Field label="券商配置">
+                <select className="form-input" value={accountForm.brokerProfileId} onChange={(event) => {
+                  const profile = brokerProfiles.find((item) => item.id === event.target.value)
+                  setAccountForm({
+                    ...accountForm,
+                    brokerProfileId: event.target.value,
+                    broker: profile?.name ?? accountForm.broker,
+                    financingMultiple: profile ? String(profile.defaultMarginMultiple) : accountForm.financingMultiple,
+                  })
+                }}>
+                  <option value="">不关联</option>
+                  {brokerProfiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>{profile.name}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="币种">
+                <select className="form-input" value={accountForm.currency} onChange={(event) => setAccountForm({ ...accountForm, currency: event.target.value })}>
+                  <option value="HKD">HKD</option>
+                  <option value="USD">USD</option>
+                  <option value="CNY">CNY</option>
+                </select>
+              </Field>
+              <Field label="现金">
+                <input className="form-input" inputMode="decimal" value={accountForm.cash} onChange={(event) => setAccountForm({ ...accountForm, cash: event.target.value })} />
+              </Field>
+              <Field label="冻结资金">
+                <input className="form-input" inputMode="decimal" value={accountForm.frozen} onChange={(event) => setAccountForm({ ...accountForm, frozen: event.target.value })} />
+              </Field>
+              <Field label="融资额度">
+                <input className="form-input" inputMode="decimal" value={accountForm.marginLimit} onChange={(event) => setAccountForm({ ...accountForm, marginLimit: event.target.value })} />
+              </Field>
+              <Field label="可用融资">
+                <input className="form-input" inputMode="decimal" value={accountForm.availableMargin} onChange={(event) => setAccountForm({ ...accountForm, availableMargin: event.target.value })} />
+              </Field>
+              <Field label="融资倍数">
+                <input className="form-input" inputMode="decimal" value={accountForm.financingMultiple} onChange={(event) => setAccountForm({ ...accountForm, financingMultiple: event.target.value })} />
+              </Field>
+              <Field label="状态">
+                <select className="form-input" value={accountForm.status} onChange={(event) => setAccountForm({ ...accountForm, status: event.target.value as AccountFormState['status'] })}>
+                  <option value="active">启用</option>
+                  <option value="disabled">禁用</option>
+                </select>
+              </Field>
+              <Field label="备注" className="md:col-span-2">
+                <textarea className="form-input min-h-[96px]" value={accountForm.note} onChange={(event) => setAccountForm({ ...accountForm, note: event.target.value })} />
+              </Field>
+              <div className="flex flex-wrap gap-3 md:col-span-2">
+                <button type="submit" disabled={saving} className="primary-action">
+                  {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                  保存账户
+                </button>
+                {accountForm.id && (
+                  <button type="button" className="secondary-action" onClick={() => setAccountForm(emptyAccountForm)}>
+                    取消编辑
+                  </button>
+                )}
               </div>
-              <p className={`mt-4 text-[18px] font-bold tabular-nums ${rankingMetric === 'profit' || rankingMetric === 'profitRate' ? getProfitColor(rankingMetric === 'profit' ? stats.totalProfit : stats.profitRate) : ''}`}
-                style={rankingMetric !== 'profit' && rankingMetric !== 'profitRate' ? { color: C.text1 } : {}}>
-                {rankingValue(rankingMetric, stats)}
-              </p>
-              <p className="mt-1.5 text-[11px]" style={{ color: C.text3 }}>{stats.winCount} 次中签 · {stats.participationCount} 次参与</p>
-            </button>
-          ))}
-          {rankings.length === 0 && <p className="py-8 text-center text-[13px] md:col-span-2 xl:col-span-4" style={{ color: C.text3 }}>暂无账户数据</p>}
+            </form>
+          </Panel>
+
+          <Panel title="账户列表" subtitle="启用/禁用不会删除账户，只会从可用账户中排除。">
+            <div className="mb-4 flex items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
+              <Search size={16} className="text-slate-400" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索账户、券商、币种或备注" className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400" />
+            </div>
+
+            {loading ? (
+              <InlineState icon={<Loader2 className="animate-spin" size={18} />} text="正在读取数据库账户" />
+            ) : filteredAccounts.length === 0 ? (
+              <InlineState icon={<WalletCards size={18} />} text="暂无账户，先在上方新增或导入余额。" />
+            ) : (
+              <div className="space-y-3">
+                {filteredAccounts.map((account) => (
+                  <article key={account.id} className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_10px_35px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <button type="button" onClick={() => onViewAccount(account.id)} className="min-w-0 text-left">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="truncate text-lg font-bold tracking-[-0.03em] text-slate-950">{account.name}</h3>
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${account.status === 'disabled' ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700'}`}>
+                            {account.status === 'disabled' ? '禁用' : '启用'}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm font-semibold text-slate-500">
+                          {account.broker || '未设置券商'} · {account.currency} · {account.financingMultiple}x
+                        </p>
+                      </button>
+                      <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4 lg:min-w-[560px]">
+                        <MiniStat label="现金" value={formatMoney(account.cash)} />
+                        <MiniStat label="冻结" value={formatMoney(account.frozen)} />
+                        <MiniStat label="融资" value={formatMoney(account.availableMargin || account.marginLimit)} />
+                        <MiniStat label="参与" value={`${account._count?.accountIpos ?? account.accountIpos.length} 项`} />
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button className="ghost-action" type="button" onClick={() => editAccount(account)}><Edit3 size={15} />编辑</button>
+                      <button className="ghost-action" type="button" onClick={() => toggleStatus(account)}>
+                        {account.status === 'disabled' ? <Power size={15} /> : <Ban size={15} />}
+                        {account.status === 'disabled' ? '启用' : '禁用'}
+                      </button>
+                      <button className="danger-action" type="button" onClick={() => removeAccount(account)}><Trash2 size={15} />删除</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </Panel>
         </div>
-      </div>
 
-      {/* ── Account list ── */}
-      <div className="mt-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-[15px] font-semibold" style={{ color: C.text1 }}>全部账户</h2>
-            <div className="mt-1"><WinRateNote /></div>
-          </div>
-          <div className="relative w-full sm:w-72">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.text3 }} />
-            <input type="search" value={searchTerm} placeholder="搜索名称、后四位或券商"
-              className="os-input w-full pl-9"
-              onChange={(e) => setSearchTerm(e.target.value)} />
-          </div>
-        </div>
-        <AccountList accounts={filteredAccounts} stats={accountStats} hasSearch={Boolean(searchTerm.trim())}
-          onView={(a) => onViewAccount(a.id)}
-          onEdit={(a) => { setEditingAccount(a); setFormOpen(true) }}
-          onDelete={setDeletingAccount}
-          onCreate={() => setFormOpen(true)}
-          sort={sort} onSort={toggleSort} />
-      </div>
+        <aside className="space-y-6">
+          <Panel title="Broker Profile" subtitle="统一维护券商默认融资倍数、手续费和融资利率。">
+            <form onSubmit={saveBrokerProfile} className="space-y-3">
+              <Field label="券商名称">
+                <input className="form-input" value={brokerForm.name} onChange={(event) => setBrokerForm({ ...brokerForm, name: event.target.value })} required />
+              </Field>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="默认倍数">
+                  <input className="form-input" inputMode="decimal" value={brokerForm.defaultMarginMultiple} onChange={(event) => setBrokerForm({ ...brokerForm, defaultMarginMultiple: event.target.value })} />
+                </Field>
+                <Field label="默认手续费">
+                  <input className="form-input" inputMode="decimal" value={brokerForm.defaultFee} onChange={(event) => setBrokerForm({ ...brokerForm, defaultFee: event.target.value })} />
+                </Field>
+                <Field label="融资利率">
+                  <input className="form-input" inputMode="decimal" value={brokerForm.defaultFinancingRate} onChange={(event) => setBrokerForm({ ...brokerForm, defaultFinancingRate: event.target.value })} />
+                </Field>
+              </div>
+              <div className="flex gap-2">
+                <button type="submit" disabled={saving} className="primary-action flex-1">
+                  <Save size={16} />
+                  保存配置
+                </button>
+                {brokerForm.id && <button type="button" className="secondary-action" onClick={() => setBrokerForm(emptyBrokerForm)}>取消</button>}
+              </div>
+            </form>
+            <div className="mt-5 space-y-2">
+              {brokerProfiles.length === 0 ? (
+                <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">暂无券商配置</p>
+              ) : (
+                brokerProfiles.map((profile) => (
+                  <button key={profile.id} type="button" onClick={() => editBroker(profile)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:bg-slate-50">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-bold text-slate-800">{profile.name}</span>
+                      <span className="text-xs font-bold text-slate-400">{profile.defaultMarginMultiple}x</span>
+                    </div>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">
+                      手续费 {formatMoney(profile.defaultFee)} · 利率 {profile.defaultFinancingRate}%
+                    </p>
+                  </button>
+                ))
+              )}
+            </div>
+          </Panel>
 
-      <Modal open={formOpen} title={editingAccount ? '编辑账户' : '新增账户'} description="账户数据仅保存在当前浏览器。" fullScreenOnMobile
-        onClose={() => { setFormOpen(false); setEditingAccount(null) }}>
-        <AccountForm account={editingAccount}
-          exchangeRecords={exchangeRecords.filter((r) => !editingAccount || r.accountId === editingAccount.id)}
-          onSubmit={handleSubmit}
-          onCancel={() => { setFormOpen(false); setEditingAccount(null) }} />
-      </Modal>
-      <ConfirmDialog open={Boolean(deletingAccount)} title="删除账户"
-        message={`确定删除"${deletingAccount?.name ?? ''}"吗？关联申购记录也会一并删除，且无法恢复。`}
-        onConfirm={handleDelete} onClose={() => setDeletingAccount(null)} />
-      {notice && <Toast>{notice}</Toast>}
-    </>
-  )
-}
-
-// ── Sub-components ──────────────────────────────
-function PageKpi({ label, value, hint, iconBg, iconColor, icon, profitVal }: { label: string; value: string; hint: string; iconBg: string; iconColor: string; icon: React.ReactNode; profitVal?: number }) {
-  return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-[13px] font-medium" style={{ color: '#8C8273' }}>{label}</span>
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px]" style={{ background: iconBg, color: iconColor }}>{icon}</span>
+          <Panel title="Import Wizard" subtitle="CSV / 从 Excel 复制粘贴 / 粘贴表格，导入账户余额。">
+            <div className="space-y-3">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm font-bold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50">
+                <Upload size={16} />
+                选择 CSV 文件
+                <input type="file" accept=".csv,.txt,.tsv,.xlsx,.xls" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />
+              </label>
+              <textarea
+                value={importText}
+                onChange={(event) => setImportText(event.target.value)}
+                placeholder="粘贴表格：账户名称,券商,币种,现金,冻结资金,融资倍数,状态,备注"
+                className="form-input min-h-[180px] font-mono text-xs"
+              />
+              <div className="rounded-2xl bg-slate-50 p-4 text-xs font-semibold leading-6 text-slate-500">
+                支持列名：账户名称/name、券商/broker、币种/currency、现金/cash、冻结资金/frozen、融资倍数/financingMultiple、状态/status、备注/note。
+              </div>
+              <button type="button" onClick={importAccounts} disabled={saving} className="primary-action w-full">
+                <Download size={16} />
+                导入账户余额
+              </button>
+            </div>
+          </Panel>
+        </aside>
       </div>
-      <p className={`mt-4 text-[clamp(1.4rem,1.7vw,1.85rem)] font-bold leading-none tracking-[-0.04em] tabular-nums ${profitVal !== undefined ? getProfitColor(profitVal) : ''}`}
-        style={profitVal === undefined ? { color: '#4A4540' } : {}}>
-        {value}
-      </p>
-      <p className="mt-3 text-[12px]" style={{ color: '#A8A296' }}>{hint}</p>
     </div>
   )
 }
 
-function PageKpiSm({ label, value, hint, iconBg, iconColor, icon }: { label: string; value: string; hint: string; iconBg: string; iconColor: string; icon: React.ReactNode }) {
+function Panel({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
-    <div className="os-card os-card-hover">
-      <div className="flex items-center gap-2">
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[8px]" style={{ background: iconBg, color: iconColor }}>{icon}</span>
-        <span className="text-[12px] font-medium" style={{ color: '#8C8273' }}>{label}</span>
+    <section className="rounded-[30px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] md:p-6">
+      <div className="mb-5">
+        <h2 className="text-xl font-bold tracking-[-0.03em] text-slate-950">{title}</h2>
+        <p className="mt-1 text-sm font-medium text-slate-500">{subtitle}</p>
       </div>
-      <p className="mt-3 text-[22px] font-bold leading-none tracking-[-0.03em]" style={{ color: '#4A4540' }}>{value}</p>
-      <p className="mt-2 text-[11px]" style={{ color: '#A8A296' }}>{hint}</p>
-    </div>
-  )
-}
-
-function Toast({ children }: { children: React.ReactNode }) {
-  return (
-    <div role="status" className="fixed bottom-5 left-1/2 z-[80] -translate-x-1/2 rounded-[10px] px-4 py-3 text-[13px] font-medium text-white shadow-xl" style={{ background: '#4A4540' }}>
       {children}
+    </section>
+  )
+}
+
+function Field({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
+  return (
+    <label className={`block ${className}`}>
+      <span className="mb-2 block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">{label}</span>
+      {children}
+    </label>
+  )
+}
+
+function MetricCard({ label, value, hint, icon, tone }: { label: string; value: ReactNode; hint: string; icon: ReactNode; tone: 'blue' | 'emerald' | 'amber' | 'purple' }) {
+  return (
+    <div className="rounded-[26px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-bold text-slate-500">{label}</span>
+        <span className={`grid h-11 w-11 place-items-center rounded-2xl ${toneClass(tone)}`}>{icon}</span>
+      </div>
+      <p className="mt-5 whitespace-nowrap text-[clamp(1.7rem,2.2vw,2.25rem)] font-bold tracking-[-0.05em] text-slate-950 tabular-nums">{value}</p>
+      <p className="mt-2 text-xs font-semibold text-slate-400">{hint}</p>
     </div>
   )
 }
 
-function accountSortValue(key: AccountSortKey, account: Account, stats: AccountStats) {
-  return ({ name: account.name, currentAssets: account.currentAssets, profit: stats.totalProfit, profitRate: stats.profitRate, participation: stats.participationCount, wins: stats.winCount, winRate: stats.winRate })[key]
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">{label}</p>
+      <p className="mt-1 whitespace-nowrap text-sm font-bold text-slate-800 tabular-nums">{value}</p>
+    </div>
+  )
 }
 
-function rankingValue(metric: 'profit' | 'profitRate' | 'winRate' | 'participation', stats: AccountStats) {
-  if (metric === 'profit') return formatHKD(stats.totalProfit, 'profit')
-  if (metric === 'profitRate') return formatSignedPercent(stats.profitRate)
-  if (metric === 'winRate') return formatPercent(stats.winRate)
-  return `${stats.participationCount} 次`
+function InlineState({ icon, text }: { icon: ReactNode; text: string }) {
+  return (
+    <div className="grid min-h-[180px] place-items-center rounded-[24px] border border-dashed border-slate-200 bg-slate-50 text-sm font-bold text-slate-500">
+      <div className="flex items-center gap-2">
+        {icon}
+        {text}
+      </div>
+    </div>
+  )
+}
+
+function toneClass(tone: 'blue' | 'emerald' | 'amber' | 'purple') {
+  const classes = {
+    blue: 'bg-blue-50 text-blue-600',
+    emerald: 'bg-emerald-50 text-emerald-600',
+    amber: 'bg-amber-50 text-amber-600',
+    purple: 'bg-violet-50 text-violet-600',
+  }
+  return classes[tone]
+}
+
+function toNumber(value: string | number | undefined | null) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : 0
+}
+
+function formatMoney(value: number) {
+  return `HK$ ${value.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
+}
+
+function parseAccountRows(text: string) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (lines.length === 0) return []
+
+  const delimiter = lines[0].includes('\t') ? '\t' : ','
+  const cells = lines.map((line) => splitLine(line, delimiter))
+  const header = cells[0].map(normalizeHeader)
+  const hasHeader = header.some((item) => ['name', 'broker', 'cash', 'frozen'].includes(item))
+  const rows = hasHeader ? cells.slice(1) : cells
+  const keys = hasHeader ? header : ['name', 'broker', 'currency', 'cash', 'frozen', 'financingMultiple', 'status', 'note']
+
+  return rows.map((row) => {
+    const item: Record<string, string | number> = {}
+    row.forEach((value, index) => {
+      const key = keys[index]
+      if (!key) return
+      item[key] = ['cash', 'frozen', 'financingMultiple'].includes(key) ? toNumber(value) : value.trim()
+    })
+    return item
+  })
+}
+
+function splitLine(line: string, delimiter: string) {
+  if (delimiter === '\t') return line.split('\t')
+
+  const values: string[] = []
+  let current = ''
+  let quoted = false
+  for (const char of line) {
+    if (char === '"') {
+      quoted = !quoted
+    } else if (char === ',' && !quoted) {
+      values.push(current)
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  values.push(current)
+  return values
+}
+
+function normalizeHeader(value: string) {
+  const key = value.trim().toLowerCase()
+  const map: Record<string, string> = {
+    账户名称: 'name',
+    账户: 'name',
+    name: 'name',
+    券商: 'broker',
+    broker: 'broker',
+    币种: 'currency',
+    currency: 'currency',
+    现金: 'cash',
+    cash: 'cash',
+    冻结资金: 'frozen',
+    冻结: 'frozen',
+    frozen: 'frozen',
+    融资倍数: 'financingMultiple',
+    financingmultiple: 'financingMultiple',
+    status: 'status',
+    状态: 'status',
+    备注: 'note',
+    note: 'note',
+  }
+  return map[key] ?? key
 }

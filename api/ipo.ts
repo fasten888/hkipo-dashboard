@@ -1,4 +1,5 @@
 import { prisma } from '../lib/database/prisma.js'
+import { sendError } from './_utils.js'
 
 type VercelRequest = {
   method?: string
@@ -26,58 +27,62 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return
   }
 
-  const code = readQueryValue(request, 'code')
+  try {
+    const code = readQueryValue(request, 'code')
 
-  if (!code) {
-    const ipos = await prisma.ipo.findMany({
-      orderBy: [{ subscribeEnd: 'asc' }, { updatedAt: 'desc' }],
-      take: 50,
-      select: {
-        id: true,
-        code: true,
-        name: true,
-        status: true,
-        industry: true,
-        subscribeStart: true,
-        subscribeEnd: true,
-        listingDate: true,
-        lotSize: true,
-        lotAmount: true,
-      },
-    })
+    if (!code) {
+      const ipos = await prisma.ipo.findMany({
+        orderBy: [{ subscribeEnd: 'asc' }, { updatedAt: 'desc' }],
+        take: 50,
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          status: true,
+          industry: true,
+          subscribeStart: true,
+          subscribeEnd: true,
+          listingDate: true,
+          lotSize: true,
+          lotAmount: true,
+        },
+      })
 
-    response.status(200).json({ ok: true, ipos })
-    return
-  }
+      response.status(200).json({ ok: true, ipos })
+      return
+    }
 
-  const ipo = await prisma.ipo.findUnique({
-    where: { code },
-    include: {
-      events: {
-        orderBy: { eventDate: 'asc' },
-      },
-      analysis: true,
-      accountIpos: {
-        orderBy: { createdAt: 'desc' },
-        include: {
-          account: true,
+    const ipo = await prisma.ipo.findUnique({
+      where: { code },
+      include: {
+        events: {
+          orderBy: { eventDate: 'asc' },
+        },
+        analysis: true,
+        accountIpos: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            account: true,
+          },
         },
       },
-    },
-  })
-
-  if (!ipo) {
-    response.status(404).json({
-      ok: false,
-      message: `IPO ${code} was not found in database.`,
     })
-    return
-  }
 
-  response.status(200).json({
-    ok: true,
-    ipo,
-  })
+    if (!ipo) {
+      response.status(404).json({
+        ok: false,
+        message: `IPO ${code} was not found in database.`,
+      })
+      return
+    }
+
+    response.status(200).json({
+      ok: true,
+      ipo,
+    })
+  } catch (error) {
+    sendError(response, error)
+  }
 }
 
 function readQueryValue(request: VercelRequest, key: string) {

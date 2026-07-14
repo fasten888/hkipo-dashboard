@@ -1,4 +1,5 @@
 import { getDashboardCommandCenter } from '../lib/database/dashboardRepository.js'
+import { sendError } from './_utils.js'
 
 type VercelRequest = {
   method?: string
@@ -35,10 +36,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
       dashboard,
     })
   } catch (error) {
-    response.status(500).json({
-      ok: false,
-      message: error instanceof Error ? error.message : 'Failed to load dashboard.',
-    })
+    sendError(response, error)
   }
 }
 

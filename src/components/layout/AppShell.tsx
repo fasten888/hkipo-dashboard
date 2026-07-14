@@ -705,6 +705,7 @@ function InstallHelpModal({ open, onClose }: { open: boolean; onClose: () => voi
 function getPageMeta(nav: NavigationKey) {
   const map: Record<NavigationKey, { title: string; subtitle: string }> = {
     dashboard:     { title: '投资驾驶舱',  subtitle: '看收益、再判断风险，最后决定下一步该做什么。' },
+    planner:       { title: '资金分配',   subtitle: '为本轮新股选择账户、识别冲突并生成申购计划。' },
     accounts:      { title: '账户管理',   subtitle: '识别最赚钱、最高效、最值得继续投入的账户。' },
     deposits:      { title: '出金管理',   subtitle: '追踪净入金、出金和真实收益。' },
     exchange:      { title: '换汇管理',   subtitle: '记录真实成交汇率和年度汇率损益。' },

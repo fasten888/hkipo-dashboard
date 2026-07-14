@@ -5,7 +5,16 @@ export type AccountStatus = 'active' | 'disabled'
 export type AccountManagementInput = {
   name: string
   broker?: string | null
+  brokerName?: string | null
   brokerProfileId?: string | null
+  accountSuffix?: string | null
+  phone?: string | null
+  securitiesAccount?: string | null
+  initialDeposit?: number | null
+  currentAssets?: number | null
+  cashBalance?: number | null
+  defaultSubscriptionMethod?: string | null
+  remarks?: string | null
   currency?: string | null
   cash?: number | null
   frozen?: number | null
@@ -215,19 +224,29 @@ export async function importAccountBalances(rows: ImportedAccountRow[]) {
 function normalizeAccountInput(input: AccountManagementInput) {
   const name = input.name.trim()
   if (!name) throw new Error('Account name is required.')
+  const broker = input.broker?.trim() || input.brokerName?.trim() || null
+  const currentAssets = numberOrDefault(input.currentAssets, numberOrDefault(input.cash, 0))
+  const cash = numberOrDefault(input.cashBalance, numberOrDefault(input.cash, currentAssets))
 
   return {
     name,
-    broker: input.broker?.trim() || null,
+    broker,
     brokerProfileId: input.brokerProfileId || null,
+    accountSuffix: input.accountSuffix?.trim() || null,
+    phone: input.phone?.trim() || '',
+    securitiesAccount: input.securitiesAccount?.trim() || null,
+    initialDeposit: numberOrDefault(input.initialDeposit, 0),
+    currentAssets,
+    defaultSubscriptionMethod:
+      input.defaultSubscriptionMethod === 'cash' ? 'cash' : '10x',
     currency: (input.currency?.trim() || 'HKD').toUpperCase(),
-    cash: numberOrDefault(input.cash, 0),
+    cash,
     frozen: numberOrDefault(input.frozen, 0),
     marginLimit: numberOrDefault(input.marginLimit, 0),
     availableMargin: numberOrDefault(input.availableMargin, input.marginLimit ?? 0),
     financingMultiple: numberOrDefault(input.financingMultiple, 10),
     status: normalizeStatus(input.status),
-    note: input.note?.trim() || null,
+    note: input.note?.trim() || input.remarks?.trim() || null,
   }
 }
 

@@ -1,4 +1,5 @@
 import { prisma } from '../lib/database/prisma.js'
+import { sendError } from './_utils.js'
 
 type VercelRequest = {
   method?: string
@@ -90,10 +91,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
       },
     })
   } catch (error) {
-    response.status(500).json({
-      ok: false,
-      message: error instanceof Error ? error.message : 'Data center request failed.',
-    })
+    sendError(response, error)
   }
 }
 

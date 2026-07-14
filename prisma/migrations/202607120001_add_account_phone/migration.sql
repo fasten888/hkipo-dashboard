@@ -1,0 +1,2 @@
+ALTER TABLE "account"
+ADD COLUMN IF NOT EXISTS "phone" TEXT DEFAULT '';

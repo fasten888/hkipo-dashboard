@@ -10,7 +10,10 @@
     "db:push": "node scripts/ensure-database.mjs",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:push": "prisma db push --schema prisma/schema.prisma",
-    "build": "tsc -b && vite build",
+    "db:seed": "tsx scripts/seed-database.ts",
+    "db:import:recovery": "tsx scripts/import-recovery.ts",
+    "build": "prisma generate && tsc -b && vite build",
+    "postinstall": "prisma generate",
     "lint": "eslint .",
     "preview": "vite preview"
   },

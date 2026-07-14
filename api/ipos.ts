@@ -1,9 +1,10 @@
 import {
-  deleteBrokerProfile,
-  getAccountManagementData,
-  saveBrokerProfile,
-  type BrokerProfileInput,
-} from '../lib/database/accountRepository.js'
+  createIpoRecord,
+  deleteIpoRecord,
+  getAppDataSnapshot,
+  updateIpoRecord,
+  type IpoInput,
+} from '../lib/database/appDataRepository.js'
 import { sendError } from './_utils.js'
 
 type VercelRequest = {
@@ -29,21 +30,29 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   try {
     if (request.method === 'GET') {
-      const data = await getAccountManagementData()
-      response.status(200).json({ ok: true, brokerProfiles: data.brokerProfiles })
+      const data = await getAppDataSnapshot()
+      response.status(200).json({ ok: true, ipos: data.ipos })
       return
     }
 
-    if (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH') {
-      const profile = await saveBrokerProfile(getBody<BrokerProfileInput>(request))
-      response.status(200).json({ ok: true, profile })
+    if (request.method === 'POST') {
+      const ipo = await createIpoRecord(getBody<IpoInput>(request))
+      response.status(201).json({ ok: true, ipo })
+      return
+    }
+
+    if (request.method === 'PUT' || request.method === 'PATCH') {
+      const body = getBody<IpoInput & { id?: string }>(request)
+      if (!body.id) throw new Error('IPO id is required.')
+      const ipo = await updateIpoRecord(body.id, body)
+      response.status(200).json({ ok: true, ipo })
       return
     }
 
     if (request.method === 'DELETE') {
       const id = getSingleQueryValue(request.query?.id)
-      if (!id) throw new Error('Broker profile id is required.')
-      await deleteBrokerProfile(id)
+      if (!id) throw new Error('IPO id is required.')
+      await deleteIpoRecord(id)
       response.status(200).json({ ok: true })
       return
     }

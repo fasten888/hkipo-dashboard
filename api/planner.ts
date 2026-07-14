@@ -1,4 +1,5 @@
 import { getPlannerContext } from '../lib/database/plannerRepository.js'
+import { sendError } from './_utils.js'
 
 type VercelRequest = {
   method?: string
@@ -28,9 +29,6 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const planner = await getPlannerContext()
     response.status(200).json({ ok: true, planner })
   } catch (error) {
-    response.status(500).json({
-      ok: false,
-      message: error instanceof Error ? error.message : 'Failed to load planner.',
-    })
+    sendError(response, error)
   }
 }

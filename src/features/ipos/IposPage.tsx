@@ -16,7 +16,7 @@ import { IpoForm } from './IpoForm'
 type IpoSortKey = 'name' | 'subscriptionDate' | 'profit' | 'profitRate' | 'winRate' | 'participants'
 const C = { text1: '#4A4540', text2: '#8C8273', text3: '#A8A296', brand: '#B08B7E', danger: '#9A7468', border: '#E4DFD6', bg: '#F4F1ED' }
 
-export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void }) {
+export function IposPage({ onViewIpo }: { onViewIpo?: (ipoCode: string) => void }) {
   const { ipos, subscriptions, sales, addIpos, updateIpo, deleteIpo } = useAppData()
   const [search, setSearch] = useState('')
   const [industryFilter, setIndustryFilter] = useState('all')
@@ -96,7 +96,7 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
           {/* Mobile cards */}
           <div className="divide-y md:hidden" style={{ borderColor: C.border }}>
             {rows.map(({ ipo, stats }) => (
-              <article key={ipo.id} className="p-4" onClick={() => onViewIpo?.(ipo.id)}>
+              <article key={ipo.id} className="p-4" onClick={() => onViewIpo?.(ipo.stockCode)}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="break-words text-[14px] font-semibold" style={{ color: C.text1 }}>{ipo.name}（{ipo.stockCode}）</h2>
@@ -144,7 +144,7 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
               </thead>
               <tbody className="divide-y" style={{ borderColor: C.border }}>
                 {rows.map(({ ipo, stats }) => (
-                  <tr key={ipo.id} className="cursor-pointer transition hover:bg-[#F4F1ED]" onClick={() => onViewIpo?.(ipo.id)}>
+                  <tr key={ipo.id} className="cursor-pointer transition hover:bg-[#F4F1ED]" onClick={() => onViewIpo?.(ipo.stockCode)}>
                     <td className="px-5 py-4">
                       <p className="text-[13px] font-semibold" style={{ color: C.text1 }}>{ipo.name}（{ipo.stockCode}）</p>
                       <p className="mt-0.5 text-[11px]" style={{ color: C.text3 }}>{ipo.industry || '未填写行业'}</p>
@@ -161,7 +161,7 @@ export function IposPage({ onViewIpo }: { onViewIpo?: (ipoId: string) => void })
                     <td className={`px-5 py-4 text-[13px] ${getProfitColor(stats.profitRate)}`}>{formatPercent(stats.profitRate, 'profitRate')}</td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-1">
-                        <ActionBtn onClick={(e) => { e.stopPropagation(); onViewIpo?.(ipo.id) }}><Eye size={14} /></ActionBtn>
+                        <ActionBtn onClick={(e) => { e.stopPropagation(); onViewIpo?.(ipo.stockCode) }}><Eye size={14} /></ActionBtn>
                         <ActionBtn onClick={(e) => { e.stopPropagation(); setEditing(ipo); setFormOpen(true) }}><Pencil size={14} /></ActionBtn>
                         <ActionBtn danger onClick={(e) => { e.stopPropagation(); setDeleting(ipo) }}><Trash2 size={14} /></ActionBtn>
                       </div>

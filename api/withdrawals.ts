@@ -1,9 +1,9 @@
 import {
-  deleteBrokerProfile,
-  getAccountManagementData,
-  saveBrokerProfile,
-  type BrokerProfileInput,
-} from '../lib/database/accountRepository.js'
+  createWithdrawalRecord,
+  deleteWithdrawalRecord,
+  updateWithdrawalRecord,
+  type WithdrawalInput,
+} from '../lib/database/appDataRepository.js'
 import { sendError } from './_utils.js'
 
 type VercelRequest = {
@@ -28,22 +28,24 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
 
   try {
-    if (request.method === 'GET') {
-      const data = await getAccountManagementData()
-      response.status(200).json({ ok: true, brokerProfiles: data.brokerProfiles })
+    if (request.method === 'POST') {
+      const record = await createWithdrawalRecord(getBody<WithdrawalInput>(request))
+      response.status(201).json({ ok: true, record })
       return
     }
 
-    if (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH') {
-      const profile = await saveBrokerProfile(getBody<BrokerProfileInput>(request))
-      response.status(200).json({ ok: true, profile })
+    if (request.method === 'PUT' || request.method === 'PATCH') {
+      const body = getBody<WithdrawalInput & { id?: string }>(request)
+      if (!body.id) throw new Error('Withdrawal id is required.')
+      const record = await updateWithdrawalRecord(body.id, body)
+      response.status(200).json({ ok: true, record })
       return
     }
 
     if (request.method === 'DELETE') {
       const id = getSingleQueryValue(request.query?.id)
-      if (!id) throw new Error('Broker profile id is required.')
-      await deleteBrokerProfile(id)
+      if (!id) throw new Error('Withdrawal id is required.')
+      await deleteWithdrawalRecord(id)
       response.status(200).json({ ok: true })
       return
     }

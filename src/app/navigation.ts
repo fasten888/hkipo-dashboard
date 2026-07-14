@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   ReceiptText,
   CalendarRange,
+  GitBranch,
   Rocket,
   Settings,
   ShieldCheck,
@@ -26,6 +27,7 @@ export interface NavigationItem {
 
 export type NavigationKey =
   | 'dashboard'
+  | 'planner'
   | 'accounts'
   | 'deposits'
   | 'exchange'
@@ -43,6 +45,7 @@ export type NavigationKey =
 
 export const mainNavigation: NavigationItem[] = [
   { id: 'dashboard', label: '总览', icon: LayoutDashboard, available: true },
+  { id: 'planner', label: '资金分配', icon: GitBranch, available: true },
   { id: 'accounts', label: '账户管理', icon: WalletCards, available: true },
   { id: 'deposits', label: '出金管理', icon: Landmark, available: true },
   { id: 'exchange', label: '换汇管理', icon: ArrowRightLeft, available: true },

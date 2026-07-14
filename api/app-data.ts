@@ -1,5 +1,5 @@
-import { generateDraftAllocation } from '../../lib/database/plannerRepository.js'
-import { sendError } from '../_utils.js'
+import { getAppDataSnapshot } from '../lib/database/appDataRepository.js'
+import { sendError } from './_utils.js'
 
 type VercelRequest = {
   method?: string
@@ -20,14 +20,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return
   }
 
-  if (request.method !== 'POST') {
+  if (request.method !== 'GET') {
     response.status(405).json({ ok: false, message: 'Method not allowed.' })
     return
   }
 
   try {
-    const result = await generateDraftAllocation()
-    response.status(200).json({ ok: true, result })
+    const data = await getAppDataSnapshot()
+    response.status(200).json({ ok: true, data })
   } catch (error) {
     sendError(response, error)
   }

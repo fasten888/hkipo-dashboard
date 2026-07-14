@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model UserData {
@@ -76,6 +77,12 @@ model Account {
   name               String
   broker             String?
   brokerProfileId    String?        @map("broker_profile_id")
+  accountSuffix      String?        @map("account_suffix")
+  phone              String?        @default("")
+  securitiesAccount  String?        @map("securities_account")
+  initialDeposit     Float          @default(0) @map("initial_deposit")
+  currentAssets      Float          @default(0) @map("current_assets")
+  defaultSubscriptionMethod String?  @map("default_subscription_method")
   currency           String         @default("HKD")
   cash               Float          @default(0)
   frozen             Float          @default(0)
@@ -88,6 +95,8 @@ model Account {
   updatedAt          DateTime       @default(now()) @updatedAt @map("updated_at")
   brokerProfile      BrokerProfile? @relation(fields: [brokerProfileId], references: [id], onDelete: SetNull)
   accountIpos        AccountIpo[]
+  withdrawals        Withdrawal[]
+  exchangeRecords    ExchangeRecord[]
 
   @@index([brokerProfileId])
   @@index([status])
@@ -108,23 +117,88 @@ model BrokerProfile {
 }
 
 model AccountIpo {
-  id           String   @id @default(cuid())
-  accountId    String   @map("account_id")
-  ipoId        String   @map("ipo_id")
-  applyLots    Int      @default(0) @map("apply_lots")
-  applyAmount  Float    @default(0) @map("apply_amount")
-  status       String   @default("watching")
-  commission   Float    @default(0)
-  financingFee Float    @default(0) @map("financing_fee")
-  profit       Float    @default(0)
-  createdAt    DateTime @default(now()) @map("created_at")
-  account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  ipo          Ipo      @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  accountId          String   @map("account_id")
+  ipoId              String   @map("ipo_id")
+  applyLots          Int      @default(0) @map("apply_lots")
+  applyAmount        Float    @default(0) @map("apply_amount")
+  status             String   @default("watching")
+  subscriptionMethod String?  @map("subscription_method")
+  subscriptionDate   DateTime? @map("subscription_date")
+  remarks            String?
+  allottedShares     Int      @default(0) @map("allotted_shares")
+  allottedLots       Int      @default(0) @map("allotted_lots")
+  sellPlan           String?  @map("sell_plan")
+  commission         Float    @default(0)
+  financingFee       Float    @default(0) @map("financing_fee")
+  profit             Float    @default(0)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
+  account            Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  ipo                Ipo      @relation(fields: [ipoId], references: [id], onDelete: Cascade)
+  sellRecords        SellRecord[]
 
   @@index([accountId])
   @@index([ipoId])
   @@index([status])
   @@map("account_ipo")
+}
+
+model SellRecord {
+  id           String     @id @default(cuid())
+  accountIpoId String     @map("account_ipo_id")
+  price        Float      @default(0)
+  date         DateTime?
+  shares       Int        @default(0)
+  method       String?
+  commission   Float      @default(0)
+  remarks      String?
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at")
+  accountIpo   AccountIpo @relation(fields: [accountIpoId], references: [id], onDelete: Cascade)
+
+  @@index([accountIpoId])
+  @@index([date])
+  @@map("sell_record")
+}
+
+model ExchangeRecord {
+  id              String   @id @default(cuid())
+  accountId       String   @map("account_id")
+  date            DateTime?
+  sourceCurrency  String   @default("CNY") @map("source_currency")
+  sourceAmount    Float    @default(0) @map("source_amount")
+  sourceAmountCny Float    @default(0) @map("source_amount_cny")
+  targetCurrency  String   @default("HKD") @map("target_currency")
+  targetAmount    Float    @default(0) @map("target_amount")
+  exchangeRate    Float    @default(0) @map("exchange_rate")
+  manualRate      Float?   @map("manual_rate")
+  originalCostCny Float    @default(0) @map("original_cost_cny")
+  feeCny          Float    @default(0) @map("fee_cny")
+  channel         String?
+  remarks         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([date])
+  @@map("exchange_record")
+}
+
+model Withdrawal {
+  id        String   @id @default(cuid())
+  accountId String   @map("account_id")
+  date      DateTime?
+  amount    Float    @default(0)
+  remarks   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([date])
+  @@map("withdrawal")
 }
 
 model IpoAnalysis {

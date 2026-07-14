@@ -9,6 +9,7 @@ import {
   type AccountStatus,
   type ImportedAccountRow,
 } from '../lib/database/accountRepository.js'
+import { sendError } from './_utils.js'
 
 type VercelRequest = {
   method?: string
@@ -51,7 +52,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
       return
     }
 
-    if (request.method === 'PATCH') {
+    if (request.method === 'PUT' || request.method === 'PATCH') {
       const body = getBody<{ id?: string; action?: string; status?: AccountStatus; account?: AccountManagementInput }>(request)
       if (!body.id) throw new Error('Account id is required.')
 
@@ -76,10 +77,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     response.status(405).json({ ok: false, message: 'Method not allowed.' })
   } catch (error) {
-    response.status(500).json({
-      ok: false,
-      message: error instanceof Error ? error.message : 'Account request failed.',
-    })
+    sendError(response, error)
   }
 }
 
