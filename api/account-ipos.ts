@@ -39,28 +39,29 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     if (request.method === 'POST') {
       const body = getBody<AccountIpoInput | { items?: AccountIpoInput[] }>(request)
-      if ('items' in body) {
+      if ('items' in body && Array.isArray(body.items)) {
         const records = []
-        for (const item of body.items ?? []) {
+        for (const item of body.items) {
           records.push(await createAccountIpoRecord(item))
         }
         response.status(201).json({ ok: true, records })
         return
       }
-      const record = await createAccountIpoRecord(body)
+      const record = await createAccountIpoRecord(body as AccountIpoInput)
       response.status(201).json({ ok: true, record })
       return
     }
 
     if (request.method === 'PUT' || request.method === 'PATCH') {
       const body = getBody<(AccountIpoInput & { id?: string }) | { ids?: string[]; changes?: Partial<AccountIpoInput> }>(request)
-      if ('ids' in body) {
-        const result = await batchUpdateAccountIpoRecords(body.ids ?? [], body.changes ?? {})
+      if ('ids' in body && Array.isArray(body.ids)) {
+        const result = await batchUpdateAccountIpoRecords(body.ids, body.changes ?? {})
         response.status(200).json({ ok: true, result })
         return
       }
-      if (!body.id) throw new Error('Account IPO id is required.')
-      const record = await updateAccountIpoRecord(body.id, body)
+      const recordBody = body as AccountIpoInput & { id?: string }
+      if (!recordBody.id) throw new Error('Account IPO id is required.')
+      const record = await updateAccountIpoRecord(recordBody.id, recordBody)
       response.status(200).json({ ok: true, record })
       return
     }
