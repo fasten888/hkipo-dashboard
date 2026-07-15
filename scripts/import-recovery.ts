@@ -431,9 +431,7 @@ async function importSubscriptions(
         allottedLots,
         sellPlan: cleanText(sellPlan),
         commission,
-        financingFee: isFinancing(subscription.subscriptionMethod ?? subscription.method)
-          ? commission
-          : 0,
+        financingFee: 0,
         profit: 0,
         createdAt: dateOrNow(subscription.createdAt),
         updatedAt: dateOrNow(subscription.updatedAt),
@@ -451,9 +449,7 @@ async function importSubscriptions(
         allottedLots,
         sellPlan: cleanText(sellPlan),
         commission,
-        financingFee: isFinancing(subscription.subscriptionMethod ?? subscription.method)
-          ? commission
-          : 0,
+        financingFee: 0,
         updatedAt: dateOrNow(subscription.updatedAt),
       },
     })

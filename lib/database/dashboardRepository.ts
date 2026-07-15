@@ -99,7 +99,7 @@ export async function getDashboardCommandCenter(accountId?: string) {
   const availableCash = sum(accounts, (account) => account.cash)
   const frozenCash = sum(accounts, (account) => account.frozen)
   const margin = sum(accounts, (account) => account.availableMargin || account.marginLimit)
-  const estimatedFees = sum(activeAccountIpos, (record) => record.commission + record.financingFee)
+  const estimatedFees = sum(activeAccountIpos, (record) => record.commission)
   const activeLotAmount = sum(activeIpos, (ipo) => ipo.lotAmount ?? 0)
   const timelineActions = buildTodayActions(ipos, todayEvents, dayStart, dayEnd)
   const allotmentToday = timelineActions.filter((action) => action.type === 'allotment').length

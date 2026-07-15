@@ -266,10 +266,7 @@ export async function batchUpdateAccountIpoRecords(
   if (data.subscriptionAmount !== undefined) updateData.applyAmount = numberOrZero(data.subscriptionAmount)
   if (data.fee !== undefined) {
     updateData.commission = numberOrZero(data.fee)
-    updateData.financingFee =
-      normalizeMethod(data.subscriptionMethod ?? data.method) === '10x'
-        ? numberOrZero(data.fee)
-        : 0
+    updateData.financingFee = 0
   }
 
   return prisma.accountIpo.updateMany({
@@ -368,7 +365,7 @@ function accountIpoData(input: AccountIpoInput) {
     allottedLots: numberOrZero(input.allottedLots),
     sellPlan: normalizeSellPlan(input.sellPlan),
     commission: fee,
-    financingFee: method === '10x' ? fee : 0,
+    financingFee: 0,
   }
 }
 
