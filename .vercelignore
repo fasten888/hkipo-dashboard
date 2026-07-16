@@ -1,0 +1,13 @@
+.git/
+.vercel/
+node_modules/
+recovery/
+backups/
+exports/
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+fee1.txt
+fee2.txt
