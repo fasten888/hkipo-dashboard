@@ -249,6 +249,10 @@
     @apply bg-rose-50 text-rose-600 hover:-translate-y-0.5 hover:bg-rose-100;
   }
 
+  .accounts-page :is(.primary-action, .secondary-action, .ghost-action, .danger-action) {
+    border-radius: 0.75rem;
+  }
+
   .mobile-safe-bottom {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }

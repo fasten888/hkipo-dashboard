@@ -1,4 +1,5 @@
 import { prisma } from '../database/prisma.js'
+import { containsChinese } from '../database/ipoDisplayName.js'
 import { ProviderRuntime } from '../providers/core/index.js'
 import {
   hkexOfficialProvider,
@@ -76,7 +77,7 @@ async function upsertOfficialIpos(records: HkexOfficialIpoRecord[]) {
         where: { code: record.code },
         include: { events: true },
       })
-      const data = toIpoWriteData(record)
+      const data = toIpoWriteData(record, existing)
 
       if (!existing) {
         const created = await prisma.ipo.create({ data })
@@ -106,10 +107,21 @@ async function upsertOfficialIpos(records: HkexOfficialIpoRecord[]) {
   return { added, updated, failed }
 }
 
-function toIpoWriteData(record: HkexOfficialIpoRecord) {
+function toIpoWriteData(
+  record: HkexOfficialIpoRecord,
+  existing?: { name: string; displayNameCn: string | null; displayNameEn: string | null } | null,
+) {
+  const incomingIsChinese = containsChinese(record.name)
+  const existingChineseName =
+    existing?.displayNameCn ?? (existing && containsChinese(existing.name) ? existing.name : null)
+  const displayNameCn = incomingIsChinese ? record.name : existingChineseName
+  const displayNameEn = incomingIsChinese ? existing?.displayNameEn ?? null : record.name
+
   return {
     code: record.code,
-    name: record.name,
+    name: displayNameCn ?? record.name,
+    displayNameCn,
+    displayNameEn,
     status: record.status,
     board: record.board,
     industry: record.industry,
@@ -167,6 +179,8 @@ async function insertMissingEvents(
 function hasIpoChanged(
   existing: {
     name: string
+    displayNameCn: string | null
+    displayNameEn: string | null
     status: string
     board: string | null
     industry: string | null
@@ -183,6 +197,8 @@ function hasIpoChanged(
 ) {
   return (
     existing.name !== next.name ||
+    normalizeNullable(existing.displayNameCn) !== normalizeNullable(next.displayNameCn) ||
+    normalizeNullable(existing.displayNameEn) !== normalizeNullable(next.displayNameEn) ||
     existing.status !== next.status ||
     normalizeNullable(existing.board) !== normalizeNullable(next.board) ||
     normalizeNullable(existing.industry) !== normalizeNullable(next.industry) ||

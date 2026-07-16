@@ -1,4 +1,5 @@
 import { prisma } from '../lib/database/prisma.js'
+import { getIpoDisplayName } from '../lib/database/ipoDisplayName.js'
 import { sendError } from './_utils.js'
 
 type VercelRequest = {
@@ -38,6 +39,8 @@ export default async function handler(request: VercelRequest, response: VercelRe
           id: true,
           code: true,
           name: true,
+          displayNameCn: true,
+          displayNameEn: true,
           status: true,
           industry: true,
           subscribeStart: true,
@@ -48,7 +51,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
         },
       })
 
-      response.status(200).json({ ok: true, ipos })
+      response.status(200).json({
+        ok: true,
+        ipos: ipos.map((ipo) => ({ ...ipo, name: getIpoDisplayName(ipo) })),
+      })
       return
     }
 
@@ -78,7 +84,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     response.status(200).json({
       ok: true,
-      ipo,
+      ipo: { ...ipo, name: getIpoDisplayName(ipo) },
     })
   } catch (error) {
     sendError(response, error)

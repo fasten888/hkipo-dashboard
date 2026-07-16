@@ -1,4 +1,5 @@
-const CACHE_NAME = 'hkipo-dashboard-v7'
+const CACHE_VERSION = 'v8'
+const CACHE_NAME = `hkipo-dashboard-${CACHE_VERSION}`
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/app-icon.svg']
 
 self.addEventListener('install', (event) => {
@@ -25,6 +26,12 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
+
+  const url = new URL(event.request.url)
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }))
+    return
+  }
 
   if (event.request.mode === 'navigate') {
     event.respondWith(

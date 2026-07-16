@@ -23,6 +23,9 @@ prisma/dev.db-journal
 # Local recovery exports and browser storage snapshots.
 recovery/
 backups/
+exports/
+fee1.txt
+fee2.txt
 *.backup.json
 HKIPO_RECOVERY*.json
 HKIPO_BACKUP*.json

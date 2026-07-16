@@ -1,4 +1,6 @@
 import { prisma } from './prisma.js'
+import { getIpoDisplayName } from './ipoDisplayName.js'
+import { getTotalFee } from '../../src/utils/feeConsistency.js'
 
 const activeStatuses = ['subscribing', 'open', 'active', 'bookbuilding']
 
@@ -99,7 +101,7 @@ export async function getDashboardCommandCenter(accountId?: string) {
   const availableCash = sum(accounts, (account) => account.cash)
   const frozenCash = sum(accounts, (account) => account.frozen)
   const margin = sum(accounts, (account) => account.availableMargin || account.marginLimit)
-  const estimatedFees = sum(activeAccountIpos, (record) => record.commission)
+  const estimatedFees = sum(activeAccountIpos, getTotalFee)
   const activeLotAmount = sum(activeIpos, (ipo) => ipo.lotAmount ?? 0)
   const timelineActions = buildTodayActions(ipos, todayEvents, dayStart, dayEnd)
   const allotmentToday = timelineActions.filter((action) => action.type === 'allotment').length
@@ -239,7 +241,7 @@ function toIpoCard(ipo: IpoWithAnalysis) {
   return {
     id: ipo.id,
     code: ipo.code,
-    name: ipo.name,
+    name: getIpoDisplayName(ipo),
     status: ipo.status,
     board: ipo.board,
     industry: ipo.industry,

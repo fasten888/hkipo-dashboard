@@ -15,6 +15,10 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { MetricCard } from '../../components/ui/MetricCard'
+import { PageHeader } from '../../components/ui/PageHeader'
+import { SectionCard } from '../../components/ui/SectionCard'
+import { StatCard } from '../../components/ui/StatCard'
 
 type BrokerProfile = {
   id: string
@@ -352,29 +356,25 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[30px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] md:p-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-500/80">Account Management Center</p>
-            <h1 className="mt-3 text-[34px] font-bold tracking-[-0.05em] text-slate-950 md:text-[44px]">账户管理中心</h1>
-            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500 md:text-base">
-              所有账户、券商配置和余额导入统一进入数据库，Planner 将直接读取这里的真实 Account。
-            </p>
-          </div>
+    <div className="accounts-page space-y-6">
+      <PageHeader
+        eyebrow="Account Management Center"
+        title="账户管理中心"
+        description="所有账户、券商配置和余额导入统一进入数据库，Planner 将直接读取这里的真实 Account。"
+        action={
           <button
             type="button"
             onClick={() => {
               setAccountForm(emptyAccountForm)
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white shadow-[0_16px_40px_rgba(37,99,235,0.22)] transition hover:-translate-y-0.5 hover:bg-blue-500"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#B08B7E] px-5 text-sm font-bold text-white shadow-[0_16px_40px_rgba(176,139,126,0.22)] transition hover:-translate-y-0.5 hover:bg-[#9C776B]"
           >
             <Plus size={17} />
             新增账户
           </button>
-        </div>
-      </section>
+        }
+      />
 
       {error && (
         <div className="rounded-[22px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">{error}</div>
@@ -384,15 +384,15 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="账户总数" value={summary?.accounts ?? accounts.length} hint={`${activeAccounts} 个启用`} icon={<WalletCards size={18} />} tone="blue" />
-        <MetricCard label="现金余额" value={formatMoney(summary?.cash ?? 0)} hint="所有账户现金合计" icon={<CircleDollarSign size={18} />} tone="emerald" />
-        <MetricCard label="冻结资金" value={formatMoney(summary?.frozen ?? 0)} hint="正在占用资金" icon={<Layers3 size={18} />} tone="amber" />
-        <MetricCard label="总打新能力" value={formatMoney(totalCapacity)} hint="现金 + 可用融资 - 冻结" icon={<Building2 size={18} />} tone="purple" />
+        <StatCard label="账户总数" value={String(summary?.accounts ?? accounts.length)} hint={`${activeAccounts} 个启用`} icon={WalletCards} tone="blue" />
+        <StatCard label="现金余额" value={formatMoney(summary?.cash ?? 0)} hint="所有账户现金合计" icon={CircleDollarSign} tone="emerald" />
+        <StatCard label="冻结资金" value={formatMoney(summary?.frozen ?? 0)} hint="正在占用资金" icon={Layers3} tone="amber" />
+        <StatCard label="总打新能力" value={formatMoney(totalCapacity)} hint="现金 + 可用融资 - 冻结" icon={Building2} tone="violet" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <div className="space-y-6">
-          <Panel title={accountForm.id ? '编辑账户' : '新增账户'} subtitle="账户字段来自 ACCOUNT，保存后 Planner 可立即读取。">
+          <SectionCard title={accountForm.id ? '编辑账户' : '新增账户'} subtitle="账户字段来自 ACCOUNT，保存后 Planner 可立即读取。">
             <form onSubmit={saveAccount} className="grid gap-4 md:grid-cols-2">
               <Field label="账户名称">
                 <input className="form-input" value={accountForm.name} onChange={(event) => setAccountForm({ ...accountForm, name: event.target.value })} required />
@@ -459,9 +459,9 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
                 )}
               </div>
             </form>
-          </Panel>
+          </SectionCard>
 
-          <Panel title="账户列表" subtitle="启用/禁用不会删除账户，只会从可用账户中排除。">
+          <SectionCard title="账户列表" subtitle="启用/禁用不会删除账户，只会从可用账户中排除。">
             <div className="mb-4 flex items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
               <Search size={16} className="text-slate-400" />
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索账户、券商、币种或备注" className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400" />
@@ -488,10 +488,10 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
                         </p>
                       </button>
                       <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4 lg:min-w-[560px]">
-                        <MiniStat label="现金" value={formatMoney(account.cash)} />
-                        <MiniStat label="冻结" value={formatMoney(account.frozen)} />
-                        <MiniStat label="融资" value={formatMoney(account.availableMargin || account.marginLimit)} />
-                        <MiniStat label="参与" value={`${account._count?.accountIpos ?? account.accountIpos.length} 项`} />
+                        <MetricCard label="现金" value={formatMoney(account.cash)} />
+                        <MetricCard label="冻结" value={formatMoney(account.frozen)} />
+                        <MetricCard label="融资" value={formatMoney(account.availableMargin || account.marginLimit)} />
+                        <MetricCard label="参与" value={`${account._count?.accountIpos ?? account.accountIpos.length} 项`} />
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -506,11 +506,11 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
                 ))}
               </div>
             )}
-          </Panel>
+          </SectionCard>
         </div>
 
         <aside className="space-y-6">
-          <Panel title="Broker Profile" subtitle="统一维护券商默认融资倍数、手续费和融资利率。">
+          <SectionCard title="Broker Profile" subtitle="统一维护券商默认融资倍数、手续费和融资利率。">
             <form onSubmit={saveBrokerProfile} className="space-y-3">
               <Field label="券商名称">
                 <input className="form-input" value={brokerForm.name} onChange={(event) => setBrokerForm({ ...brokerForm, name: event.target.value })} required />
@@ -551,9 +551,9 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
                 ))
               )}
             </div>
-          </Panel>
+          </SectionCard>
 
-          <Panel title="Import Wizard" subtitle="CSV / 从 Excel 复制粘贴 / 粘贴表格，导入账户余额。">
+          <SectionCard title="Import Wizard" subtitle="CSV / 从 Excel 复制粘贴 / 粘贴表格，导入账户余额。">
             <div className="space-y-3">
               <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm font-bold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50">
                 <Upload size={16} />
@@ -574,22 +574,10 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
                 导入账户余额
               </button>
             </div>
-          </Panel>
+          </SectionCard>
         </aside>
       </div>
     </div>
-  )
-}
-
-function Panel({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
-  return (
-    <section className="rounded-[30px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] md:p-6">
-      <div className="mb-5">
-        <h2 className="text-xl font-bold tracking-[-0.03em] text-slate-950">{title}</h2>
-        <p className="mt-1 text-sm font-medium text-slate-500">{subtitle}</p>
-      </div>
-      {children}
-    </section>
   )
 }
 
@@ -602,28 +590,6 @@ function Field({ label, children, className = '' }: { label: string; children: R
   )
 }
 
-function MetricCard({ label, value, hint, icon, tone }: { label: string; value: ReactNode; hint: string; icon: ReactNode; tone: 'blue' | 'emerald' | 'amber' | 'purple' }) {
-  return (
-    <div className="rounded-[26px] border border-slate-200/70 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-bold text-slate-500">{label}</span>
-        <span className={`grid h-11 w-11 place-items-center rounded-2xl ${toneClass(tone)}`}>{icon}</span>
-      </div>
-      <p className="mt-5 whitespace-nowrap text-[clamp(1.7rem,2.2vw,2.25rem)] font-bold tracking-[-0.05em] text-slate-950 tabular-nums">{value}</p>
-      <p className="mt-2 text-xs font-semibold text-slate-400">{hint}</p>
-    </div>
-  )
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">{label}</p>
-      <p className="mt-1 whitespace-nowrap text-sm font-bold text-slate-800 tabular-nums">{value}</p>
-    </div>
-  )
-}
-
 function InlineState({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <div className="grid min-h-[180px] place-items-center rounded-[24px] border border-dashed border-slate-200 bg-slate-50 text-sm font-bold text-slate-500">
@@ -633,16 +599,6 @@ function InlineState({ icon, text }: { icon: ReactNode; text: string }) {
       </div>
     </div>
   )
-}
-
-function toneClass(tone: 'blue' | 'emerald' | 'amber' | 'purple') {
-  const classes = {
-    blue: 'bg-blue-50 text-blue-600',
-    emerald: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    purple: 'bg-violet-50 text-violet-600',
-  }
-  return classes[tone]
 }
 
 function toNumber(value: string | number | undefined | null) {

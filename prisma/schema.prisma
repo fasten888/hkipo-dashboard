@@ -37,6 +37,8 @@ model Ipo {
   id                 String        @id @default(cuid())
   code               String        @unique
   name               String
+  displayNameCn      String?       @map("display_name_cn")
+  displayNameEn      String?       @map("display_name_en")
   status             String        @default("draft")
   board              String?
   industry           String?

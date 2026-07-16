@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { getTotalFee } from '../../utils/feeConsistency'
 
 type IpoDetailPageProps = {
   ipoCode: string
@@ -488,7 +489,7 @@ function AccountIpoTable({ records, emptyLabel = '暂无账户参与记录' }: {
             <Cell label="Lots" value={`${record.applyLots}`} />
             <Cell label="Amount" value={formatMoney(record.applyAmount)} />
             <Cell label="Status" value={record.status} />
-            <Cell label="Fees" value={formatMoney(record.commission)} />
+            <Cell label="Fees" value={formatMoney(getTotalFee(record))} />
             <Cell label="Profit" value={formatMoney(record.profit)} accent={record.profit >= 0 ? 'text-red-300' : 'text-emerald-300'} />
           </div>
         ))}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>清理港新账本缓存</title>
+  </head>
+  <body>
+    <main>
+      <h1>正在清理 Service Worker 缓存...</h1>
+      <p id="status">请稍候</p>
+    </main>
+    <script>
+      Promise.all([
+        navigator.serviceWorker
+          ? navigator.serviceWorker.getRegistrations().then((items) =>
+              Promise.all(items.map((registration) => registration.unregister())),
+            )
+          : Promise.resolve([]),
+        window.caches
+          ? caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          : Promise.resolve([]),
+      ])
+        .then(() => {
+          document.querySelector('#status').textContent = '缓存已清理，可以关闭此页面并重新打开应用。'
+        })
+        .catch((error) => {
+          document.querySelector('#status').textContent = `清理失败：${String(error)}`
+        })
+    </script>
+  </body>
+</html>

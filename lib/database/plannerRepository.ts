@@ -1,4 +1,5 @@
 import { prisma } from './prisma.js'
+import { getIpoDisplayName } from './ipoDisplayName.js'
 
 const activeStatuses = ['subscribing', 'open', 'active', 'bookbuilding']
 
@@ -98,7 +99,7 @@ export async function generateDraftAllocation() {
     return [{
       id: `${ipo.code}:${account.id}`,
       ipoCode: ipo.code,
-      ipoName: ipo.name,
+      ipoName: getIpoDisplayName(ipo),
       accountId: account.id,
       accountName: account.name,
       broker: account.broker,
@@ -170,7 +171,7 @@ function toPlannerIpo(ipo: PlannerIpoInput) {
   return {
     id: ipo.id,
     code: ipo.code,
-    name: ipo.name,
+    name: getIpoDisplayName(ipo),
     status: ipo.status,
     board: ipo.board,
     industry: ipo.industry,
@@ -211,7 +212,7 @@ function buildTimeline(ipos: PlannerIpoInput[], events: PlannerEventInput[]) {
     title: event.title,
     eventTime: event.eventDate.toISOString(),
     ipoCode: event.ipo.code,
-    ipoName: event.ipo.name,
+    ipoName: getIpoDisplayName(event.ipo),
     source: 'ipo_event',
   }))
 
@@ -223,7 +224,7 @@ function buildTimeline(ipos: PlannerIpoInput[], events: PlannerEventInput[]) {
         title: '申购截止',
         eventTime: ipo.subscribeEnd.toISOString(),
         ipoCode: ipo.code,
-        ipoName: ipo.name,
+        ipoName: getIpoDisplayName(ipo),
         source: 'ipo.subscribe_end',
       })
     }
@@ -235,7 +236,7 @@ function buildTimeline(ipos: PlannerIpoInput[], events: PlannerEventInput[]) {
         title: '上市日期',
         eventTime: ipo.listingDate.toISOString(),
         ipoCode: ipo.code,
-        ipoName: ipo.name,
+        ipoName: getIpoDisplayName(ipo),
         source: 'ipo.listing_date',
       })
     }

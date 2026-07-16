@@ -29,7 +29,6 @@ import {
   getFinancingStats,
   getPerformanceSummary,
   getProfitTrend,
-  getSaleTypeStats,
   getSubscriptionMetrics,
   type TrendPeriod,
 } from '../../utils/statistics'
@@ -95,15 +94,25 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
     () => sales.filter((sale) => accountMatchedSubscriptionIds.has(sale.subscriptionId)),
     [accountMatchedSubscriptionIds, sales],
   )
-  const scopedStats = useMemo(
+  const rangeStats = useMemo(
     () => getScopedDashboardStats(scopedAccounts, scopedSubscriptions, accountMatchedSubscriptions, ipos, scopedSales, accountMatchedSales),
     [accountMatchedSales, accountMatchedSubscriptions, ipos, scopedAccounts, scopedSales, scopedSubscriptions],
   )
+  const allStats = useMemo(
+    () => getScopedDashboardStats(
+      scopedAccounts,
+      accountMatchedSubscriptions,
+      accountMatchedSubscriptions,
+      ipos,
+      accountMatchedSales,
+      accountMatchedSales,
+    ),
+    [accountMatchedSales, accountMatchedSubscriptions, ipos, scopedAccounts],
+  )
 
   /* ── computed stats ── */
-  const performance   = getPerformanceSummary(accountMatchedSubscriptions, ipos, scopedSales)
-  const heldStats     = getSaleTypeStats('held_sale',   accountMatchedSubscriptions, ipos, scopedSales)
-  const financingStats = getFinancingStats(scopedSubscriptions, ipos, scopedSales, scopedAccounts)
+  const performance   = getPerformanceSummary(accountMatchedSubscriptions, ipos, accountMatchedSales)
+  const financingStats = getFinancingStats(accountMatchedSubscriptions, ipos, accountMatchedSales, scopedAccounts)
   const trend          = getProfitTrend(trendPeriod, accountMatchedSubscriptions, ipos, scopedSales)
   const today          = new Date().toISOString().slice(0, 10)
 
@@ -119,15 +128,15 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
   ).size
 
   const accountInsights = useMemo(
-    () => scopedAccounts.map((a) => ({ account: a, stats: getAccountStats(a, scopedSubscriptions, ipos, scopedSales, withdrawals) })),
-    [ipos, scopedAccounts, scopedSales, scopedSubscriptions, withdrawals],
+    () => scopedAccounts.map((a) => ({ account: a, stats: getAccountStats(a, accountMatchedSubscriptions, ipos, accountMatchedSales, withdrawals) })),
+    [accountMatchedSales, accountMatchedSubscriptions, ipos, scopedAccounts, withdrawals],
   )
 
   const capitalCandidate = [...accountInsights].filter((r) => r.account.initialDeposit > 0)
     .sort((a, b) => b.stats.totalProfit / b.account.initialDeposit - a.stats.totalProfit / a.account.initialDeposit)[0]
   const bestFinancing    = [...financingStats].filter((r) => r.participationCount > 0).sort((a, b) => b.averageProfitRate - a.averageProfitRate)[0]
 
-  const recent = scopedSubscriptions.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5)
+  const recent = accountMatchedSubscriptions.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5)
 
   const upcomingIpos = ipos
     .filter((i) => (i.subscriptionDate && i.subscriptionDate >= today) || (i.listingDate && i.listingDate >= today))
@@ -138,14 +147,14 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
 
   /* ── composition chart data ── */
   const profitComposition = [
-    { label: '首日收益', value: Math.max(0, scopedStats.firstDayProfit), color: C.danger },
-    { label: '暗盘收益', value: Math.max(0, scopedStats.greyProfit),     color: C.info   },
-    { label: '长期持有', value: Math.max(0, heldStats.profit),      color: C.brand  },
-    { label: '手续费',   value: Math.max(0, scopedStats.subscriptionFees), color: C.warning },
-    { label: '卖出佣金', value: Math.max(0, scopedStats.saleCommissions), color: C.success },
+    { label: '首日收益', value: Math.max(0, allStats.firstDayProfit), color: C.danger },
+    { label: '暗盘收益', value: Math.max(0, allStats.greyProfit),     color: C.info   },
+    { label: '长期持有', value: Math.max(0, allStats.heldProfit),     color: C.brand  },
+    { label: '手续费',   value: Math.max(0, allStats.subscriptionFees), color: C.warning },
+    { label: '卖出佣金', value: Math.max(0, allStats.saleCommissions), color: C.success },
   ]
 
-  const pendingReleaseAmount = scopedSubscriptions
+  const pendingReleaseAmount = accountMatchedSubscriptions
     .filter((s) => s.status === 'applied' || s.status === 'announced')
     .reduce((t, s) => t + s.subscriptionAmount + s.fee, 0)
 
@@ -190,7 +199,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiLarge
           label="累计收益"
-          value={scopedStats.totalProfit}
+          value={allStats.totalProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F0E0DC"
@@ -202,7 +211,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         />
         <KpiLarge
           label="收益率"
-          value={scopedStats.profitRate}
+          value={allStats.profitRate}
           formatter={(v) => formatPercent(v, 'profitRate', 'dashboardKpi')}
           color={C.info}
           iconBg="#E9E7EE"
@@ -212,7 +221,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         />
         <KpiLarge
           label="累计成本"
-          value={scopedStats.totalCost}
+          value={allStats.totalCost}
           formatter={(v) => formatHKD(v, 'amount', 'dashboardKpi')}
           color={C.success}
           iconBg="#E5EBE5"
@@ -224,12 +233,12 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         />
         <KpiLarge
           label="中签率"
-          value={scopedStats.winRate}
+          value={allStats.winRate}
           formatter={(v) => formatPercent(v, 'rate', 'dashboardKpi')}
           color={C.warning}
           iconBg="#F3EAD7"
           icon={<Target size={20} color={C.warning} />}
-          hint={`${scopedStats.winCount} 次中签 · ${scopedStats.participationCount} 次参与`}
+          hint={`${allStats.winCount} 次中签 · ${allStats.participationCount} 次参与`}
           onClick={() => setDetailType('wins')}
         />
       </div>
@@ -248,7 +257,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         />
         <KpiSmall
           label="区间收益"
-          value={scopedStats.totalProfit}
+          value={rangeStats.totalProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F8F4F1"
@@ -259,7 +268,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         />
         <KpiSmall
           label="暗盘收益"
-          value={scopedStats.greyProfit}
+          value={allStats.greyProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F0E0DC"
@@ -271,7 +280,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         />
         <KpiSmall
           label="首日收益"
-          value={scopedStats.firstDayProfit}
+          value={allStats.firstDayProfit}
           formatter={(v) => formatHKD(v, 'profit', 'dashboardKpi')}
           color={C.danger}
           iconBg="#F3EAD7"
@@ -286,7 +295,7 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
       {/* ══ Row 3: Trend chart + Composition ══ */}
       <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
         <TrendCard trend={trend} trendPeriod={trendPeriod} onPeriodChange={setTrendPeriod} />
-        <CompositionCard rows={profitComposition} total={scopedStats.totalProfit} />
+        <CompositionCard rows={profitComposition} total={allStats.totalProfit} />
       </div>
 
       {/* ══ Row 4: Activity | Tasks | AI ══ */}
@@ -300,8 +309,8 @@ export function DashboardPage({ filter }: { filter: DashboardFilter }) {
         type={detailType}
         accounts={accounts}
         ipos={ipos}
-        subscriptions={scopedSubscriptions}
-        sales={scopedSales}
+        subscriptions={accountMatchedSubscriptions}
+        sales={accountMatchedSales}
         onClose={() => setDetailType(null)}
       />
     </div>
@@ -928,6 +937,7 @@ function getDashboardDetail(
 ) {
   const accountOf = (subscription?: Subscription) => accounts.find((account) => account.id === subscription?.accountId)
   const ipoOf = (subscription?: Subscription) => ipos.find((ipo) => ipo.id === subscription?.ipoId)
+  const ipoTitle = (ipo?: Ipo) => ipo ? `${getIpoDisplayName(ipo)}（${ipo.stockCode || '-'}）` : '已删除新股'
   const saleRows = (method?: Sale['method']): DashboardDetailRow[] =>
     sales
       .filter((sale) => !method || sale.method === method)
@@ -940,7 +950,7 @@ function getDashboardDetail(
         const metrics = getSaleDetailMetrics(sale, subscription, ipo, sales)
         return {
           id: sale.id,
-          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          title: ipoTitle(ipo),
           subtitle: account ? formatAccountName(account) : '已删除账户',
           meta: `${formatSaleMethod(sale.method)} · ${sale.date || '-'} · ${sale.shares} 股 × HK$ ${sale.price.toFixed(2)}`,
           amount: metrics.profit,
@@ -982,7 +992,7 @@ function getDashboardDetail(
         const account = accountOf(subscription)
         return {
           id: `fee-${subscription.id}`,
-          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          title: ipoTitle(ipo),
           subtitle: account ? formatAccountName(account) : '已删除账户',
           meta: `申购手续费 · ${subscription.subscriptionDate || '-'} · ${getSubscriptionMethodLabel(subscription.subscriptionMethod ?? subscription.method)}`,
           amount: subscription.fee,
@@ -999,7 +1009,7 @@ function getDashboardDetail(
         const account = accountOf(subscription)
         return {
           id: `commission-${sale.id}`,
-          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          title: ipoTitle(ipo),
           subtitle: account ? formatAccountName(account) : '已删除账户',
           meta: `卖出佣金 · ${sale.date || '-'} · ${formatSaleMethod(sale.method)}`,
           amount: sale.commission ?? 0,
@@ -1032,7 +1042,7 @@ function getDashboardDetail(
         const metrics = getSubscriptionMetrics(subscription, ipo, sales)
         return {
           id: subscription.id,
-          title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+          title: ipoTitle(ipo),
           subtitle: account ? formatAccountName(account) : '已删除账户',
           meta: `${subscription.subscriptionDate || '-'} · 中签 ${subscription.allottedShares} 股 / ${subscription.allottedLots} 手`,
           amount: metrics.netProfit,
@@ -1061,7 +1071,7 @@ function getDashboardDetail(
       const metrics = getSubscriptionMetrics(subscription, ipo, sales)
       return {
         id: subscription.id,
-        title: ipo ? `${ipo.name}（${ipo.stockCode || '-'}）` : '已删除新股',
+        title: ipoTitle(ipo),
         subtitle: account ? formatAccountName(account) : '已删除账户',
         meta: `${subscription.subscriptionDate || '-'} · ${formatSubscriptionStatus(subscription.status)} · 已卖 ${metrics.soldShares} 股`,
         amount: metrics.netProfit,
@@ -1087,6 +1097,19 @@ function getDashboardDetail(
     ],
     rows,
   }
+}
+
+function getIpoDisplayName(ipo: Ipo) {
+  const names = ipo as Ipo & {
+    nameZh?: string
+    stockName?: string
+    companyName?: string
+  }
+  return names.nameZh?.trim()
+    || names.name?.trim()
+    || names.stockName?.trim()
+    || names.companyName?.trim()
+    || '未命名新股'
 }
 
 function getScopedDashboardStats(
@@ -1144,6 +1167,9 @@ function getScopedDashboardStats(
       .reduce((sum, row) => sum + row.profit, 0),
     firstDayProfit: saleRows
       .filter((row) => row.sale.method === 'first_day')
+      .reduce((sum, row) => sum + row.profit, 0),
+    heldProfit: saleRows
+      .filter((row) => row.sale.method === 'held_sale')
       .reduce((sum, row) => sum + row.profit, 0),
   }
 }

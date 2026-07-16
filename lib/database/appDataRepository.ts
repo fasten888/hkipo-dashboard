@@ -1,4 +1,5 @@
 import { prisma } from './prisma.js'
+import { containsChinese, getIpoDisplayName } from './ipoDisplayName.js'
 
 type SubscriptionMethod = 'cash' | '10x'
 type SubscriptionStatus = 'applied' | 'announced' | 'won' | 'lost'
@@ -121,7 +122,7 @@ export async function getAppDataSnapshot() {
     })),
     ipos: ipos.map((ipo) => ({
       id: ipo.id,
-      name: ipo.name,
+      name: getIpoDisplayName(ipo),
       stockCode: ipo.code,
       issuePrice: ipo.offerPriceMax ?? ipo.offerPriceMin ?? 0,
       lotSize: ipo.lotSize ?? 0,
@@ -335,9 +336,12 @@ function accountData(input: AccountInput) {
 
 function ipoData(input: IpoInput) {
   const issuePrice = numberOrZero(input.issuePrice)
+  const name = input.name.trim()
   return {
     code: input.stockCode.trim().toUpperCase(),
-    name: input.name.trim(),
+    name,
+    displayNameCn: containsChinese(name) ? name : null,
+    displayNameEn: containsChinese(name) ? null : name,
     status: 'active',
     industry: input.industry?.trim() || null,
     offerPriceMin: issuePrice,
