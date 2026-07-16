@@ -69,6 +69,11 @@ const sourcePath = resolve(
   process.cwd(),
   sourceArgument ?? 'recovery/HKIPO_LIVE_BROWSER_20260714.json',
 )
+const auditedPriceFixes = new Map([
+  ['06106', 101.6], ['01688', 10.18], ['09630', 252.73], ['03661', 85.2],
+  ['01191', 114], ['01956', 60.7], ['07656', 21.66], ['06880', 295.6],
+  ['07687', 87.92], ['09971', 31.62], ['03752', 38], ['06951', 100.3],
+] as const)
 
 async function main() {
   const source = JSON.parse(await readFile(sourcePath, 'utf8')) as RecoveryData
@@ -79,7 +84,16 @@ async function main() {
 
   const [accounts, ipos, accountIpos, sellRecords] = await Promise.all([
     prisma.account.findMany({ select: { id: true, name: true, accountSuffix: true } }),
-    prisma.ipo.findMany({ select: { id: true, code: true } }),
+    prisma.ipo.findMany({
+      select: {
+        id: true,
+        code: true,
+        offerPriceMin: true,
+        offerPriceMax: true,
+        lotSize: true,
+        lotAmount: true,
+      },
+    }),
     prisma.accountIpo.findMany({ select: { id: true, accountId: true, ipoId: true } }),
     prisma.sellRecord.findMany({
       select: { id: true, accountIpoId: true, date: true, shares: true, price: true, method: true },
@@ -100,6 +114,45 @@ async function main() {
   const sellSignatures = new Set(sellRecords.map(sellSignature))
 
   const missingIpos = sourceIpos.filter((ipo) => !ipoByCode.has(normalizeCode(ipo.stockCode ?? ipo.code ?? '')))
+  const repairedIpos: Array<{
+    id: string
+    code: string
+    data: {
+      offerPriceMin?: number
+      offerPriceMax?: number
+    }
+  }> = []
+  const ipoConflicts: string[] = []
+  for (const sourceIpo of sourceIpos) {
+    const code = normalizeCode(sourceIpo.stockCode ?? sourceIpo.code ?? '')
+    const existing = ipoByCode.get(code)
+    const auditedPrice = auditedPriceFixes.get(code)
+    if (!existing || auditedPrice === undefined) continue
+    const sourcePrice = positiveNumber(sourceIpo.issuePrice)
+    if (sourcePrice !== null && Math.abs(sourcePrice - auditedPrice) > 0.000001) {
+      ipoConflicts.push(`${code}: recovery source price differs from audited price`)
+      continue
+    }
+    const validExistingPrices = [existing.offerPriceMin, existing.offerPriceMax].filter(
+      (price): price is number => price !== null && price > 0,
+    )
+    const needsPrice = existing.offerPriceMin === null || existing.offerPriceMin <= 0
+      || existing.offerPriceMax === null || existing.offerPriceMax <= 0
+    if (needsPrice && sourcePrice !== null
+      && validExistingPrices.some((price) => Math.abs(price - auditedPrice) > 0.000001)) {
+      ipoConflicts.push(`${code}: existing price differs from recovery source`)
+      continue
+    }
+    const data = {
+      ...(sourcePrice !== null && (existing.offerPriceMin === null || existing.offerPriceMin <= 0)
+        ? { offerPriceMin: auditedPrice }
+        : {}),
+      ...(sourcePrice !== null && (existing.offerPriceMax === null || existing.offerPriceMax <= 0)
+        ? { offerPriceMax: auditedPrice }
+        : {}),
+    }
+    if (Object.keys(data).length > 0) repairedIpos.push({ id: existing.id, code, data })
+  }
   const plannedIpoIdBySourceId = new Map<string, string>()
   for (const ipo of sourceIpos) {
     const existing = ipoByCode.get(normalizeCode(ipo.stockCode ?? ipo.code ?? ''))
@@ -167,8 +220,14 @@ async function main() {
   console.log(`Mode: ${apply ? 'APPLY' : 'DRY RUN'}`)
   console.log(`Source: ${sourcePath}`)
   console.log(`New IPOs: ${missingIpos.length}`)
+  console.log(`Repaired IPOs: ${repairedIpos.length}`)
   console.log(`New subscriptions: ${missingSubscriptions.length}`)
   console.log(`New sell records: ${missingSales.length}`)
+  console.log(`Skipped: ${skippedReferences.length}`)
+  console.log(`Conflicts: ${ipoConflicts.length}`)
+  if (ipoConflicts.length > 0) {
+    throw new Error(`IPO repair conflicts:\n${ipoConflicts.join('\n')}`)
+  }
   if (skippedReferences.length > 0) {
     console.warn(`Skipped unresolved subscriptions: ${skippedReferences.length}`)
   }
@@ -203,6 +262,10 @@ async function main() {
           updatedAt: dateOrNow(ipo.updatedAt),
         },
       })
+    }
+
+    for (const ipo of repairedIpos) {
+      await tx.ipo.update({ where: { id: ipo.id }, data: ipo.data })
     }
 
     for (const item of missingSubscriptions) {
@@ -249,6 +312,7 @@ async function main() {
   }, { maxWait: 20_000, timeout: 120_000 })
 
   console.log(`IPOs inserted: ${missingIpos.length}`)
+  console.log(`IPOs repaired: ${repairedIpos.length}`)
   console.log(`Subscriptions inserted: ${missingSubscriptions.length}`)
   console.log(`SellRecords inserted: ${missingSales.length}`)
 }
@@ -311,6 +375,11 @@ function nullableNumber(value: number | string | null | undefined) {
 function nullableInteger(value: number | string | null | undefined) {
   const number = nullableNumber(value)
   return number === null ? null : Math.round(number)
+}
+
+function positiveNumber(value: number | string | null | undefined) {
+  const number = nullableNumber(value)
+  return number !== null && number > 0 ? number : null
 }
 
 function nullableDate(value: string | Date | null | undefined) {

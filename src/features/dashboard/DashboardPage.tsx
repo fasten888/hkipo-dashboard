@@ -30,6 +30,7 @@ import {
   getPerformanceSummary,
   getProfitTrend,
   getSubscriptionMetrics,
+  getIpoIssuePrice,
   type TrendPeriod,
 } from '../../utils/statistics'
 
@@ -1187,8 +1188,9 @@ function getSaleDetailMetrics(
     totalSoldShares > 0
       ? ((subscription?.fee ?? 0) * sale.shares) / totalSoldShares
       : 0
-  const issueCost = sale.shares * (ipo?.issuePrice ?? 0)
-  const profit = sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) - allocatedFee - (sale.commission ?? 0)
+  const issuePrice = getIpoIssuePrice(ipo)
+  const issueCost = sale.shares * issuePrice
+  const profit = sale.shares * (sale.price - issuePrice) - allocatedFee - (sale.commission ?? 0)
   return { issueCost, allocatedFee, profit }
 }
 

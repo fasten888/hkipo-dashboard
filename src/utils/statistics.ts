@@ -89,6 +89,12 @@ export interface IndustryStats {
   totalProfit: number
 }
 
+const warnedMissingIssuePrices = new Set<string>()
+
+export function getIpoIssuePrice(ipo: Ipo | undefined) {
+  return ipo?.issuePrice ?? 0
+}
+
 export function getSubscriptionMetrics(
   subscription: Subscription,
   ipo: Ipo | undefined,
@@ -106,7 +112,16 @@ export function getSubscriptionMetrics(
     (total, sale) => total + (sale.commission ?? 0),
     0,
   )
-  const issuePrice = ipo?.issuePrice ?? 0
+  const issuePrice = getIpoIssuePrice(ipo)
+  if (relatedSales.length > 0 && issuePrice <= 0 && !warnedMissingIssuePrices.has(subscription.id)) {
+    warnedMissingIssuePrices.add(subscription.id)
+    console.warn('[ProfitDataWarning] Sold subscription has no valid issue price', {
+      subscriptionId: subscription.id,
+      ipoId: subscription.ipoId,
+      stockCode: ipo?.stockCode ?? 'unknown',
+      sellRecordCount: relatedSales.length,
+    })
+  }
   const issueCost = soldShares * issuePrice
   const netProfit = saleIncome - issueCost - subscription.fee - commissions
   const investedCost = issueCost + subscription.fee + commissions
@@ -264,7 +279,7 @@ export function getSaleTypeStats(
       )
       const ipo = ipos.find((item) => item.id === subscription?.ipoId)
       const cost =
-        sale.shares * (ipo?.issuePrice ?? 0) + (sale.commission ?? 0)
+        sale.shares * getIpoIssuePrice(ipo) + (sale.commission ?? 0)
       const totalSoldShares = sales
         .filter((item) => item.subscriptionId === sale.subscriptionId)
         .reduce((total, item) => total + item.shares, 0)
@@ -273,7 +288,7 @@ export function getSaleTypeStats(
           ? ((subscription?.fee ?? 0) * sale.shares) / totalSoldShares
           : 0
       const profit =
-        sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) -
+        sale.shares * (sale.price - getIpoIssuePrice(ipo)) -
         allocatedFee -
         (sale.commission ?? 0)
       const holdingDays = daysBetween(ipo?.listingDate ?? '', sale.date)
@@ -558,7 +573,7 @@ function getSaleProfitRow(
     (item) => item.id === sale.subscriptionId,
   )
   const ipo = ipos.find((item) => item.id === subscription?.ipoId)
-  const cost = sale.shares * (ipo?.issuePrice ?? 0)
+  const cost = sale.shares * getIpoIssuePrice(ipo)
   const totalSoldShares = sales
     .filter((item) => item.subscriptionId === sale.subscriptionId)
     .reduce((total, item) => total + item.shares, 0)
@@ -567,7 +582,7 @@ function getSaleProfitRow(
       ? ((subscription?.fee ?? 0) * sale.shares) / totalSoldShares
       : 0
   const profit =
-    sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) -
+    sale.shares * (sale.price - getIpoIssuePrice(ipo)) -
     fee -
     (sale.commission ?? 0)
   return {
@@ -631,7 +646,7 @@ export function groupMonthly(
     const bucket = ensure(sale.date)
     const ipo = ipos.find((item) => item.id === subscription.ipoId)
     bucket.profit +=
-      sale.shares * (sale.price - (ipo?.issuePrice ?? 0)) -
+      sale.shares * (sale.price - getIpoIssuePrice(ipo)) -
       (sale.commission ?? 0)
   })
   return [...months.values()].sort((a, b) => a.month.localeCompare(b.month))
