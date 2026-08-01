@@ -28,6 +28,7 @@ import {
   deleteSubscriptionInDatabase,
   deleteSubscriptionsInDatabase,
   deleteWithdrawalInDatabase,
+  DatabaseApiError,
   loadDatabaseAppData,
   updateAccountInDatabase,
   updateExchangeRecordInDatabase,
@@ -59,11 +60,18 @@ import type {
   CloudConflict,
   CloudDiagnosticResult,
   CloudRemoteSummary,
+  CloudSyncComparison,
+  CloudSyncStage,
   CloudSyncTimes,
   CloudSyncStatus,
   CloudUploadReport,
   CloudUser,
 } from '../types/cloud'
+import {
+  appDataCounts,
+  latestAppDataTimestamp,
+  mergeAppData,
+} from '../utils/appDataMerge'
 
 interface AppDataContextValue extends AppData {
   cloudConfigured: boolean
@@ -71,6 +79,8 @@ interface AppDataContextValue extends AppData {
   cloudStatus: CloudSyncStatus
   cloudMessage: string
   cloudLastSyncedAt: string | null
+  cloudSyncStages: CloudSyncStage[]
+  cloudSyncComparison: CloudSyncComparison | null
   cloudPendingChanges: boolean
   cloudConflict: CloudConflict | null
   cloudDiagnostic: CloudDiagnosticResult | null
@@ -155,6 +165,9 @@ function databaseCloudFacade(
   syncing: boolean,
   error: string,
   lastSyncedAt: string | null,
+  attempted: boolean,
+  stages: CloudSyncStage[],
+  comparison: CloudSyncComparison | null,
 ) {
   const run = async () => {
     await refreshData()
@@ -163,9 +176,17 @@ function databaseCloudFacade(
   return {
     configured: false,
     user: null as CloudUser | null,
-    status: (syncing ? 'syncing' : error ? 'error' : 'synced') as CloudSyncStatus,
+    status: (syncing
+      ? 'syncing'
+      : error
+        ? 'error'
+        : attempted
+          ? 'synced'
+          : 'offline') as CloudSyncStatus,
     message: error || '数据库模式：业务数据直接通过 API / Prisma 读取。',
     lastSyncedAt,
+    stages,
+    comparison,
     pendingChanges: false,
     conflict: null as CloudConflict | null,
     diagnostic: null as CloudDiagnosticResult | null,
@@ -203,31 +224,47 @@ function hasBusinessData(data: AppData) {
   return BUSINESS_COLLECTIONS.some((key) => data[key].length > 0)
 }
 
-function latestUpdatedAt(data: AppData) {
-  const timestamps = BUSINESS_COLLECTIONS.flatMap((key) =>
-    data[key].flatMap((record) => {
-      const item = record as { createdAt?: string; updatedAt?: string }
-      return [item.updatedAt, item.createdAt]
-    }),
-  )
-    .concat(data.fxRates.updatedAt)
-    .filter((value): value is string => Boolean(value))
-    .map((value) => Date.parse(value))
-    .filter(Number.isFinite)
-
-  return timestamps.length > 0 ? Math.max(...timestamps) : 0
+function initialSyncStages(): CloudSyncStage[] {
+  return [
+    syncStage('token', '读取凭证', 'success', '数据库 API 模式无需浏览器 Supabase Token'),
+    syncStage('api-request', '请求 API', 'waiting', '等待请求 /api/app-data'),
+    syncStage('database-query', 'Supabase 查询', 'waiting', '等待数据库响应'),
+    syncStage('data-merge', '数据合并', 'waiting', '本地数据已优先加载'),
+    syncStage('cloud-write', '写入云端', 'waiting', '读取同步无需回写'),
+  ]
 }
 
-function selectNewestData(local: AppData, remote: AppData) {
-  if (!hasBusinessData(local)) return remote
-  if (!hasBusinessData(remote)) return local
+function syncStage(
+  name: CloudSyncStage['name'],
+  label: string,
+  status: CloudSyncStage['status'],
+  detail: string,
+): CloudSyncStage {
+  return {
+    name,
+    label,
+    status,
+    detail,
+    updatedAt: status === 'waiting' ? null : new Date().toISOString(),
+  }
+}
 
-  const remoteWouldClearLocal = BUSINESS_COLLECTIONS.some(
-    (key) => local[key].length > 0 && remote[key].length === 0,
-  )
-  if (remoteWouldClearLocal) return local
-
-  return latestUpdatedAt(remote) > latestUpdatedAt(local) ? remote : local
+function buildComparison(local: AppData, remote: AppData): CloudSyncComparison {
+  const localTimestamp = latestAppDataTimestamp(local)
+  const remoteTimestamp = latestAppDataTimestamp(remote)
+  const timeDiffMs = Math.abs(localTimestamp - remoteTimestamp)
+  return {
+    localUpdatedAt: localTimestamp ? new Date(localTimestamp).toISOString() : null,
+    remoteUpdatedAt: remoteTimestamp ? new Date(remoteTimestamp).toISOString() : null,
+    newer: localTimestamp === remoteTimestamp
+      ? 'same'
+      : localTimestamp > remoteTimestamp
+        ? 'local'
+        : 'remote',
+    timeDiffMs,
+    localCounts: appDataCounts(local),
+    remoteCounts: appDataCounts(remote),
+  }
 }
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
@@ -235,22 +272,77 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [databaseSyncing, setDatabaseSyncing] = useState(false)
   const [databaseError, setDatabaseError] = useState('')
   const [databaseLastSyncedAt, setDatabaseLastSyncedAt] = useState<string | null>(null)
+  const [databaseSyncAttempted, setDatabaseSyncAttempted] = useState(false)
+  const [databaseSyncStages, setDatabaseSyncStages] = useState<CloudSyncStage[]>(initialSyncStages)
+  const [databaseSyncComparison, setDatabaseSyncComparison] = useState<CloudSyncComparison | null>(null)
+  const dataRef = useRef(data)
   const lastSubscriptionBatch = useRef<{
     before: AppData
     after: AppData
   } | null>(null)
   const [subscriptionBatchRevision, setSubscriptionBatchRevision] = useState(0)
 
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
+
   const refreshData = useCallback(async () => {
     setDatabaseSyncing(true)
+    setDatabaseSyncAttempted(true)
+    setDatabaseSyncStages([
+      syncStage('token', '读取凭证', 'success', '数据库 API 模式无需浏览器 Supabase Token'),
+      syncStage('api-request', '请求 API', 'running', '正在请求 /api/app-data'),
+      syncStage('database-query', 'Supabase 查询', 'waiting', '等待数据库响应'),
+      syncStage('data-merge', '数据合并', 'waiting', '等待远端数据'),
+      syncStage('cloud-write', '写入云端', 'waiting', '读取同步无需回写'),
+    ])
     try {
       const nextData = normalizeAppData(await loadDatabaseAppData())
-      setData((current) => selectNewestData(current, nextData))
+      setDatabaseSyncStages((stages) => stages.map((stage) => {
+        if (stage.name === 'api-request') {
+          return syncStage(stage.name, stage.label, 'success', 'API 请求成功')
+        }
+        if (stage.name === 'database-query') {
+          return syncStage(stage.name, stage.label, 'success', 'Supabase 查询成功')
+        }
+        if (stage.name === 'data-merge') {
+          return syncStage(stage.name, stage.label, 'running', '正在按 ID 和 updatedAt 合并')
+        }
+        return stage
+      }))
+
+      const localData = dataRef.current
+      const comparison = buildComparison(localData, nextData)
+      const mergedData = mergeAppData(localData, nextData)
+      setDatabaseSyncComparison(comparison)
+      setData(mergedData)
+      dataRef.current = mergedData
+      setDatabaseSyncStages((stages) => stages.map((stage) => {
+        if (stage.name === 'data-merge') {
+          return syncStage(stage.name, stage.label, 'success', '已保留本地较新记录并合并云端更新')
+        }
+        if (stage.name === 'cloud-write') {
+          return syncStage(stage.name, stage.label, 'success', '本次为读取同步，无需回写数据库')
+        }
+        return stage
+      }))
       setDatabaseError('')
       setDatabaseLastSyncedAt(new Date().toISOString())
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       setDatabaseError(`云同步失败，当前使用本地数据。${message ? ` ${message}` : ''}`)
+      const failedStage = error instanceof DatabaseApiError
+        ? error.stage
+        : 'api-request'
+      setDatabaseSyncStages((stages) => stages.map((stage) => {
+        if (stage.name === failedStage) {
+          return syncStage(stage.name, stage.label, 'failed', message)
+        }
+        if (stage.status === 'running') {
+          return syncStage(stage.name, stage.label, 'failed', '同步在此步骤前终止')
+        }
+        return stage
+      }))
       throw error
     } finally {
       setDatabaseSyncing(false)
@@ -269,12 +361,29 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const persistAndRefresh = useCallback(
     (action: Promise<unknown>) => {
+      setDatabaseSyncAttempted(true)
+      setDatabaseSyncStages((stages) => stages.map((stage) =>
+        stage.name === 'cloud-write'
+          ? syncStage(stage.name, stage.label, 'running', '正在写入数据库')
+          : stage,
+      ))
       void action
-        .then(refreshData)
+        .then(() => {
+          setDatabaseSyncStages((stages) => stages.map((stage) =>
+            stage.name === 'cloud-write'
+              ? syncStage(stage.name, stage.label, 'success', '数据库写入成功')
+              : stage,
+          ))
+          return refreshData()
+        })
         .catch((error) => {
-          setDatabaseError(
-            `云同步失败，当前使用本地数据。${error instanceof Error ? error.message : String(error)}`,
-          )
+          const message = error instanceof Error ? error.message : String(error)
+          setDatabaseError(`云同步失败，当前使用本地数据。${message}`)
+          setDatabaseSyncStages((stages) => stages.map((stage) =>
+            stage.name === 'cloud-write'
+              ? syncStage(stage.name, stage.label, 'failed', message)
+              : stage,
+          ))
           console.error('[app-data] database write failed', error)
         })
     },
@@ -287,8 +396,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       databaseSyncing,
       databaseError,
       databaseLastSyncedAt,
+      databaseSyncAttempted,
+      databaseSyncStages,
+      databaseSyncComparison,
     ),
-    [databaseError, databaseLastSyncedAt, databaseSyncing, refreshData],
+    [
+      databaseError,
+      databaseLastSyncedAt,
+      databaseSyncAttempted,
+      databaseSyncComparison,
+      databaseSyncStages,
+      databaseSyncing,
+      refreshData,
+    ],
   )
 
   const value = useMemo<AppDataContextValue>(
@@ -299,6 +419,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       cloudStatus: cloud.status,
       cloudMessage: cloud.message,
       cloudLastSyncedAt: cloud.lastSyncedAt,
+      cloudSyncStages: cloud.stages,
+      cloudSyncComparison: cloud.comparison,
       cloudPendingChanges: cloud.pendingChanges,
       cloudConflict: cloud.conflict,
       cloudDiagnostic: cloud.diagnostic,

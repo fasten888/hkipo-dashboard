@@ -98,3 +98,27 @@ export interface CloudDiagnosticResult {
   lostAt?: string
   steps: CloudDiagnosticStep[]
 }
+
+export type CloudSyncStageName =
+  | 'token'
+  | 'api-request'
+  | 'database-query'
+  | 'data-merge'
+  | 'cloud-write'
+
+export interface CloudSyncStage {
+  name: CloudSyncStageName
+  label: string
+  status: 'waiting' | 'running' | 'success' | 'failed'
+  detail: string
+  updatedAt: string | null
+}
+
+export interface CloudSyncComparison {
+  localUpdatedAt: string | null
+  remoteUpdatedAt: string | null
+  newer: 'local' | 'remote' | 'same'
+  timeDiffMs: number
+  localCounts: Pick<CloudDataCounts, 'accounts' | 'ipos' | 'subscriptions' | 'sales'>
+  remoteCounts: Pick<CloudDataCounts, 'accounts' | 'ipos' | 'subscriptions' | 'sales'>
+}

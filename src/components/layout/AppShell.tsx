@@ -29,7 +29,7 @@ import { useAppData } from '../../hooks/useAppData'
 import { APP_VERSION } from '../../app/version'
 import { formatAccountName } from '../../utils/account'
 import type { DashboardFilter, DashboardRangePreset } from '../../types/dashboardFilter'
-import type { CloudSyncStatus } from '../../types/cloud'
+import type { CloudSyncStage, CloudSyncStatus } from '../../types/cloud'
 import { STORAGE_WARNING_EVENT } from '../../services/storageManager'
 
 interface AppShellProps {
@@ -50,6 +50,7 @@ export function AppShell({
   const cloud = useAppData()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [privacyOpen, setPrivacyOpen]       = useState(false)
+  const [syncDetailsOpen, setSyncDetailsOpen] = useState(false)
   const [installHelpOpen, setInstallHelpOpen] = useState(false)
   const [installPrompt, setInstallPrompt]   = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled]           = useState(() => window.matchMedia('(display-mode: standalone)').matches)
@@ -113,7 +114,7 @@ export function AppShell({
         style={{ boxShadow: '0 1px 0 #E4DFD6' }}>
         <Brand />
         <div className="flex items-center gap-1.5">
-          <CloudButton compact status={cloud.cloudStatus} onClick={retrySync} />
+          <CloudButton compact status={cloud.cloudStatus} onClick={() => setSyncDetailsOpen(true)} />
           {!installed && <InstallButton onClick={handleInstall} compact />}
           <button type="button" onClick={() => setMobileMenuOpen(true)}
             className="grid h-8 w-8 place-items-center rounded-[10px] text-[#8C8273] transition hover:bg-[#F4F1ED]">
@@ -429,7 +430,7 @@ export function AppShell({
               <RefreshCw size={13} className={cloud.cloudStatus === 'syncing' ? 'animate-spin' : ''} />
             </button>
 
-            <CloudButton status={cloud.cloudStatus} onClick={retrySync} />
+            <CloudButton status={cloud.cloudStatus} onClick={() => setSyncDetailsOpen(true)} />
             {!installed && <InstallButton onClick={handleInstall} />}
 
             {/* Privacy */}
@@ -494,6 +495,16 @@ export function AppShell({
       </main>
 
       <PrivacySettingsModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <SyncStatusModal
+        open={syncDetailsOpen}
+        status={cloud.cloudStatus}
+        message={cloud.cloudMessage}
+        lastSyncedAt={cloud.cloudLastSyncedAt}
+        stages={cloud.cloudSyncStages}
+        comparison={cloud.cloudSyncComparison}
+        onRetry={retrySync}
+        onClose={() => setSyncDetailsOpen(false)}
+      />
       <InstallHelpModal    open={installHelpOpen} onClose={() => setInstallHelpOpen(false)} />
     </div>
   )
@@ -543,10 +554,13 @@ function SidebarContent({
     { label: 'AI复盘', icon: Settings },
   ]
 
-  const syncLabel =
-    cloud.cloudStatus === 'syncing' ? '同步中…'
-    : cloud.cloudStatus === 'error'  ? '同步失败'
-    : '1 分钟前'
+  const syncLabel = cloud.cloudStatus === 'syncing'
+    ? '同步中…'
+    : cloud.cloudStatus === 'error'
+      ? '同步失败'
+      : cloud.cloudLastSyncedAt
+        ? formatSyncTime(cloud.cloudLastSyncedAt)
+        : '等待同步'
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -589,14 +603,12 @@ function SidebarContent({
       <div className="shrink-0 border-t border-[#E4DFD6] px-4 py-4">
         <div className="flex items-center gap-1.5 text-[12px] font-medium text-[#5A5246]">
           <ShieldCheck size={12} className="shrink-0 text-[#7E9587]" />
-          {cloud.cloudUser ? '本地 + 云端保护' : '本地数据保护'}
+          本地 + 云端保护
         </div>
         {cloud.cloudUser && (
           <p className="mt-1 truncate text-[11px] text-[#A8A296]">已登录 {cloud.cloudUser.email}，修改后自动同步。</p>
         )}
-        {!cloud.cloudUser && (
-          <p className="mt-1 text-[11px] text-[#A8A296]">数据保存在当前浏览器。</p>
-        )}
+        {!cloud.cloudUser && <p className="mt-1 text-[11px] text-[#A8A296]">本地优先，后台通过数据库 API 同步。</p>}
         <p className="mt-1 text-[11px] text-[#A8A296]">最后同步: {syncLabel}</p>
         <p className="mt-3 text-[11px] font-medium text-[#D2CBBF]">v{APP_VERSION}</p>
       </div>
@@ -688,8 +700,10 @@ function CloudButton({
   const label = status === 'syncing'
     ? '同步中'
     : status === 'error'
-      ? '本地数据'
-      : '已自动同步'
+      ? '同步失败'
+      : status === 'offline'
+        ? '本地数据'
+        : '云端已同步'
 
   return (
     <button type="button" onClick={onClick}
@@ -697,12 +711,142 @@ function CloudButton({
         'inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-3 text-[12px] font-medium transition',
         status === 'error'
           ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+          : status === 'offline'
+            ? 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'
           : 'border-[#E5EBE5] bg-[#F2F5F2] text-[#677A6F] hover:bg-[#EAF0EA]',
       ].join(' ')}>
       {status === 'syncing' ? <RefreshCw size={13} className="animate-spin" /> : <Cloud size={13} />}
       {!compact && label}
     </button>
   )
+}
+
+function SyncStatusModal({
+  open,
+  status,
+  message,
+  lastSyncedAt,
+  stages,
+  comparison,
+  onRetry,
+  onClose,
+}: {
+  open: boolean
+  status: CloudSyncStatus
+  message: string
+  lastSyncedAt: string | null
+  stages: CloudSyncStage[]
+  comparison: ReturnType<typeof useAppData>['cloudSyncComparison']
+  onRetry: () => void
+  onClose: () => void
+}) {
+  const statusMeta = getSyncStatusMeta(status)
+  const newerLabel = comparison?.newer === 'local'
+    ? '本地较新'
+    : comparison?.newer === 'remote'
+      ? '云端较新'
+      : '时间一致'
+
+  return (
+    <Modal
+      open={open}
+      title="云同步状态"
+      description="本地数据始终优先加载，云端失败不会清空当前数据。"
+      onClose={onClose}
+    >
+      <div className="space-y-4 px-5 py-5 sm:px-8 sm:py-6">
+        <div className={`rounded-[14px] border p-4 ${statusMeta.className}`}>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[14px] font-semibold">{statusMeta.label}</p>
+            {status === 'syncing' && <RefreshCw size={16} className="animate-spin" />}
+          </div>
+          <p className="mt-1 text-[12px] leading-5">{message}</p>
+          <p className="mt-2 text-[11px] opacity-75">
+            最近同步：{lastSyncedAt ? formatSyncTime(lastSyncedAt) : '暂无成功记录'}
+          </p>
+        </div>
+
+        <section className="rounded-[14px] bg-[#F8F4F1] p-4">
+          <h3 className="text-[13px] font-semibold text-[#4A4540]">同步步骤</h3>
+          <div className="mt-3 space-y-2">
+            {stages.map((stage) => (
+              <div key={stage.name} className="flex items-start gap-3 rounded-[10px] bg-white px-3 py-2.5">
+                <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${syncStageColor(stage.status)}`} />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold text-[#5A5246]">{stage.label}</p>
+                  <p className="mt-0.5 break-words text-[11px] leading-4 text-[#8C8273]">{stage.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {comparison && (
+          <section className="rounded-[14px] border border-[#E4DFD6] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-[13px] font-semibold text-[#4A4540]">本地与云端</h3>
+              <span className="rounded-full bg-[#F4F1ED] px-2.5 py-1 text-[11px] font-semibold text-[#8C8273]">
+                {newerLabel} · 相差 {formatDuration(comparison.timeDiffMs)}
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-[11px]">
+              <SyncCounts title="本地" counts={comparison.localCounts} />
+              <SyncCounts title="云端" counts={comparison.remoteCounts} />
+            </div>
+          </section>
+        )}
+
+        <button
+          type="button"
+          disabled={status === 'syncing'}
+          onClick={onRetry}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[12px] bg-[#B08B7E] px-4 text-[13px] font-semibold text-white transition hover:bg-[#9A7468] disabled:cursor-wait disabled:opacity-60"
+        >
+          <RefreshCw size={15} className={status === 'syncing' ? 'animate-spin' : ''} />
+          {status === 'syncing' ? '正在同步' : '重试同步'}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+function SyncCounts({ title, counts }: {
+  title: string
+  counts: { accounts: number; ipos: number; subscriptions: number; sales: number }
+}) {
+  return (
+    <div className="rounded-[10px] bg-[#F8F4F1] p-3 text-[#8C8273]">
+      <p className="font-semibold text-[#5A5246]">{title}</p>
+      <p className="mt-1 leading-5">{counts.accounts} 账户 · {counts.ipos} 新股</p>
+      <p className="leading-5">{counts.subscriptions} 申购 · {counts.sales} 卖出</p>
+    </div>
+  )
+}
+
+function getSyncStatusMeta(status: CloudSyncStatus) {
+  if (status === 'syncing') return { label: '同步中', className: 'border-amber-200 bg-amber-50 text-amber-800' }
+  if (status === 'error') return { label: '同步失败', className: 'border-red-200 bg-red-50 text-red-800' }
+  if (status === 'offline') return { label: '本地数据（等待同步）', className: 'border-orange-200 bg-orange-50 text-orange-800' }
+  return { label: '云端已同步', className: 'border-emerald-200 bg-emerald-50 text-emerald-800' }
+}
+
+function syncStageColor(status: CloudSyncStage['status']) {
+  if (status === 'success') return 'bg-emerald-500'
+  if (status === 'failed') return 'bg-red-500'
+  if (status === 'running') return 'bg-amber-500'
+  return 'bg-slate-300'
+}
+
+function formatSyncTime(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false })
+}
+
+function formatDuration(milliseconds: number) {
+  if (milliseconds < 1_000) return `${milliseconds}ms`
+  if (milliseconds < 60_000) return `${Math.round(milliseconds / 1_000)}秒`
+  if (milliseconds < 3_600_000) return `${Math.round(milliseconds / 60_000)}分钟`
+  return `${Math.round(milliseconds / 3_600_000)}小时`
 }
 
 function InstallButton({ compact = false, onClick }: { compact?: boolean; onClick: () => void }) {

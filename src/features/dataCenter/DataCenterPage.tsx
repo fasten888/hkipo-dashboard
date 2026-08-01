@@ -103,9 +103,15 @@ export function DataCenterPage() {
       const response = await fetch('/api/data-center', {
         headers: { accept: 'application/json' },
       })
-      const payload = await response.json() as { ok: boolean; data: DataCenterPayload; message?: string }
+      const payload = await response.json() as {
+        ok: boolean
+        data: DataCenterPayload
+        message?: string
+        error?: string
+        stage?: string
+      }
       if (!response.ok) {
-        throw new Error(payload.message ?? '读取数据中心失败')
+        throw new Error(formatApiError(payload, '读取数据中心失败'))
       }
       setData(payload.data)
     } catch (requestError) {
@@ -132,10 +138,12 @@ export function DataCenterPage() {
       const payload = await response.json() as {
         ok?: boolean
         message?: string
+        error?: string
+        stage?: string
         result?: Array<{ added: number; updated: number; failed: number }>
       }
       if (!response.ok) {
-        throw new Error(payload.message ?? '同步失败')
+        throw new Error(formatApiError(payload, '同步失败'))
       }
       const totals = (payload.result ?? []).reduce(
         (summary, result) => ({
@@ -336,6 +344,14 @@ export function DataCenterPage() {
       </section>
     </div>
   )
+}
+
+function formatApiError(
+  payload: { message?: string; error?: string; stage?: string },
+  fallback: string,
+) {
+  const message = payload.message ?? payload.error ?? fallback
+  return payload.stage ? `${message}（失败阶段：${payload.stage}）` : message
 }
 
 function Metric({ label, value, icon: Icon, tone = 'default' }: { label: string; value: string; icon: typeof Database; tone?: 'default' | 'danger' }) {

@@ -8,6 +8,18 @@ import type { WithdrawalInput } from '../types/withdrawal'
 
 type ApiResponse<T> = { ok: true } & T
 
+export class DatabaseApiError extends Error {
+  readonly stage: string
+  readonly code: string
+
+  constructor(message: string, stage = 'api-request', code = 'API_REQUEST_FAILED') {
+    super(message)
+    this.name = 'DatabaseApiError'
+    this.stage = stage
+    this.code = code
+  }
+}
+
 export async function loadDatabaseAppData() {
   const response = await request<ApiResponse<{ data: AppData }>>('/api/app-data')
   return response.data
@@ -143,22 +155,33 @@ async function request<T = unknown>(
   url: string,
   options: { method?: string; body?: unknown } = {},
 ) {
-  const response = await fetch(url, {
-    method: options.method ?? 'GET',
-    headers:
-      options.body === undefined
-        ? undefined
-        : { 'Content-Type': 'application/json' },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  })
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: options.method ?? 'GET',
+      headers:
+        options.body === undefined
+          ? undefined
+          : { 'Content-Type': 'application/json' },
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    })
+  } catch (error) {
+    throw new DatabaseApiError(
+      error instanceof Error ? error.message : '网络请求失败',
+      'api-request',
+      'NETWORK_ERROR',
+    )
+  }
 
   const payload = (await response.json().catch(() => null)) as
-    | { ok?: boolean; message?: string; error?: string }
+    | { ok?: boolean; message?: string; error?: string; stage?: string; code?: string }
     | null
 
   if (!response.ok || payload?.ok === false) {
-    throw new Error(
+    throw new DatabaseApiError(
       payload?.message ?? payload?.error ?? `Request failed: ${response.status}`,
+      payload?.stage ?? 'api-request',
+      payload?.code ?? `HTTP_${response.status}`,
     )
   }
 
