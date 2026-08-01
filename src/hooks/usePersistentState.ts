@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { compressData, safeSetLocalStorageItem } from '../services/storageManager'
 
 export function usePersistentState<T>(key: string, initialValue: T) {
   const storageKey = `hkipo-dashboard:preference:${key}`
@@ -13,7 +14,7 @@ export function usePersistentState<T>(key: string, initialValue: T) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(value))
+      safeSetLocalStorageItem(storageKey, compressData(value))
     } catch {
       // Preferences remain usable for the current session.
     }

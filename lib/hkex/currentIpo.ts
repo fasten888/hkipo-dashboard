@@ -1,7 +1,7 @@
 import type { ParsedProviderRecord, ProviderRawRecord } from '../sync/pipeline/index.js'
 
 const AASTOCKS_UPCOMING_IPO_URL =
-  'https://www.aastocks.com/en/stocks/market/ipo/upcomingipo.aspx'
+  'https://www.aastocks.com/tc/stocks/market/ipo/upcomingipo.aspx'
 
 export type CurrentIpoRow = {
   code: string
@@ -17,7 +17,7 @@ export type CurrentIpoRow = {
   sourceUrl: string
 }
 
-export const hkexCurrentIpoFetcher = {
+export const aastocksCurrentIpoFetcher = {
   async fetch(): Promise<ProviderRawRecord[]> {
     const response = await fetch(AASTOCKS_UPCOMING_IPO_URL, {
       headers: {
@@ -33,7 +33,7 @@ export const hkexCurrentIpoFetcher = {
 
     return [
       {
-        provider: 'hkex',
+        provider: 'aastocks',
         sourceType: 'current-ipo-list',
         sourceUrl: AASTOCKS_UPCOMING_IPO_URL,
         payload: await response.text(),
@@ -43,7 +43,7 @@ export const hkexCurrentIpoFetcher = {
   },
 }
 
-export const hkexCurrentIpoParser = {
+export const aastocksCurrentIpoParser = {
   async parse(records: ProviderRawRecord[]): Promise<ParsedProviderRecord[]> {
     const parsed: ParsedProviderRecord[] = []
 
@@ -53,40 +53,34 @@ export const hkexCurrentIpoParser = {
       }
 
       const rows = parseCurrentIpoRows(record.payload, record.sourceUrl ?? AASTOCKS_UPCOMING_IPO_URL)
-      const firstRow = rows[0]
-
-      if (!firstRow) {
-        throw new Error('No current IPO rows were found in the source page.')
-      }
-
-      parsed.push({
+      parsed.push(...rows.map((row) => ({
         provider: record.provider,
         sourceType: record.sourceType,
-        externalId: firstRow.code,
-        sourceUrl: firstRow.sourceUrl,
+        externalId: row.code,
+        sourceUrl: row.sourceUrl,
         data: {
-          code: firstRow.code,
-          name: firstRow.name,
+          code: row.code,
+          name: row.name,
           status: 'subscribing',
-          industry: firstRow.industry,
-          offerPriceMin: firstRow.offerPriceMin,
-          offerPriceMax: firstRow.offerPriceMax,
-          lotSize: firstRow.lotSize,
-          lotAmount: firstRow.lotAmount,
-          subscribeStart: firstRow.subscribeStart,
-          subscribeEnd: firstRow.subscribeEnd,
-          listingDate: firstRow.listingDate,
+          industry: row.industry,
+          offerPriceMin: row.offerPriceMin,
+          offerPriceMax: row.offerPriceMax,
+          lotSize: row.lotSize,
+          lotAmount: row.lotAmount,
+          subscribeStart: row.subscribeStart,
+          subscribeEnd: row.subscribeEnd,
+          listingDate: row.listingDate,
           currency: 'HKD',
         },
         fetchedAt: record.fetchedAt,
-      })
+      })))
     }
 
     return parsed
   },
 }
 
-function parseCurrentIpoRows(html: string, sourceUrl: string): CurrentIpoRow[] {
+export function parseCurrentIpoRows(html: string, sourceUrl: string): CurrentIpoRow[] {
   const tableHtml = extractUpcomingTable(html)
   const rowMatches = Array.from(tableHtml.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi))
 
@@ -171,7 +165,7 @@ function parseOfferPriceRange(value: string): [number | undefined, number | unde
 
 function parseNumber(value: string | undefined) {
   if (!value) return undefined
-  const normalized = value.replace(/,/g, '').trim()
+  const normalized = value.replace(/,/g, '').replace(/[^\d.-]/g, '').trim()
   const parsed = Number(normalized)
 
   return Number.isFinite(parsed) ? parsed : undefined

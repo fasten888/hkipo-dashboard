@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { normalizeAppData } from '../services/storage'
+import { loadAppData, normalizeAppData, saveAppData } from '../services/storage'
 import {
   addOperationLog,
   createVersionSnapshot,
@@ -88,6 +88,7 @@ interface AppDataContextValue extends AppData {
   pullCloudNow: () => Promise<void>
   resolveCloudConflict: (choice: 'local' | 'remote') => Promise<void>
   runCloudDiagnostic: () => Promise<void>
+  refreshAppData: () => Promise<void>
   addAccount: (input: AccountInput) => void
   updateAccount: (id: string, input: AccountInput) => void
   deleteAccount: (id: string) => void
@@ -149,8 +150,12 @@ function subscriptionToInput(subscription: Subscription): SubscriptionInput {
   }
 }
 
-function databaseCloudFacade(refreshData: () => Promise<void>) {
-  const now = new Date().toISOString()
+function databaseCloudFacade(
+  refreshData: () => Promise<void>,
+  syncing: boolean,
+  error: string,
+  lastSyncedAt: string | null,
+) {
   const run = async () => {
     await refreshData()
   }
@@ -158,9 +163,9 @@ function databaseCloudFacade(refreshData: () => Promise<void>) {
   return {
     configured: false,
     user: null as CloudUser | null,
-    status: 'synced' as CloudSyncStatus,
-    message: '数据库模式：业务数据直接通过 API / Prisma 读取。',
-    lastSyncedAt: now,
+    status: (syncing ? 'syncing' : error ? 'error' : 'synced') as CloudSyncStatus,
+    message: error || '数据库模式：业务数据直接通过 API / Prisma 读取。',
+    lastSyncedAt,
     pendingChanges: false,
     conflict: null as CloudConflict | null,
     diagnostic: null as CloudDiagnosticResult | null,
@@ -168,7 +173,7 @@ function databaseCloudFacade(refreshData: () => Promise<void>) {
     uploadReport: null as CloudUploadReport | null,
     syncTimes: {
       lastUploadedAt: null,
-      lastDownloadedAt: now,
+      lastDownloadedAt: lastSyncedAt,
     } satisfies CloudSyncTimes,
     sessionExpiresAt: null as number | null,
     hasRefreshToken: false,
@@ -184,8 +189,52 @@ function databaseCloudFacade(refreshData: () => Promise<void>) {
   }
 }
 
+const BUSINESS_COLLECTIONS = [
+  'accounts',
+  'ipos',
+  'subscriptions',
+  'sales',
+  'withdrawals',
+  'exchangeRecords',
+  'holdings',
+] as const
+
+function hasBusinessData(data: AppData) {
+  return BUSINESS_COLLECTIONS.some((key) => data[key].length > 0)
+}
+
+function latestUpdatedAt(data: AppData) {
+  const timestamps = BUSINESS_COLLECTIONS.flatMap((key) =>
+    data[key].flatMap((record) => {
+      const item = record as { createdAt?: string; updatedAt?: string }
+      return [item.updatedAt, item.createdAt]
+    }),
+  )
+    .concat(data.fxRates.updatedAt)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => Date.parse(value))
+    .filter(Number.isFinite)
+
+  return timestamps.length > 0 ? Math.max(...timestamps) : 0
+}
+
+function selectNewestData(local: AppData, remote: AppData) {
+  if (!hasBusinessData(local)) return remote
+  if (!hasBusinessData(remote)) return local
+
+  const remoteWouldClearLocal = BUSINESS_COLLECTIONS.some(
+    (key) => local[key].length > 0 && remote[key].length === 0,
+  )
+  if (remoteWouldClearLocal) return local
+
+  return latestUpdatedAt(remote) > latestUpdatedAt(local) ? remote : local
+}
+
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(() => normalizeAppData({}))
+  const [data, setData] = useState<AppData>(() => loadAppData())
+  const [databaseSyncing, setDatabaseSyncing] = useState(false)
+  const [databaseError, setDatabaseError] = useState('')
+  const [databaseLastSyncedAt, setDatabaseLastSyncedAt] = useState<string | null>(null)
   const lastSubscriptionBatch = useRef<{
     before: AppData
     after: AppData
@@ -193,8 +242,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [subscriptionBatchRevision, setSubscriptionBatchRevision] = useState(0)
 
   const refreshData = useCallback(async () => {
-    const nextData = await loadDatabaseAppData()
-    setData(normalizeAppData(nextData))
+    setDatabaseSyncing(true)
+    try {
+      const nextData = normalizeAppData(await loadDatabaseAppData())
+      setData((current) => selectNewestData(current, nextData))
+      setDatabaseError('')
+      setDatabaseLastSyncedAt(new Date().toISOString())
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      setDatabaseError(`云同步失败，当前使用本地数据。${message ? ` ${message}` : ''}`)
+      throw error
+    } finally {
+      setDatabaseSyncing(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -203,18 +263,32 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     })
   }, [refreshData])
 
+  useEffect(() => {
+    if (hasBusinessData(data)) saveAppData(data)
+  }, [data])
+
   const persistAndRefresh = useCallback(
     (action: Promise<unknown>) => {
       void action
         .then(refreshData)
-        .catch((error) => console.error('[app-data] database write failed', error))
+        .catch((error) => {
+          setDatabaseError(
+            `云同步失败，当前使用本地数据。${error instanceof Error ? error.message : String(error)}`,
+          )
+          console.error('[app-data] database write failed', error)
+        })
     },
     [refreshData],
   )
 
   const cloud = useMemo(
-    () => databaseCloudFacade(refreshData),
-    [refreshData],
+    () => databaseCloudFacade(
+      refreshData,
+      databaseSyncing,
+      databaseError,
+      databaseLastSyncedAt,
+    ),
+    [databaseError, databaseLastSyncedAt, databaseSyncing, refreshData],
   )
 
   const value = useMemo<AppDataContextValue>(
@@ -242,6 +316,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pullCloudNow: cloud.pullRemoteNow,
       resolveCloudConflict: cloud.resolveConflict,
       runCloudDiagnostic: cloud.runDiagnostic,
+      refreshAppData: refreshData,
       addAccount: (input) => {
         persistAndRefresh(createAccountInDatabase(input))
         setData((current) => {
@@ -942,7 +1017,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return false
       },
     }),
-    [cloud, data, persistAndRefresh, subscriptionBatchRevision],
+    [cloud, data, persistAndRefresh, refreshData, subscriptionBatchRevision],
   )
 
   return (

@@ -13,6 +13,7 @@ type VercelResponse = {
 }
 
 const providerNames = ['HKEX', 'AAStocks', 'Futu', 'Tiger'] as const
+const enabledProviders = new Set<(typeof providerNames)[number]>(['HKEX', 'AAStocks'])
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   response.setHeader('Cache-Control', 'no-store')
@@ -28,7 +29,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
 
   try {
-    const [logs, accountCount, ipoCount, historyCount] = await Promise.all([
+    const [logs, accountCount, ipoCount, historyCount, latestIpo] = await Promise.all([
       prisma.syncLog.findMany({
         orderBy: { startTime: 'desc' },
         take: 20,
@@ -36,6 +37,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
       prisma.account.count(),
       prisma.ipo.count(),
       prisma.accountIpo.count(),
+      prisma.ipo.findFirst({
+        orderBy: { updatedAt: 'desc' },
+        select: { code: true, name: true, displayNameCn: true },
+      }),
     ])
 
     const providerStatus = providerNames.map((provider) => {
@@ -53,6 +58,12 @@ export default async function handler(request: VercelRequest, response: VercelRe
         updated: latest?.updated ?? 0,
         failed: latest?.failed ?? 0,
         message: latest?.message ?? null,
+        durationMs: latest?.endTime
+          ? latest.endTime.getTime() - latest.startTime.getTime()
+          : null,
+        latestIpo: latestIpo
+          ? `${latestIpo.displayNameCn ?? latestIpo.name}（${latestIpo.code}）`
+          : null,
       }
     })
 
@@ -67,7 +78,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
           added: latestLog?.added ?? 0,
           updated: latestLog?.updated ?? 0,
           failed: latestLog?.failed ?? 0,
-          providerStatus: providerStatus[0]?.status ?? 'Disabled',
+          durationMs: latestLog?.endTime
+            ? latestLog.endTime.getTime() - latestLog.startTime.getTime()
+            : null,
+          providerStatus:
+            providerStatus.find(
+              (provider) => provider.provider.toLowerCase() === latestLog?.provider.toLowerCase(),
+            )?.status ?? 'Offline',
         },
         providerStatus,
         providerMetrics: providerStatus,
@@ -99,7 +116,7 @@ function getProviderStatus(
   provider: (typeof providerNames)[number],
   latest: { status: string; endTime: Date | null; startTime: Date } | undefined,
 ) {
-  if (provider !== 'HKEX') return 'Disabled'
+  if (!enabledProviders.has(provider)) return 'Disabled'
   if (!latest) return 'Offline'
   if (latest.status === 'failed') return 'Degraded'
   if (latest.status === 'running') return 'Degraded'

@@ -11,7 +11,8 @@ import {
   RefreshCw,
   Upload,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
+import { useAppData } from '../../hooks/useAppData'
 
 type ProviderStatus = 'Healthy' | 'Offline' | 'Degraded' | 'Disabled'
 
@@ -35,6 +36,7 @@ interface DataCenterPayload {
     added: number
     updated: number
     failed: number
+    durationMs: number | null
     providerStatus: ProviderStatus
   }
   providerStatus: Array<{
@@ -45,6 +47,8 @@ interface DataCenterPayload {
     updated: number
     failed: number
     message: string | null
+    durationMs: number | null
+    latestIpo: string | null
   }>
   providerMetrics: Array<{
     provider: string
@@ -54,6 +58,8 @@ interface DataCenterPayload {
     updated: number
     failed: number
     message: string | null
+    durationMs: number | null
+    latestIpo: string | null
   }>
   syncLogs: SyncLogRow[]
   accountCount: number
@@ -82,11 +88,13 @@ const historyTemplates = {
 }
 
 export function DataCenterPage() {
+  const { refreshAppData } = useAppData()
   const [data, setData] = useState<DataCenterPayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState('')
   const [importNotice, setImportNotice] = useState('')
+  const [syncNotice, setSyncNotice] = useState<{ message: string; failed: boolean } | null>(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -112,24 +120,36 @@ export function DataCenterPage() {
   }, [loadData])
 
   const latestLog = data?.syncLogs[0]
-  const totalProviderFailures = useMemo(
-    () => data?.providerMetrics.reduce((total, provider) => total + provider.failed, 0) ?? 0,
-    [data],
-  )
-
   async function runSync() {
     setSyncing(true)
     setError('')
+    setSyncNotice(null)
     try {
       const response = await fetch('/api/sync', {
         method: 'POST',
         headers: { accept: 'application/json' },
       })
-      const payload = await response.json() as { ok?: boolean; message?: string }
-      if (!response.ok || payload.ok === false) {
+      const payload = await response.json() as {
+        ok?: boolean
+        message?: string
+        result?: Array<{ added: number; updated: number; failed: number }>
+      }
+      if (!response.ok) {
         throw new Error(payload.message ?? '同步失败')
       }
-      await loadData()
+      const totals = (payload.result ?? []).reduce(
+        (summary, result) => ({
+          added: summary.added + result.added,
+          updated: summary.updated + result.updated,
+          failed: summary.failed + result.failed,
+        }),
+        { added: 0, updated: 0, failed: 0 },
+      )
+      await Promise.all([loadData(), refreshAppData()])
+      setSyncNotice({
+        message: `${totals.failed > 0 ? '同步部分完成' : '同步完成'}：新增 ${totals.added}，更新 ${totals.updated}，失败 ${totals.failed}。`,
+        failed: totals.failed > 0 || payload.ok === false,
+      })
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '同步失败')
     } finally {
@@ -154,6 +174,11 @@ export function DataCenterPage() {
       {importNotice && (
         <div className="rounded-[22px] border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-semibold text-blue-700">
           {importNotice}
+        </div>
+      )}
+      {syncNotice && (
+        <div className={`rounded-[22px] border px-5 py-4 text-sm font-semibold ${syncNotice.failed ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
+          {syncNotice.message}
         </div>
       )}
 
@@ -190,10 +215,10 @@ export function DataCenterPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">SUMMARY</p>
           <h2 className="mt-2 text-xl font-bold text-[#2E2A24]">数据资产</h2>
           <div className="mt-5 space-y-3">
-            <SummaryRow label="账户数量" value={`${data?.accountCount ?? 0} 个`} />
             <SummaryRow label="IPO 数量" value={`${data?.ipoCount ?? 0} 只`} />
-            <SummaryRow label="历史记录" value={`${data?.historyCount ?? 0} 条`} />
-            <SummaryRow label="Provider 失败" value={`${totalProviderFailures} 次`} />
+            <SummaryRow label="最近同步" value={formatDateTime(data?.ipoSync.lastSyncTime)} />
+            <SummaryRow label="Provider" value={data?.ipoSync.dataSource ?? '-'} />
+            <SummaryRow label="同步耗时" value={formatDuration(data?.ipoSync.durationMs ?? null)} />
           </div>
         </div>
       </section>
@@ -219,6 +244,14 @@ export function DataCenterPage() {
               <p className="mt-2 text-xs font-semibold text-[#A8A296]">
                 新增 {provider.added} · 更新 {provider.updated} · 失败 {provider.failed}
               </p>
+              <p className="mt-2 text-xs font-semibold text-[#A8A296]">
+                耗时 {formatDuration(provider.durationMs)}
+              </p>
+              {provider.latestIpo && provider.status !== 'Disabled' && (
+                <p className="mt-2 truncate text-xs font-medium text-[#8C8273]" title={provider.latestIpo}>
+                  最新 IPO：{provider.latestIpo}
+                </p>
+              )}
             </article>
           ))}
           {!data && loading && <SkeletonRows count={4} />}

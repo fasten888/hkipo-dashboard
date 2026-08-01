@@ -153,11 +153,13 @@ async function request<T = unknown>(
   })
 
   const payload = (await response.json().catch(() => null)) as
-    | { ok?: boolean; message?: string }
+    | { ok?: boolean; message?: string; error?: string }
     | null
 
   if (!response.ok || payload?.ok === false) {
-    throw new Error(payload?.message ?? `Request failed: ${response.status}`)
+    throw new Error(
+      payload?.message ?? payload?.error ?? `Request failed: ${response.status}`,
+    )
   }
 
   return payload as T

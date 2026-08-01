@@ -15,7 +15,13 @@ import type {
 import { createId } from '../utils/id'
 import { normalizeIndustry } from '../utils/industry'
 import { normalizeSubscriptionMethod } from '../utils/subscriptionMethod'
-import { safeSetLocalStorageItem } from './storageMaintenance'
+import {
+  CLEANUP_THRESHOLD_BYTES,
+  cleanupOldBackups,
+  compressData,
+  getStorageUsage,
+  safeSetLocalStorageItem,
+} from './storageManager'
 
 export const APP_STORAGE_KEY = 'hkipo-dashboard:data:v3'
 export const AUTO_BACKUP_KEY = 'hkipo-dashboard:auto-backup:v3'
@@ -47,7 +53,9 @@ interface LegacyData {
   accounts?: LegacyAccount[]
   ipos?: Partial<Ipo>[]
   subscriptions?: LegacySubscription[]
+  allotments?: AppBackup['allotments']
   sales?: Partial<Sale>[]
+  sellRecords?: Partial<Sale>[]
   withdrawals?: AppData['withdrawals']
   exchangeRecords?: Partial<ExchangeRecord>[]
   fxRates?: Partial<FxRateSettings>
@@ -259,14 +267,27 @@ function normalizeHolding(holding: Partial<Holding>): Holding {
 export function normalizeAppData(data: LegacyData): AppData {
   const ipos = (data.ipos ?? []).map(normalizeIpo)
   const accounts = (data.accounts ?? []).map(normalizeAccount)
+  const allotments = new Map(
+    (data.allotments ?? []).map((item) => [item.subscriptionId, item]),
+  )
   return {
     version: 3,
     accounts,
     ipos,
-    subscriptions: (data.subscriptions ?? []).map((item) =>
-      normalizeSubscription(item, ipos, accounts),
-    ),
-    sales: (data.sales ?? []).map(normalizeSale),
+    subscriptions: (data.subscriptions ?? []).map((item) => {
+      const subscription = normalizeSubscription(item, ipos, accounts)
+      const allotment = allotments.get(subscription.id)
+      return allotment
+        ? {
+            ...subscription,
+            status: allotment.status,
+            allottedShares: allotment.allottedShares,
+            allottedLots: allotment.allottedLots,
+            sellPlan: allotment.sellPlan,
+          }
+        : subscription
+    }),
+    sales: (data.sales ?? data.sellRecords ?? []).map(normalizeSale),
     withdrawals: data.withdrawals ?? [],
     exchangeRecords: (data.exchangeRecords ?? []).map(
       normalizeExchangeRecord,
@@ -323,6 +344,9 @@ function migrateV1(): AppData {
 }
 
 export function loadAppData(): AppData {
+  if (getStorageUsage().usedBytes > CLEANUP_THRESHOLD_BYTES) {
+    cleanupOldBackups()
+  }
   const current = readJson<LegacyData>(APP_STORAGE_KEY)
   if (current) return normalizeAppData(current)
 
@@ -349,7 +373,7 @@ export function loadAppData(): AppData {
 
 export function saveAppData(data: AppData) {
   try {
-    const serialized = JSON.stringify(data)
+    const serialized = compressData(data)
     const nextBackup = createBackup(data)
     const currentBackup = readJson<AppBackup>(AUTO_BACKUP_KEY)
     if (
@@ -365,11 +389,11 @@ export function saveAppData(data: AppData) {
     ) {
       safeSetLocalStorageItem(
         PREVIOUS_BACKUP_KEY,
-        JSON.stringify(currentBackup),
+        compressData(currentBackup),
       )
     }
     safeSetLocalStorageItem(APP_STORAGE_KEY, serialized)
-    safeSetLocalStorageItem(AUTO_BACKUP_KEY, JSON.stringify(nextBackup))
+    safeSetLocalStorageItem(AUTO_BACKUP_KEY, compressData(nextBackup))
   } catch {
     // Keep the UI usable if browser storage is unavailable or full.
   }
@@ -460,7 +484,7 @@ export function backupBeforeImport(data: AppData) {
     const backup = createBackup(data)
     safeSetLocalStorageItem(
       PREVIOUS_BACKUP_KEY,
-      JSON.stringify(backup),
+      compressData(backup),
     )
     const history =
       readJson<ImportBackupEntry[]>(IMPORT_BACKUP_HISTORY_KEY) ?? []
@@ -471,7 +495,7 @@ export function backupBeforeImport(data: AppData) {
     }
     safeSetLocalStorageItem(
       IMPORT_BACKUP_HISTORY_KEY,
-      JSON.stringify([entry, ...history].slice(0, 20)),
+      compressData([entry, ...history].slice(0, 20)),
     )
   } catch {
     // Import can continue even if browser storage cannot create another copy.
@@ -492,7 +516,7 @@ export function deleteImportBackup(id: string) {
     const next = getImportBackups().filter((item) => item.id !== id)
     safeSetLocalStorageItem(
       IMPORT_BACKUP_HISTORY_KEY,
-      JSON.stringify(next),
+      compressData(next),
     )
     return next
   } catch {

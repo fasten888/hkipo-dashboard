@@ -29,6 +29,8 @@ import { useAppData } from '../../hooks/useAppData'
 import { APP_VERSION } from '../../app/version'
 import { formatAccountName } from '../../utils/account'
 import type { DashboardFilter, DashboardRangePreset } from '../../types/dashboardFilter'
+import type { CloudSyncStatus } from '../../types/cloud'
+import { STORAGE_WARNING_EVENT } from '../../services/storageManager'
 
 interface AppShellProps {
   children: ReactNode
@@ -52,6 +54,7 @@ export function AppShell({
   const [installPrompt, setInstallPrompt]   = useState<BeforeInstallPromptEvent | null>(null)
   const [installed, setInstalled]           = useState(() => window.matchMedia('(display-mode: standalone)').matches)
   const [openFilter, setOpenFilter]         = useState<'account' | 'range' | null>(null)
+  const [storageWarning, setStorageWarning] = useState('')
   const pageMeta = getPageMeta(activeNavigation)
   const selectedAccount = cloud.accounts.find((account) => account.id === dashboardFilter.accountId)
   const selectedAccountLabel = selectedAccount ? formatAccountName(selectedAccount) : '全部账户'
@@ -78,6 +81,15 @@ export function AppShell({
     }
   }, [])
 
+  useEffect(() => {
+    const handleStorageWarning = (event: Event) => {
+      const detail = (event as CustomEvent<{ message?: string }>).detail
+      setStorageWarning(detail?.message ?? '当前数据空间不足，请导出备份')
+    }
+    window.addEventListener(STORAGE_WARNING_EVENT, handleStorageWarning)
+    return () => window.removeEventListener(STORAGE_WARNING_EVENT, handleStorageWarning)
+  }, [])
+
   const handleInstall = async () => {
     if (!installPrompt) { setInstallHelpOpen(true); return }
     await installPrompt.prompt()
@@ -87,6 +99,11 @@ export function AppShell({
   }
 
   const handleNavigate = (nav: NavigationKey) => { onNavigate(nav); setMobileMenuOpen(false) }
+  const retrySync = () => {
+    void cloud.syncCloudNow().catch((error) => {
+      console.error('[app-data] retry failed', error)
+    })
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F4F1ED] text-[#4A4540] lg:flex">
@@ -96,7 +113,7 @@ export function AppShell({
         style={{ boxShadow: '0 1px 0 #E4DFD6' }}>
         <Brand />
         <div className="flex items-center gap-1.5">
-          <CloudButton compact />
+          <CloudButton compact status={cloud.cloudStatus} onClick={retrySync} />
           {!installed && <InstallButton onClick={handleInstall} compact />}
           <button type="button" onClick={() => setMobileMenuOpen(true)}
             className="grid h-8 w-8 place-items-center rounded-[10px] text-[#8C8273] transition hover:bg-[#F4F1ED]">
@@ -407,12 +424,12 @@ export function AppShell({
             </div>
 
             {/* Refresh */}
-            <button type="button" onClick={() => void cloud.syncCloudNow()}
+            <button type="button" onClick={retrySync}
               className="grid h-8 w-8 place-items-center rounded-[8px] border border-[#E4DFD6] bg-white text-[#A8A296] transition hover:border-[#D2CBBF] hover:text-[#5A5246]">
               <RefreshCw size={13} className={cloud.cloudStatus === 'syncing' ? 'animate-spin' : ''} />
             </button>
 
-            <CloudButton />
+            <CloudButton status={cloud.cloudStatus} onClick={retrySync} />
             {!installed && <InstallButton onClick={handleInstall} />}
 
             {/* Privacy */}
@@ -439,6 +456,39 @@ export function AppShell({
 
         {/* Page body: 页面边距 32px */}
         <div className="page-enter mx-auto max-w-[1540px] px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-6">
+          {storageWarning && (
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-[14px] border border-red-200 bg-red-50 px-4 py-3 text-red-900">
+              <div>
+                <p className="text-[13px] font-semibold">本地存储空间不足</p>
+                <p className="mt-0.5 text-[12px] text-red-700">
+                  {storageWarning}。当前有效数据未被覆盖，请前往数据管理导出并清理旧备份。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStorageWarning('')}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px] text-red-700 transition hover:bg-red-100"
+                aria-label="关闭存储提示"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          {cloud.cloudStatus === 'error' && (
+            <div className="mb-4 flex flex-col gap-3 rounded-[14px] border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[13px] font-semibold">云同步失败</p>
+                <p className="mt-0.5 text-[12px] text-amber-700">当前使用本地数据，不影响查看和操作。</p>
+              </div>
+              <button
+                type="button"
+                onClick={retrySync}
+                className="h-9 shrink-0 rounded-[10px] border border-amber-300 bg-white px-4 text-[12px] font-semibold text-amber-800 transition hover:bg-amber-100"
+              >
+                重试同步
+              </button>
+            </div>
+          )}
           {children}
         </div>
       </main>
@@ -628,14 +678,29 @@ function FilterPill({
 
 function CloudButton({
   compact = false,
+  status,
+  onClick,
 }: {
   compact?: boolean
+  status: CloudSyncStatus
+  onClick: () => void
 }) {
+  const label = status === 'syncing'
+    ? '同步中'
+    : status === 'error'
+      ? '本地数据'
+      : '已自动同步'
+
   return (
-    <button type="button"
-      className="inline-flex h-8 items-center gap-1.5 rounded-[8px] border border-[#E5EBE5] bg-[#F2F5F2] px-3 text-[12px] font-medium text-[#677A6F]">
-      <Cloud size={13} />
-      {!compact && '已自动同步'}
+    <button type="button" onClick={onClick}
+      className={[
+        'inline-flex h-8 items-center gap-1.5 rounded-[8px] border px-3 text-[12px] font-medium transition',
+        status === 'error'
+          ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+          : 'border-[#E5EBE5] bg-[#F2F5F2] text-[#677A6F] hover:bg-[#EAF0EA]',
+      ].join(' ')}>
+      {status === 'syncing' ? <RefreshCw size={13} className="animate-spin" /> : <Cloud size={13} />}
+      {!compact && label}
     </button>
   )
 }

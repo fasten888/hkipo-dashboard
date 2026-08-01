@@ -1,3 +1,9 @@
+import {
+  compressData,
+  safeRemoveLocalStorageItem,
+  safeSetLocalStorageItem,
+} from './storageManager'
+
 export const PRIVACY_STORAGE_KEY = 'hkipo-dashboard:privacy-settings:v2'
 const LEGACY_PRIVACY_STORAGE_KEY = 'hkipo-dashboard:privacy-mode'
 
@@ -79,8 +85,8 @@ export function getPrivacySettings() {
 export function setPrivacySettings(settings: PrivacySettings) {
   privacySettings = settings
   try {
-    window.localStorage.setItem(PRIVACY_STORAGE_KEY, JSON.stringify(settings))
-    window.localStorage.removeItem(LEGACY_PRIVACY_STORAGE_KEY)
+    safeSetLocalStorageItem(PRIVACY_STORAGE_KEY, compressData(settings))
+    safeRemoveLocalStorageItem(LEGACY_PRIVACY_STORAGE_KEY)
   } catch {
     // Privacy controls remain active for the current session.
   }

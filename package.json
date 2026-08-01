@@ -13,6 +13,7 @@
     "db:seed": "tsx scripts/seed-database.ts",
     "db:import:recovery": "tsx scripts/import-recovery.ts",
     "test:fees": "node --test scripts/fee-consistency.test.ts",
+    "test:storage": "node --test scripts/storage-manager.test.ts",
     "check:fees": "node scripts/check-fee-consistency.ts",
     "check:ipo-prices": "node scripts/check-ipo-price-consistency.ts",
     "fix:allotments": "node scripts/fix-missing-allotments.ts",

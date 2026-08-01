@@ -5,10 +5,20 @@ import type {
 } from '../types/audit'
 import type { AppData } from '../types/store'
 import { createId } from '../utils/id'
+import {
+  compressData,
+  readStorageJson,
+  safeSetLocalStorageItem,
+  STORAGE_KEYS,
+} from './storageManager'
 
-const operationLogs: OperationLog[] = []
-const versionSnapshots: DataSnapshot[] = []
-const dailyBackups: DailyBackup[] = []
+const operationLogs = readStorageJson<OperationLog[]>(STORAGE_KEYS.operationLogs) ?? []
+const versionSnapshots = readStorageJson<DataSnapshot[]>(STORAGE_KEYS.versionSnapshots) ?? []
+const dailyBackups = readStorageJson<DailyBackup[]>(STORAGE_KEYS.dailyBackups) ?? []
+
+function persist<T>(key: string, entries: T[]) {
+  safeSetLocalStorageItem(key, compressData(entries))
+}
 
 export function getOperationLogs() {
   return operationLogs
@@ -24,6 +34,7 @@ export function addOperationLog(
   }
   operationLogs.unshift(next)
   operationLogs.splice(500)
+  persist(STORAGE_KEYS.operationLogs, operationLogs)
   return next
 }
 
@@ -39,7 +50,8 @@ export function createVersionSnapshot(data: AppData, reason: string) {
     data,
   }
   versionSnapshots.unshift(snapshot)
-  versionSnapshots.splice(10)
+  versionSnapshots.splice(20)
+  persist(STORAGE_KEYS.versionSnapshots, versionSnapshots)
   return snapshot
 }
 
@@ -59,13 +71,15 @@ export function ensureDailyBackup(data: AppData) {
     data,
   }
   dailyBackups.unshift(backup)
-  dailyBackups.splice(10)
+  dailyBackups.splice(30)
+  persist(STORAGE_KEYS.dailyBackups, dailyBackups)
   return dailyBackups
 }
 
 export function deleteDailyBackup(id: string) {
   const index = dailyBackups.findIndex((backup) => backup.id === id)
   if (index >= 0) dailyBackups.splice(index, 1)
+  persist(STORAGE_KEYS.dailyBackups, dailyBackups)
   return dailyBackups
 }
 

@@ -40,8 +40,10 @@ import {
 import {
   cleanupOldBackups,
   clearOperationLogs,
+  getStorageBreakdown,
+  getStorageLevel,
   getStorageUsage,
-} from '../../services/storageMaintenance'
+} from '../../services/storageManager'
 
 const csvExports: {
   type: ExportType
@@ -104,7 +106,22 @@ export function DataExportPage() {
     useState<LegacyImportResult['summary'] | null>(null)
   const [importBackups, setImportBackups] = useState(getImportBackups)
   const [storageUsage, setStorageUsage] = useState(getStorageUsage)
+  const [storageBreakdown, setStorageBreakdown] = useState(
+    getStorageBreakdown,
+  )
   const backupTime = getAutoBackupTime()
+  const storageLevel = getStorageLevel(storageUsage.percent)
+  const storageStatus = {
+    normal: { label: '正常', color: 'text-emerald-700', bar: 'bg-emerald-500' },
+    attention: { label: '注意', color: 'text-amber-700', bar: 'bg-amber-500' },
+    danger: { label: '危险', color: 'text-red-600', bar: 'bg-red-500' },
+    critical: { label: '建议清理', color: 'text-red-700', bar: 'bg-red-600' },
+  }[storageLevel]
+
+  const refreshStorageUsage = () => {
+    setStorageUsage(getStorageUsage())
+    setStorageBreakdown(getStorageBreakdown())
+  }
 
   const restoreEmergencyBackup = async () => {
     try {
@@ -157,12 +174,15 @@ export function DataExportPage() {
             <h2 className="font-bold text-[#2E2A24]">LocalStorage 占用</h2>
             <p className="mt-1 text-sm text-[#A8A296]">
               {storageUsage.usedMB.toFixed(2)} MB / 5 MB · 已用{' '}
-              {storageUsage.percent}%
+              {storageUsage.percent}% ·{' '}
+              <span className={`font-semibold ${storageStatus.color}`}>
+                {storageStatus.label}
+              </span>
             </p>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-[#F4F1ED] lg:w-72">
             <div
-              className="h-full rounded-full bg-brand-600 transition-all"
+              className={`h-full rounded-full transition-all ${storageStatus.bar}`}
               style={{ width: `${storageUsage.percent}%` }}
             />
           </div>
@@ -173,6 +193,7 @@ export function DataExportPage() {
               onClick={() => {
                 const result = cleanupOldBackups()
                 setStorageUsage(result.after)
+                setStorageBreakdown(getStorageBreakdown())
                 setMessage('已清理旧备份')
               }}
             >
@@ -182,7 +203,8 @@ export function DataExportPage() {
               type="button"
               className="rounded-xl bg-[#F4F1ED] px-4 py-2.5 text-sm font-semibold text-[#5A5246]"
               onClick={() => {
-                setStorageUsage(clearOperationLogs())
+                clearOperationLogs()
+                refreshStorageUsage()
                 setMessage('已清理操作日志')
               }}
             >
@@ -196,6 +218,37 @@ export function DataExportPage() {
               导出备份
             </button>
           </div>
+        </div>
+        <p className="mt-4 text-xs text-[#A8A296]">
+          清理只会移除旧备份、旧快照和日志。建议清理前先导出完整备份，当前有效数据不会被删除。
+        </p>
+        <div className="mt-5 overflow-x-auto rounded-xl bg-[#F8F6F2]">
+          <table className="min-w-[720px] w-full text-left text-xs">
+            <thead className="text-[#8C8273]">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Key</th>
+                <th className="px-4 py-3 font-semibold">大小</th>
+                <th className="px-4 py-3 font-semibold">用途</th>
+                <th className="px-4 py-3 font-semibold">清理策略</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#EAE5DD] text-[#5A5246]">
+              {storageBreakdown.map((item) => (
+                <tr key={item.key}>
+                  <td className="whitespace-nowrap px-4 py-3 font-mono">
+                    {item.key}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                    {item.sizeMB.toFixed(3)} MB
+                  </td>
+                  <td className="px-4 py-3">{item.purpose}</td>
+                  <td className="px-4 py-3">
+                    {item.clearable ? '可清理历史' : '永久保留'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 

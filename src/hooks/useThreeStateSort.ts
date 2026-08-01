@@ -1,4 +1,9 @@
 import { useEffect, useState } from 'react'
+import {
+  compressData,
+  safeRemoveLocalStorageItem,
+  safeSetLocalStorageItem,
+} from '../services/storageManager'
 
 export type SortDirection = 'asc' | 'desc'
 
@@ -33,9 +38,9 @@ export function useThreeStateSort<Key extends string>(storageKey?: string) {
     if (!persistedKey) return
     try {
       if (sort) {
-        window.localStorage.setItem(persistedKey, JSON.stringify(sort))
+        safeSetLocalStorageItem(persistedKey, compressData(sort))
       } else {
-        window.localStorage.removeItem(persistedKey)
+        safeRemoveLocalStorageItem(persistedKey)
       }
     } catch {
       // Sorting remains usable when browser storage is unavailable.
