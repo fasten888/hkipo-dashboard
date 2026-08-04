@@ -101,13 +101,13 @@ type TabKey =
   | 'documents'
 
 const tabs: Array<{ key: TabKey; label: string; icon: LucideIcon }> = [
-  { key: 'overview', label: 'Overview', icon: Layers3 },
-  { key: 'timeline', label: 'Timeline', icon: CalendarDays },
-  { key: 'subscription', label: 'Subscription', icon: ClipboardList },
-  { key: 'margin', label: 'Margin', icon: ShieldCheck },
-  { key: 'performance', label: 'Performance', icon: LineChart },
-  { key: 'analysis', label: 'Analysis', icon: Sparkles },
-  { key: 'documents', label: 'Documents', icon: FileText },
+  { key: 'overview', label: '概览', icon: Layers3 },
+  { key: 'timeline', label: '时间线', icon: CalendarDays },
+  { key: 'subscription', label: '申购信息', icon: ClipboardList },
+  { key: 'margin', label: '融资信息', icon: ShieldCheck },
+  { key: 'performance', label: '收益表现', icon: LineChart },
+  { key: 'analysis', label: '分析', icon: Sparkles },
+  { key: 'documents', label: '文档', icon: FileText },
 ]
 
 export function IpoDetailPage({ ipoCode, onBack }: IpoDetailPageProps) {
@@ -200,7 +200,7 @@ export function IpoDetailPage({ ipoCode, onBack }: IpoDetailPageProps) {
                 {ipo.name}
               </h1>
               <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-400 md:text-base">
-                IPO Detail Center · 数据来自数据库 Single Source of Truth。当前页不使用 Mock，也不读取本地缓存。
+                新股详情中心 · 数据统一来自数据库。当前页不使用模拟数据，也不读取本地缓存。
               </p>
             </div>
 
@@ -216,28 +216,28 @@ export function IpoDetailPage({ ipoCode, onBack }: IpoDetailPageProps) {
         <div className="grid gap-4 border-b border-slate-800/80 bg-[#0B1018] p-4 sm:grid-cols-2 xl:grid-cols-4">
           <QuickCard
             icon={CircleDollarSign}
-            label="Offer Price"
+            label="发行价"
             value={formatOfferRange(ipo.offerPriceMin, ipo.offerPriceMax)}
             hint="发行价区间"
             tone="red"
           />
           <QuickCard
             icon={Layers3}
-            label="Lot Amount"
+            label="一手金额"
             value={formatMoney(ipo.lotAmount)}
             hint={`${formatNumber(ipo.lotSize, ' 股')} / 手`}
             tone="emerald"
           />
           <QuickCard
             icon={Target}
-            label="Subscriptions"
+            label="申购账户"
             value={`${ipo.accountIpos.length}`}
-            hint="数据库 ACCOUNT_IPO 记录"
+            hint="数据库账户申购记录"
             tone="amber"
           />
           <QuickCard
             icon={BarChart3}
-            label="Profit"
+            label="收益"
             value={formatMoney(derived.totalProfit)}
             hint="来自账户 IPO 记录"
             tone="purple"
@@ -302,7 +302,7 @@ function ShellFrame({ children, onBack }: { children: React.ReactNode; onBack: (
 function OverviewTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIpoData }) {
   return (
     <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-      <Panel title="Overview" description="核心发行信息与数据库更新时间">
+      <Panel title="概览" description="核心发行信息与数据库更新时间">
         <div className="grid gap-3 sm:grid-cols-2">
           <InfoTile label="股票代码" value={ipo.code} />
           <InfoTile label="股票名称" value={ipo.name} />
@@ -317,15 +317,15 @@ function OverviewTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIpoDa
         </div>
       </Panel>
 
-      <Panel title="Database Coverage" description="当前数据库已覆盖的模块">
+      <Panel title="数据覆盖情况" description="当前数据库已覆盖的模块">
         <div className="space-y-3">
-          <CoverageRow label="IPO Master" ready detail="code / name / status / lot / dates" />
-          <CoverageRow label="Timeline" ready={derived.timeline.length > 0} detail={`${derived.timeline.length} events`} />
-          <CoverageRow label="Subscription" ready detail={`${ipo.accountIpos.length} account records`} />
-          <CoverageRow label="Margin" ready={Boolean(ipo.marginMultiple || derived.totalFinancingFee)} detail="margin multiple / financing fee" />
-          <CoverageRow label="Performance" ready={ipo.accountIpos.length > 0} detail="profit / commission / account participation" />
-          <CoverageRow label="Analysis" ready={Boolean(ipo.analysis)} detail="manual or AI-ready analysis" />
-          <CoverageRow label="Documents" ready={ipo.events.some((event) => event.pdfUrl)} detail="prospectus / announcement" />
+          <CoverageRow label="新股主数据" ready detail="代码 / 名称 / 状态 / 每手股数 / 日期" />
+          <CoverageRow label="时间线" ready={derived.timeline.length > 0} detail={`${derived.timeline.length} 个事件`} />
+          <CoverageRow label="申购记录" ready detail={`${ipo.accountIpos.length} 条账户记录`} />
+          <CoverageRow label="融资信息" ready={Boolean(ipo.marginMultiple || derived.totalFinancingFee)} detail="融资倍数 / 融资费用" />
+          <CoverageRow label="收益表现" ready={ipo.accountIpos.length > 0} detail="收益 / 手续费 / 账户参与" />
+          <CoverageRow label="分析" ready={Boolean(ipo.analysis)} detail="人工维护或待接入智能分析" />
+          <CoverageRow label="文档" ready={ipo.events.some((event) => event.pdfUrl)} detail="招股书 / 公告" />
         </div>
       </Panel>
     </div>
@@ -334,7 +334,7 @@ function OverviewTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIpoDa
 
 function TimelineTab({ events }: { ipo: DatabaseIpo; events: TimelineEvent[] }) {
   return (
-    <Panel title="Timeline" description="招股、截止、上市及后续公告时间线">
+    <Panel title="时间线" description="招股、截止、上市及后续公告时间线">
       {events.length === 0 ? (
         <EmptyState icon={CalendarDays} title="暂无时间线数据" description="同步器写入 IPO_TIMELINE 或 IPO_EVENT 后会显示在这里。" />
       ) : (
@@ -365,7 +365,7 @@ function TimelineTab({ events }: { ipo: DatabaseIpo; events: TimelineEvent[] }) 
 function SubscriptionTab({ ipo }: { ipo: DatabaseIpo }) {
   return (
     <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-      <Panel title="Subscription Terms" description="发行条款来自 IPO Master Database">
+      <Panel title="申购条款" description="发行条款来自新股主数据库">
         <div className="grid gap-3">
           <InfoTile label="发行价区间" value={formatOfferRange(ipo.offerPriceMin, ipo.offerPriceMax)} />
           <InfoTile label="一手股数" value={formatNumber(ipo.lotSize, ' 股')} />
@@ -374,7 +374,7 @@ function SubscriptionTab({ ipo }: { ipo: DatabaseIpo }) {
         </div>
       </Panel>
 
-      <Panel title="Account Subscriptions" description="未来账户参与记录统一从 ACCOUNT_IPO 读取">
+      <Panel title="账户申购记录" description="账户参与记录统一从数据库读取">
         <AccountIpoTable records={ipo.accountIpos} />
       </Panel>
     </div>
@@ -383,7 +383,7 @@ function SubscriptionTab({ ipo }: { ipo: DatabaseIpo }) {
 
 function MarginTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIpoData }) {
   return (
-    <Panel title="Margin" description="融资倍数、融资费与账户融资参与情况">
+    <Panel title="融资信息" description="融资倍数、融资费与账户融资参与情况">
       <div className="grid gap-4 md:grid-cols-3">
         <MetricTile label="融资倍数" value={ipo.marginMultiple ? `${ipo.marginMultiple}x` : '暂无'} />
         <MetricTile label="融资费用" value={formatMoney(derived.totalFinancingFee)} />
@@ -398,7 +398,7 @@ function MarginTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIpoData
 
 function PerformanceTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIpoData }) {
   return (
-    <Panel title="Performance" description="收益、手续费和账户表现来自数据库">
+    <Panel title="收益表现" description="收益、手续费和账户表现来自数据库">
       <div className="grid gap-4 md:grid-cols-4">
         <MetricTile label="总收益" value={formatMoney(derived.totalProfit)} />
         <MetricTile label="总手续费" value={formatMoney(derived.totalCommission)} />
@@ -414,9 +414,9 @@ function PerformanceTab({ ipo, derived }: { ipo: DatabaseIpo; derived: DerivedIp
 
 function AnalysisTab({ ipo }: { ipo: DatabaseIpo }) {
   return (
-    <Panel title="Analysis" description="先读取数据库，AI 分析以后接入">
+    <Panel title="分析" description="先读取数据库，智能分析以后接入">
       {!ipo.analysis ? (
-        <EmptyState icon={Sparkles} title="暂无分析记录" description="IPO_ANALYSIS 目前为空。后续 AI 或人工分析写入数据库后会在这里展示。" />
+        <EmptyState icon={Sparkles} title="暂无分析记录" description="分析数据目前为空。后续智能分析或人工分析写入数据库后会在这里展示。" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           <InfoTile label="评级" value={ipo.analysis.rating || '暂无'} />
@@ -436,9 +436,9 @@ function DocumentsTab({ ipo }: { ipo: DatabaseIpo }) {
   const documents = ipo.events.filter((event) => event.pdfUrl)
 
   return (
-    <Panel title="Documents" description="招股书、公告和未来扩展文档">
+    <Panel title="文档" description="招股书、公告和未来扩展文档">
       {documents.length === 0 ? (
-        <EmptyState icon={BookOpenText} title="暂无文档" description="IPO_EVENT 写入招股书或公告 pdf_url 后会显示在这里。" />
+        <EmptyState icon={BookOpenText} title="暂无文档" description="同步到招股书或公告链接后会显示在这里。" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {documents.map((event) => (
@@ -472,25 +472,25 @@ function AccountIpoTable({ records, emptyLabel = '暂无账户参与记录' }: {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-800">
       <div className="hidden grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr] bg-slate-900/80 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500 md:grid">
-        <span>Account</span>
-        <span>Lots</span>
-        <span>Amount</span>
-        <span>Status</span>
-        <span>Fees</span>
-        <span>Profit</span>
+        <span>账户</span>
+        <span>申购手数</span>
+        <span>申购金额</span>
+        <span>状态</span>
+        <span>费用</span>
+        <span>收益</span>
       </div>
       <div className="divide-y divide-slate-800">
         {records.map((record) => (
           <div key={record.id} className="grid gap-3 px-4 py-4 text-sm md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr] md:items-center">
             <div>
               <p className="font-bold text-white">{record.account.name}</p>
-              <p className="mt-1 text-xs text-slate-500">{record.account.broker || 'Broker N/A'}</p>
+              <p className="mt-1 text-xs text-slate-500">{record.account.broker || '未填写券商'}</p>
             </div>
-            <Cell label="Lots" value={`${record.applyLots}`} />
-            <Cell label="Amount" value={formatMoney(record.applyAmount)} />
-            <Cell label="Status" value={record.status} />
-            <Cell label="Fees" value={formatMoney(getTotalFee(record))} />
-            <Cell label="Profit" value={formatMoney(record.profit)} accent={record.profit >= 0 ? 'text-red-300' : 'text-emerald-300'} />
+            <Cell label="申购手数" value={`${record.applyLots}`} />
+            <Cell label="申购金额" value={formatMoney(record.applyAmount)} />
+            <Cell label="状态" value={accountIpoStatusLabel(record.status)} />
+            <Cell label="费用" value={formatMoney(getTotalFee(record))} />
+            <Cell label="收益" value={formatMoney(record.profit)} accent={record.profit >= 0 ? 'text-red-300' : 'text-emerald-300'} />
           </div>
         ))}
       </div>
@@ -578,7 +578,7 @@ function CoverageRow({ label, ready, detail }: { label: string; ready: boolean; 
         <p className="font-bold text-white">{label}</p>
         <p className="mt-1 text-xs text-slate-500">{detail}</p>
       </div>
-      <Badge tone={ready ? 'green' : 'slate'}>{ready ? 'Ready' : 'Empty'}</Badge>
+      <Badge tone={ready ? 'green' : 'slate'}>{ready ? '已就绪' : '暂无'}</Badge>
     </div>
   )
 }
@@ -628,25 +628,25 @@ function getDerivedIpoData(ipo: DatabaseIpo): DerivedIpoData {
       type: 'subscribe_start',
       title: '开始招股',
       date: ipo.subscribeStart,
-      source: 'IPO.subscribe_start',
+      source: '新股主数据',
     },
     ipo.subscribeEnd && {
       type: 'subscribe_end',
       title: '招股截止',
       date: ipo.subscribeEnd,
-      source: 'IPO.subscribe_end',
+      source: '新股主数据',
     },
     ipo.listingDate && {
       type: 'listing_date',
       title: '上市日期',
       date: ipo.listingDate,
-      source: 'IPO.listing_date',
+      source: '新股主数据',
     },
     ...ipo.events.map((event) => ({
       type: event.type,
       title: event.title,
       date: event.eventDate,
-      source: 'IPO_EVENT',
+      source: '新股事件',
     })),
   ].filter(Boolean) as TimelineEvent[]
 
@@ -711,6 +711,20 @@ function statusLabel(status: string) {
   }
 
   return labels[status] ?? status
+}
+
+function accountIpoStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    applied: '已申购',
+    announced: '已公布',
+    pending: '待公布',
+    won: '已中签',
+    lost: '未中签',
+    active: '进行中',
+    completed: '已完成',
+  }
+
+  return labels[status.toLowerCase()] ?? status
 }
 
 function eventTypeLabel(type: string) {

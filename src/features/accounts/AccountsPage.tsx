@@ -358,9 +358,9 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
   return (
     <div className="accounts-page space-y-6">
       <PageHeader
-        eyebrow="Account Management Center"
+        eyebrow="账户管理中心"
         title="账户管理中心"
-        description="所有账户、券商配置和余额导入统一进入数据库，Planner 将直接读取这里的真实 Account。"
+        description="所有账户、券商配置和余额导入统一进入数据库，资金规划将直接读取这里的真实账户数据。"
         action={
           <button
             type="button"
@@ -510,7 +510,7 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
         </div>
 
         <aside className="space-y-6">
-          <SectionCard title="Broker Profile" subtitle="统一维护券商默认融资倍数、手续费和融资利率。">
+          <SectionCard title="券商配置" subtitle="统一维护券商默认融资倍数、手续费和融资利率。">
             <form onSubmit={saveBrokerProfile} className="space-y-3">
               <Field label="券商名称">
                 <input className="form-input" value={brokerForm.name} onChange={(event) => setBrokerForm({ ...brokerForm, name: event.target.value })} required />
@@ -553,7 +553,7 @@ export function AccountsPage({ onViewAccount }: AccountsPageProps) {
             </div>
           </SectionCard>
 
-          <SectionCard title="Import Wizard" subtitle="CSV / 从 Excel 复制粘贴 / 粘贴表格，导入账户余额。">
+          <SectionCard title="导入助手" subtitle="CSV / 从 Excel 复制粘贴 / 粘贴表格，导入账户余额。">
             <div className="space-y-3">
               <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm font-bold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50">
                 <Upload size={16} />

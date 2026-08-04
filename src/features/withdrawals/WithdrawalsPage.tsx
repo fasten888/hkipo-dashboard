@@ -83,14 +83,14 @@ export function WithdrawalsPage() {
       </div>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        <InsightPanel title="资金趋势" eyebrow="TREND" description="净投入、出金和实际收益合并观察。">
+        <InsightPanel title="资金趋势" eyebrow="资金趋势" description="净投入、出金和实际收益合并观察。">
           <div className="mt-4 space-y-3">
             <InsightLine label="净入金" value={formatHKD(initialDeposit, 'investment')} />
             <InsightLine label="累计净出金" value={formatHKD(withdrawalTotal)} />
             <InsightLine label="实际收益" value={formatHKD(actualProfit, 'profit')} className={getProfitColor(actualProfit)} />
           </div>
         </InsightPanel>
-        <InsightPanel title="最近动态" eyebrow="ACTIVITY" description="最近出金动作，方便快速核对现金流。">
+        <InsightPanel title="最近动态" eyebrow="最近动态" description="最近出金动作，方便快速核对现金流。">
           <div className="mt-4 space-y-3">
             {rows.slice(0, 3).map((item) => {
               const account = accounts.find((entry) => entry.id === item.accountId)
@@ -105,7 +105,7 @@ export function WithdrawalsPage() {
             {rows.length === 0 && <p className="text-sm font-medium text-[#A8A296]">暂无出金动态</p>}
           </div>
         </InsightPanel>
-        <InsightPanel title="AI 建议" eyebrow="AI" description="先保留分析入口，后续接入真实建议。">
+        <InsightPanel title="智能建议" eyebrow="智能建议" description="先保留分析入口，后续接入真实建议。">
           <p className="mt-4 text-sm font-semibold leading-6 text-[#5A5246]">
             当前净投入为 {formatHKD(initialDeposit - withdrawalTotal, 'investment')}，建议年底复盘时与账户资产、汇率损益一起核对。
           </p>

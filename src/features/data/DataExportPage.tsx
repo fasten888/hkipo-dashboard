@@ -226,7 +226,7 @@ export function DataExportPage() {
           <table className="min-w-[720px] w-full text-left text-xs">
             <thead className="text-[#8C8273]">
               <tr>
-                <th className="px-4 py-3 font-semibold">Key</th>
+                <th className="px-4 py-3 font-semibold">键名</th>
                 <th className="px-4 py-3 font-semibold">大小</th>
                 <th className="px-4 py-3 font-semibold">用途</th>
                 <th className="px-4 py-3 font-semibold">清理策略</th>

@@ -381,7 +381,7 @@ export function ExchangePage() {
       </section>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        <ExchangeInsight title="汇率损益" eyebrow="FX RESULT" description="将真实换汇成本和期末参考汇率放在一起看。">
+        <ExchangeInsight title="汇率损益" eyebrow="汇率损益" description="将真实换汇成本和期末参考汇率放在一起看。">
           <div className="mt-4 space-y-3">
             <ExchangeInsightRow label="人民币总成本" value={formatCNY(metrics.cost)} />
             <ExchangeInsightRow
@@ -391,7 +391,7 @@ export function ExchangePage() {
             <ExchangeInsightRow label="汇兑损益" value={formatCNY(metrics.profit)} className={getProfitColor(metrics.profit)} />
           </div>
         </ExchangeInsight>
-        <ExchangeInsight title="最近换汇" eyebrow="ACTIVITY" description="最近三笔换汇，方便回看资金来源。">
+        <ExchangeInsight title="最近换汇" eyebrow="最近动态" description="最近三笔换汇，方便回看资金来源。">
           <div className="mt-4 space-y-3">
             {rows.slice(0, 3).map((record) => {
               const account = accounts.find((item) => item.id === record.accountId)
@@ -406,7 +406,7 @@ export function ExchangePage() {
             {rows.length === 0 && <p className="text-sm font-medium text-[#A8A296]">暂无换汇动态</p>}
           </div>
         </ExchangeInsight>
-        <ExchangeInsight title="AI 建议" eyebrow="AI" description="预留年度人民币口径复盘。">
+        <ExchangeInsight title="智能建议" eyebrow="智能建议" description="预留年度人民币口径复盘。">
           <p className="mt-4 text-sm font-semibold leading-6 text-[#5A5246]">
             已估值 {metrics.valuedCount} / {rows.length} 笔换汇。年底复盘时建议先补齐 HKD/USD 期末参考汇率。
           </p>

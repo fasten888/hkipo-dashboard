@@ -194,10 +194,10 @@ export function DataCenterPage() {
         <div className="rounded-[28px] border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">IPO SYNC</p>
-              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-[#2E2A24]">IPO 同步中心</h2>
+              <p className="text-[11px] font-bold tracking-[0.16em] text-[#A8A296]">新股同步</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-[#2E2A24]">新股同步中心</h2>
               <p className="mt-2 text-sm font-medium leading-6 text-[#8C8273]">
-                统一查看官方 IPO 同步状态，手动触发同步，并核对新增、更新和失败数量。
+                统一查看官方新股同步状态，手动触发同步，并核对新增、更新和失败数量。
               </p>
             </div>
             <button
@@ -220,12 +220,12 @@ export function DataCenterPage() {
         </div>
 
         <div className="rounded-[28px] border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">SUMMARY</p>
+          <p className="text-[11px] font-bold tracking-[0.16em] text-[#A8A296]">数据概览</p>
           <h2 className="mt-2 text-xl font-bold text-[#2E2A24]">数据资产</h2>
           <div className="mt-5 space-y-3">
-            <SummaryRow label="IPO 数量" value={`${data?.ipoCount ?? 0} 只`} />
+            <SummaryRow label="新股数量" value={`${data?.ipoCount ?? 0} 只`} />
             <SummaryRow label="最近同步" value={formatDateTime(data?.ipoSync.lastSyncTime)} />
-            <SummaryRow label="Provider" value={data?.ipoSync.dataSource ?? '-'} />
+            <SummaryRow label="数据来源" value={data?.ipoSync.dataSource ?? '-'} />
             <SummaryRow label="同步耗时" value={formatDuration(data?.ipoSync.durationMs ?? null)} />
           </div>
         </div>
@@ -234,8 +234,8 @@ export function DataCenterPage() {
       <section className="rounded-[28px] border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">PROVIDERS</p>
-            <h2 className="mt-2 text-xl font-bold text-[#2E2A24]">Provider 状态</h2>
+            <p className="text-[11px] font-bold tracking-[0.16em] text-[#A8A296]">数据来源</p>
+            <h2 className="mt-2 text-xl font-bold text-[#2E2A24]">数据来源状态</h2>
           </div>
           <StatusBadge status={data?.ipoSync.providerStatus ?? 'Disabled'} />
         </div>
@@ -257,7 +257,7 @@ export function DataCenterPage() {
               </p>
               {provider.latestIpo && provider.status !== 'Disabled' && (
                 <p className="mt-2 truncate text-xs font-medium text-[#8C8273]" title={provider.latestIpo}>
-                  最新 IPO：{provider.latestIpo}
+                  最新新股：{provider.latestIpo}
                 </p>
               )}
             </article>
@@ -269,8 +269,8 @@ export function DataCenterPage() {
       <section className="rounded-[28px] border border-[#E4DFD6]/80 bg-white p-5 shadow-card sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#A8A296]">SYNC LOGS</p>
-            <h2 className="mt-2 text-xl font-bold text-[#2E2A24]">同步日志</h2>
+            <p className="text-[11px] font-bold tracking-[0.16em] text-[#A8A296]">同步记录</p>
+            <h2 className="mt-2 text-xl font-bold text-[#2E2A24]">同步记录</h2>
           </div>
           <p className="text-sm font-medium text-[#A8A296]">
             最近 20 条 · 最新：{formatDateTime(latestLog?.endTime ?? latestLog?.startTime)}
@@ -280,7 +280,7 @@ export function DataCenterPage() {
           <table className="w-full min-w-[820px] text-left text-sm">
             <thead className="bg-[#F4F1ED] text-xs font-bold uppercase tracking-[0.12em] text-[#A8A296]">
               <tr>
-                <th className="px-4 py-3">Provider</th>
+                <th className="px-4 py-3">数据来源</th>
                 <th className="px-4 py-3">状态</th>
                 <th className="px-4 py-3">开始时间</th>
                 <th className="px-4 py-3">结束时间</th>
@@ -383,10 +383,10 @@ function StatusBadge({ status }: { status: ProviderStatus }) {
     Disabled: 'bg-[#F4F1ED] text-[#A8A296]',
   }
   const labels: Record<ProviderStatus, string> = {
-    Healthy: 'Provider 正常',
-    Offline: 'Provider 未连接',
-    Degraded: 'Provider 异常',
-    Disabled: 'Provider 未启用',
+    Healthy: '数据来源正常',
+    Offline: '数据来源未连接',
+    Degraded: '数据来源异常',
+    Disabled: '数据来源未启用',
   }
   return (
     <span className={`inline-flex h-7 items-center rounded-full px-3 text-xs font-bold ${styles[status]}`}>
@@ -397,15 +397,16 @@ function StatusBadge({ status }: { status: ProviderStatus }) {
 
 function LogStatus({ status }: { status: string }) {
   const normalized = status.toLowerCase()
-  const success = normalized === 'success'
+  const success = normalized === 'success' || normalized === 'completed'
   const running = normalized === 'running'
+  const label = success ? (normalized === 'completed' ? '完成' : '成功') : running ? '同步中' : '失败'
   return (
     <span className={[
       'inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-bold',
-      success ? 'bg-emerald-50 text-emerald-700' : running ? 'bg-blue-50 text-blue-700' : 'bg-rose-50 text-rose-700',
+      success ? 'bg-emerald-50 text-emerald-700' : running ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700',
     ].join(' ')}>
       {success ? <CheckCircle2 size={13} /> : running ? <Loader2 size={13} className="animate-spin" /> : <AlertTriangle size={13} />}
-      {status}
+      {label}
     </span>
   )
 }

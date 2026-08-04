@@ -1,7 +1,6 @@
 import {
   CheckCircle2,
   ListChecks,
-  Pencil,
   Search,
   Trophy,
   XCircle,
@@ -15,143 +14,149 @@ import {
   compareValues,
   useThreeStateSort,
 } from '../../hooks/useThreeStateSort'
-import type { Subscription } from '../../types/subscription'
+import type { SellPlan, Subscription } from '../../types/subscription'
 import { formatAccountName } from '../../utils/account'
 import { formatHKD, formatPercent } from '../../utils/currency'
 import { getProfitColor } from '../../utils/profit'
 import { getSubscriptionMetrics } from '../../utils/statistics'
-import { AllotmentForm } from './AllotmentForm'
 
-type AllotmentRow =
-  | {
-      kind: 'subscription'
-      subscription: Subscription
-      ipo: ReturnType<typeof useAppData>['ipos'][number] | undefined
-      account: ReturnType<typeof useAppData>['accounts'][number] | undefined
-      createdAt: string
-    }
-  | {
-      kind: 'ipo'
-      ipo: ReturnType<typeof useAppData>['ipos'][number]
-      createdAt: string
-    }
+type AppAccount = ReturnType<typeof useAppData>['accounts'][number]
+type AppIpo = ReturnType<typeof useAppData>['ipos'][number]
+type AllotmentViewStatus = 'pending' | 'won' | 'lost'
+
+interface AllotmentViewRow {
+  ipo: AppIpo
+  subscriptions: Subscription[]
+  participantAccounts: AppAccount[]
+  winningAccounts: AppAccount[]
+  status: AllotmentViewStatus
+  createdAt: string
+  subscriptionDate: string
+  allottedAmount: number
+  netProfit: number
+  profitRate: number
+}
 
 export function AllotmentsPage() {
   const { accounts, ipos, subscriptions, updateSubscription, sales, deleteSale } =
     useAppData()
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<
-    'all' | 'applied' | 'announced' | 'won' | 'lost'
-  >('all')
-  const [editing, setEditing] = useState<Subscription | null>(null)
+  const [status, setStatus] = useState<'all' | AllotmentViewStatus>('all')
   const [batchOpen, setBatchOpen] = useState(false)
+  const [batchIpoId, setBatchIpoId] = useState('')
   const { sort, toggleSort } = useThreeStateSort<
     'name' | 'date' | 'profit' | 'profitRate'
   >('allotments')
 
   const rows = useMemo(() => {
     const query = search.trim().toLowerCase()
-    const subscriptionRows: AllotmentRow[] = subscriptions
-      .filter((item) => status === 'all' || item.status === status)
-      .map((subscription) => ({
-        kind: 'subscription' as const,
-        subscription,
-        ipo: ipos.find((entry) => entry.id === subscription.ipoId),
-        account: accounts.find((entry) => entry.id === subscription.accountId),
-        createdAt: subscription.createdAt,
-      }))
-      .filter((row) => {
-        const { account, ipo } = row
-        return (
-          !query ||
-          account?.name.toLowerCase().includes(query) ||
-          account?.accountSuffix.includes(query) ||
-          ipo?.name.toLowerCase().includes(query) ||
-          ipo?.stockCode.toLowerCase().includes(query)
+    const accountById = new Map(accounts.map((account) => [account.id, account]))
+    const subscriptionsByIpo = new Map<string, Subscription[]>()
+
+    subscriptions.forEach((subscription) => {
+      const related = subscriptionsByIpo.get(subscription.ipoId) ?? []
+      related.push(subscription)
+      subscriptionsByIpo.set(subscription.ipoId, related)
+    })
+
+    return ipos
+      .flatMap((ipo): AllotmentViewRow[] => {
+        const related = subscriptionsByIpo.get(ipo.id) ?? []
+        if (related.length === 0) return []
+
+        const winningSubscriptions = related.filter(
+          (subscription) => subscription.status === 'won',
         )
+        const viewStatus: AllotmentViewStatus =
+          winningSubscriptions.length > 0
+            ? 'won'
+            : related.some((subscription) => subscription.status === 'applied')
+              ? 'pending'
+              : 'lost'
+        if (status !== 'all' && viewStatus !== status) return []
+
+        const participantAccounts = uniqueAccounts(related, accountById)
+        const winningAccounts = uniqueAccounts(
+          winningSubscriptions,
+          accountById,
+        )
+        const searchable = [
+          ipo.name,
+          ipo.stockCode,
+          ...participantAccounts.flatMap((account) => [
+            account.name,
+            account.accountSuffix,
+          ]),
+        ]
+          .join(' ')
+          .toLowerCase()
+        if (query && !searchable.includes(query)) return []
+
+        const metrics = related.map((subscription) =>
+          getSubscriptionMetrics(subscription, ipo, sales),
+        )
+        const investedCost = metrics.reduce(
+          (total, item) => total + item.investedCost,
+          0,
+        )
+        const netProfit = metrics.reduce(
+          (total, item) => total + item.netProfit,
+          0,
+        )
+
+        return [
+          {
+            ipo,
+            subscriptions: related,
+            participantAccounts,
+            winningAccounts,
+            status: viewStatus,
+            createdAt: latestValue(related.map((item) => item.createdAt)),
+            subscriptionDate: latestValue(
+              related.map((item) => item.subscriptionDate),
+            ),
+            allottedAmount: winningSubscriptions.reduce(
+              (total, item) =>
+                total + item.allottedShares * (ipo.issuePrice ?? 0),
+              0,
+            ),
+            netProfit,
+            profitRate:
+              investedCost > 0 ? (netProfit / investedCost) * 100 : 0,
+          },
+        ]
       })
-
-    const ipoIdsWithSubscriptions = new Set(
-      subscriptions.map((item) => item.ipoId),
-    )
-    const emptyIpoRows: AllotmentRow[] =
-      status === 'all'
-        ? ipos
-            .filter((ipo) => !ipoIdsWithSubscriptions.has(ipo.id))
-            .filter(
-              (ipo) =>
-                !query ||
-                ipo.name.toLowerCase().includes(query) ||
-                ipo.stockCode.toLowerCase().includes(query),
-            )
-            .map((ipo) => ({
-              kind: 'ipo' as const,
-              ipo,
-              createdAt: ipo.createdAt,
-            }))
-        : []
-
-    return [...subscriptionRows, ...emptyIpoRows]
       .sort((a, b) => {
         if (!sort) return b.createdAt.localeCompare(a.createdAt)
-        const aIpo = a.ipo
-        const bIpo = b.ipo
-        const aMetrics =
-          a.kind === 'subscription'
-            ? getSubscriptionMetrics(a.subscription, aIpo, sales)
-            : { netProfit: 0, profitRate: 0 }
-        const bMetrics =
-          b.kind === 'subscription'
-            ? getSubscriptionMetrics(b.subscription, bIpo, sales)
-            : { netProfit: 0, profitRate: 0 }
         const values = {
-          name: [aIpo?.name ?? '', bIpo?.name ?? ''],
-          date: [
-            a.kind === 'subscription'
-              ? a.subscription.subscriptionDate
-              : aIpo?.subscriptionDate ?? '',
-            b.kind === 'subscription'
-              ? b.subscription.subscriptionDate
-              : bIpo?.subscriptionDate ?? '',
-          ],
-          profit: [aMetrics.netProfit, bMetrics.netProfit],
-          profitRate: [aMetrics.profitRate, bMetrics.profitRate],
+          name: [a.ipo.name, b.ipo.name],
+          date: [a.subscriptionDate, b.subscriptionDate],
+          profit: [a.netProfit, b.netProfit],
+          profitRate: [a.profitRate, b.profitRate],
         }[sort.key]
         const compared = compareValues(values[0], values[1])
         return sort.direction === 'asc' ? compared : -compared
       })
   }, [accounts, ipos, sales, search, sort, status, subscriptions])
 
-  const ipoSummary = useMemo(() => {
-    const map = new Map<
-      string,
-      { participationCount: number; winCount: number }
-    >()
-    ipos.forEach((ipo) =>
-      map.set(ipo.id, { participationCount: 0, winCount: 0 }),
-    )
-    subscriptions.forEach((subscription) => {
-      const current =
-        map.get(subscription.ipoId) ??
-        { participationCount: 0, winCount: 0 }
-      current.participationCount += 1
-      if (subscription.status === 'won') current.winCount += 1
-      map.set(subscription.ipoId, current)
-    })
-    return map
-  }, [ipos, subscriptions])
-
   const wins = subscriptions.filter((item) => item.status === 'won').length
-  const losses = subscriptions.filter((item) => item.status === 'lost').length
+  const losses = subscriptions.filter(
+    (item) => item.status === 'lost' || item.status === 'announced',
+  ).length
   const decided = wins + losses
+
+  const openBatch = (ipoId = '') => {
+    setBatchIpoId(ipoId)
+    setBatchOpen(true)
+  }
 
   return (
     <>
-      <div className="mb-5 flex items-center justify-end gap-2 flex-wrap">
+      <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
         <button
           type="button"
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/15"
-          onClick={() => setBatchOpen(true)}
+          onClick={() => openBatch()}
         >
           <ListChecks size={17} />
           批量录入结果
@@ -170,9 +175,7 @@ export function AllotmentsPage() {
             label={label}
             direction={sort?.key === key ? sort.direction : undefined}
             onClick={() =>
-              toggleSort(
-                key as 'name' | 'date' | 'profit' | 'profitRate',
-              )
+              toggleSort(key as 'name' | 'date' | 'profit' | 'profitRate')
             }
           />
         ))}
@@ -220,19 +223,11 @@ export function AllotmentsPage() {
           value={status}
           className="rounded-xl border border-[#E4DFD6] bg-white px-3.5 py-2.5 text-sm"
           onChange={(event) =>
-            setStatus(
-              event.target.value as
-                | 'all'
-                | 'applied'
-                | 'announced'
-                | 'won'
-                | 'lost',
-            )
+            setStatus(event.target.value as 'all' | AllotmentViewStatus)
           }
         >
-          <option value="all">全部结果</option>
-          <option value="applied">已申购</option>
-          <option value="announced">已公布</option>
+          <option value="all">全部状态</option>
+          <option value="pending">待公布</option>
           <option value="won">已中签</option>
           <option value="lost">未中签</option>
         </select>
@@ -241,146 +236,62 @@ export function AllotmentsPage() {
       <div className="mt-4 overflow-hidden rounded-2xl border border-[#E4DFD6] bg-white shadow-card">
         {rows.length === 0 ? (
           <p className="px-6 py-14 text-center text-sm text-[#A8A296]">
-            暂无匹配的新股或申购记录
+            暂无符合条件的中签项目
           </p>
         ) : (
           <div className="divide-y divide-[#F4F1ED]">
-            {rows.map((row) => {
-              const ipo = row.ipo
-              const summary = ipo
-                ? ipoSummary.get(ipo.id) ?? {
-                    participationCount: 0,
-                    winCount: 0,
-                  }
-                : { participationCount: 0, winCount: 0 }
-              if (row.kind === 'ipo') {
-                return (
-                  <div
-                    key={`ipo-${row.ipo.id}`}
-                    className="grid gap-3 px-5 py-4 sm:grid-cols-[1.2fr_1fr_1fr_1fr_auto] sm:items-center"
-                  >
-                    <div>
-                      <p className="text-sm font-bold text-[#4A4540]">
-                        {row.ipo.name}（{row.ipo.stockCode || '-'}）
-                      </p>
-                      <p className="mt-1 text-xs text-[#A8A296]">
-                        参与账户：0 · 中签账户：0
-                      </p>
-                    </div>
-                    <div className="text-sm text-[#736A5C]">暂无申购记录</div>
-                    <div>
-                      <p className="text-xs text-[#A8A296]">中签金额</p>
-                      <p className="mt-1 text-sm font-semibold text-[#736A5C]">
-                        {formatHKD(0, 'investment')}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-[#A8A296]">浮盈浮亏</p>
-                      <p className="mt-1 text-sm font-semibold text-[#736A5C]">
-                        {formatHKD(0, 'profit')}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-[#A8A296]">
-                        收益率 {formatPercent(0, 'profitRate')}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled
-                      className="inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-3 py-2 text-xs font-semibold text-[#A8A296]"
-                    >
-                      待创建申购
-                    </button>
-                  </div>
-                )
-              }
-
-              const { subscription, account } = row
-              const metrics = getSubscriptionMetrics(subscription, ipo, sales)
-              const allottedAmount =
-                subscription.allottedShares * (ipo?.issuePrice ?? 0)
-              return (
-                <div
-                  key={subscription.id}
-                  className="grid gap-3 px-5 py-4 sm:grid-cols-[1.2fr_1fr_1fr_1fr_auto] sm:items-center"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-[#4A4540]">
-                      {ipo?.name ?? '-'}（{ipo?.stockCode ?? '-'}）
-                    </p>
-                    <p className="mt-1 text-xs text-[#A8A296]">
-                      {formatAccountName(account)} · 参与账户：
-                      {summary.participationCount} · 中签账户：
-                      {summary.winCount}
-                    </p>
-                  </div>
-                  <div className="text-sm text-[#736A5C]">
-                    {subscription.status === 'won'
-                      ? `${subscription.allottedShares} 股 / ${subscription.allottedLots} 手`
-                      : statusLabel[subscription.status]}
-                  </div>
-                  <div>
-                    <p className="text-xs text-[#A8A296]">中签金额</p>
-                    <p className="mt-1 text-sm font-semibold text-[#736A5C]">
-                      {formatHKD(allottedAmount, 'investment')}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-[#A8A296]">浮盈浮亏</p>
-                    <p
-                      className={`mt-1 text-sm font-semibold ${getProfitColor(
-                        metrics.netProfit,
-                      )}`}
-                    >
-                      {formatHKD(metrics.netProfit, 'profit')}
-                    </p>
-                    <p
-                      className={`mt-0.5 text-[10px] ${getProfitColor(
-                        metrics.profitRate,
-                      )}`}
-                    >
-                      收益率{' '}
-                      {formatPercent(metrics.profitRate, 'profitRate')}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-3 py-2 text-xs font-semibold text-[#736A5C]"
-                    onClick={() => setEditing(subscription)}
-                  >
-                    <Pencil size={14} />
-                    编辑结果
-                  </button>
+            {rows.map((row) => (
+              <article
+                key={row.ipo.id}
+                className="grid gap-4 px-5 py-5 lg:grid-cols-[1.1fr_1.5fr_1.2fr_0.7fr_0.9fr_auto] lg:items-center"
+              >
+                <div>
+                  <p className="text-sm font-bold text-[#4A4540]">
+                    {row.ipo.name}（{row.ipo.stockCode || '-'}）
+                  </p>
+                  <p className="mt-1 text-xs text-[#A8A296]">
+                    申购日期：{row.subscriptionDate || '-'}
+                  </p>
                 </div>
-              )
-            })}
+                <AccountList
+                  label={`参与账户 ${row.participantAccounts.length}`}
+                  accounts={row.participantAccounts}
+                />
+                <AccountList
+                  label={`中签账户 ${row.winningAccounts.length}`}
+                  accounts={row.winningAccounts}
+                  emptyLabel="无中签账户"
+                />
+                <StatusBadge status={row.status} />
+                <div>
+                  <p className="text-xs text-[#A8A296]">
+                    中签金额 {formatHKD(row.allottedAmount, 'investment')}
+                  </p>
+                  <p
+                    className={`mt-1 text-sm font-semibold ${getProfitColor(
+                      row.netProfit,
+                    )}`}
+                  >
+                    {formatHKD(row.netProfit, 'profit')}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-[#A8A296]">
+                    收益率 {formatPercent(row.profitRate, 'profitRate')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E4DFD6] px-3 py-2 text-xs font-semibold text-[#736A5C]"
+                  onClick={() => openBatch(row.ipo.id)}
+                >
+                  <ListChecks size={14} />
+                  录入或编辑结果
+                </button>
+              </article>
+            ))}
           </div>
         )}
       </div>
 
-      <Modal
-        open={Boolean(editing)}
-        title="更新中签结果"
-        description="发行价和上市日期自动取自关联新股资料。"
-        fullScreenOnMobile
-        onClose={() => setEditing(null)}
-      >
-        {editing && (
-          <AllotmentForm
-            subscription={editing}
-            ipo={ipos.find((ipo) => ipo.id === editing.ipoId)}
-            onSubmit={(input) => {
-              if (input.status !== 'won') {
-                sales
-                  .filter((sale) => sale.subscriptionId === editing.id)
-                  .forEach((sale) => deleteSale(sale.id))
-              }
-              updateSubscription(editing.id, input)
-              setEditing(null)
-            }}
-            onCancel={() => setEditing(null)}
-          />
-        )}
-      </Modal>
       <Modal
         open={batchOpen}
         title="批量录入中签结果"
@@ -392,8 +303,9 @@ export function AllotmentsPage() {
           accounts={accounts}
           ipos={ipos}
           subscriptions={subscriptions}
+          initialIpoId={batchIpoId}
           onSave={(changes) => {
-            changes.forEach(({ subscription, status, shares, lots }) => {
+            changes.forEach(({ subscription, status, shares, lots, sellPlan }) => {
               if (status !== 'won') {
                 sales
                   .filter((sale) => sale.subscriptionId === subscription.id)
@@ -404,6 +316,7 @@ export function AllotmentsPage() {
                 status,
                 allottedShares: status === 'won' ? shares : 0,
                 allottedLots: status === 'won' ? lots : 0,
+                sellPlan: status === 'won' ? sellPlan : 'hold',
               })
             })
             setBatchOpen(false)
@@ -415,51 +328,121 @@ export function AllotmentsPage() {
   )
 }
 
-const statusLabel = {
-  applied: '已申购',
-  announced: '已公布',
-  won: '已中签',
-  lost: '未中签',
+function uniqueAccounts(
+  records: Subscription[],
+  accountById: Map<string, AppAccount>,
+) {
+  const ids = new Set(records.map((record) => record.accountId))
+  return [...ids]
+    .map((id) => accountById.get(id))
+    .filter((account): account is AppAccount => Boolean(account))
 }
 
-type BatchResultStatus = 'announced' | 'won' | 'lost'
+function latestValue(values: string[]) {
+  return values.reduce((latest, value) => (value > latest ? value : latest), '')
+}
+
+function AccountList({
+  label,
+  accounts,
+  emptyLabel = '暂无',
+}: {
+  label: string
+  accounts: AppAccount[]
+  emptyLabel?: string
+}) {
+  return (
+    <div>
+      <p className="text-xs font-semibold text-[#736A5C]">{label}</p>
+      <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#A8A296]">
+        {accounts.length > 0
+          ? accounts.map((account) => formatAccountName(account)).join('、')
+          : emptyLabel}
+      </p>
+    </div>
+  )
+}
+
+function StatusBadge({ status }: { status: AllotmentViewStatus }) {
+  const meta: Record<AllotmentViewStatus, { label: string; className: string }> = {
+    pending: {
+      label: '待公布',
+      className: 'bg-amber-50 text-amber-700',
+    },
+    won: {
+      label: '已中签',
+      className: 'bg-emerald-50 text-emerald-700',
+    },
+    lost: {
+      label: '未中签',
+      className: 'bg-slate-100 text-slate-600',
+    },
+  }
+  return (
+    <span
+      className={`inline-flex w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${meta[status].className}`}
+    >
+      {meta[status].label}
+    </span>
+  )
+}
+
+type BatchResultStatus = 'applied' | 'won' | 'lost'
 
 interface BatchDraft {
   status: BatchResultStatus
   shares: number
   lots: number
+  sellPlan: SellPlan
 }
 
 function BatchAllotmentForm({
   accounts,
   ipos,
   subscriptions,
+  initialIpoId,
   onSave,
   onCancel,
 }: {
   accounts: ReturnType<typeof useAppData>['accounts']
   ipos: ReturnType<typeof useAppData>['ipos']
   subscriptions: Subscription[]
+  initialIpoId: string
   onSave: (
     changes: {
       subscription: Subscription
       status: BatchResultStatus
       shares: number
       lots: number
+      sellPlan: SellPlan
     }[],
   ) => void
   onCancel: () => void
 }) {
-  const ipoOptions = ipos
-  const [ipoId, setIpoId] = useState(ipoOptions[0]?.id ?? '')
+  const subscribedIpoIds = useMemo(
+    () => new Set(subscriptions.map((subscription) => subscription.ipoId)),
+    [subscriptions],
+  )
+  const ipoOptions = useMemo(
+    () => ipos.filter((ipo) => subscribedIpoIds.has(ipo.id)),
+    [ipos, subscribedIpoIds],
+  )
+  const [ipoId, setIpoId] = useState(initialIpoId || ipoOptions[0]?.id || '')
   const [search, setSearch] = useState('')
   const [drafts, setDrafts] = useState<Record<string, BatchDraft>>({})
+
+  useEffect(() => {
+    if (initialIpoId && subscribedIpoIds.has(initialIpoId)) {
+      setIpoId(initialIpoId)
+    } else if (!subscribedIpoIds.has(ipoId)) {
+      setIpoId(ipoOptions[0]?.id ?? '')
+    }
+  }, [initialIpoId, ipoId, ipoOptions, subscribedIpoIds])
+
   const selectedIpo = ipos.find((ipo) => ipo.id === ipoId)
   const records = useMemo(
     () =>
-      subscriptions.filter(
-        (subscription) => subscription.ipoId === ipoId,
-      ),
+      subscriptions.filter((subscription) => subscription.ipoId === ipoId),
     [ipoId, subscriptions],
   )
 
@@ -470,12 +453,15 @@ function BatchAllotmentForm({
           subscription.id,
           {
             status:
-              subscription.status === 'won' || subscription.status === 'lost'
-                ? subscription.status
-                : 'announced',
+              subscription.status === 'won'
+                ? 'won'
+                : subscription.status === 'applied'
+                  ? 'applied'
+                  : 'lost',
             shares:
               subscription.allottedShares || selectedIpo?.lotSize || 0,
             lots: subscription.allottedLots || 1,
+            sellPlan: subscription.sellPlan,
           },
         ]),
       ),
@@ -521,14 +507,12 @@ function BatchAllotmentForm({
       const next = { ...current }
       visibleRecords.forEach((subscription) => {
         const base = next[subscription.id] ?? {
-          status: 'announced',
+          status: 'applied',
           shares: 0,
           lots: 0,
+          sellPlan: 'hold',
         }
-        next[subscription.id] = {
-          ...base,
-          ...changes,
-        }
+        next[subscription.id] = { ...base, ...changes }
       })
       return next
     })
@@ -572,7 +556,7 @@ function BatchAllotmentForm({
           </button>
           <button
             type="button"
-            className="rounded-xl bg-[#4A4540] px-3 py-2 text-xs font-semibold text-white"
+            className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white"
             onClick={() =>
               updateAllVisible({
                 status: 'won',
@@ -587,7 +571,7 @@ function BatchAllotmentForm({
             type="button"
             className="rounded-xl border border-[#E4DFD6] bg-white px-3 py-2 text-xs font-semibold text-[#736A5C]"
             onClick={() =>
-              updateAllVisible({ status: 'announced', shares: 0, lots: 0 })
+              updateAllVisible({ status: 'applied', shares: 0, lots: 0 })
             }
           >
             清空输入
@@ -614,7 +598,7 @@ function BatchAllotmentForm({
                 {([
                   ['won', '已中签'],
                   ['lost', '未中签'],
-                  ['announced', '待公布'],
+                  ['applied', '待公布'],
                 ] as const).map(([value, label]) => (
                   <button
                     key={value}
@@ -622,11 +606,11 @@ function BatchAllotmentForm({
                     className={`rounded-xl px-2 py-2 text-xs font-semibold ${
                       draft.status === value
                         ? value === 'won'
-                          ? 'bg-[#F9F2F0]0 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : value === 'lost'
-                            ? 'bg-[#F2F5F2]0 text-white'
-                            : 'bg-[#4A4540] text-white'
-                        : 'bg-[#F4F1ED] text-[#F4F1ED]'
+                            ? 'bg-slate-500 text-white'
+                            : 'bg-amber-500 text-white'
+                        : 'bg-[#F4F1ED] text-[#736A5C]'
                     }`}
                     onClick={() =>
                       updateDraft(subscription.id, { status: value })
@@ -637,27 +621,42 @@ function BatchAllotmentForm({
                 ))}
               </div>
               {draft.status === 'won' && (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-	                  <BatchNumberField
-	                    label="中签股数"
-	                    value={draft.shares}
-	                    onChange={(shares) => setDraftShares(subscription.id, shares)}
-	                  />
-	                  <BatchNumberField
-	                    label="中签手数"
-	                    value={draft.lots}
-	                    onChange={(lots) => setDraftLots(subscription.id, lots)}
-	                  />
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <BatchNumberField
+                    label="中签股数"
+                    value={draft.shares}
+                    onChange={(shares) =>
+                      setDraftShares(subscription.id, shares)
+                    }
+                  />
+                  <BatchNumberField
+                    label="中签手数"
+                    value={draft.lots}
+                    onChange={(lots) => setDraftLots(subscription.id, lots)}
+                  />
+                  <label>
+                    <span className="mb-1.5 block text-xs font-medium text-[#736A5C]">
+                      卖出方式
+                    </span>
+                    <select
+                      value={draft.sellPlan}
+                      className="focus-ring w-full rounded-xl border border-[#E4DFD6] bg-white px-3 py-2.5 text-sm"
+                      onChange={(event) =>
+                        updateDraft(subscription.id, {
+                          sellPlan: event.target.value as SellPlan,
+                        })
+                      }
+                    >
+                      <option value="grey_market">暗盘卖出</option>
+                      <option value="first_day">首日卖出</option>
+                      <option value="hold">持有</option>
+                    </select>
+                  </label>
                 </div>
               )}
             </article>
           )
         })}
-        {visibleRecords.length === 0 && (
-          <p className="rounded-2xl bg-[#F4F1ED] px-4 py-12 text-center text-sm text-[#A8A296]">
-            这只新股暂无申购记录，可先到申购记录页面创建参与账户。
-          </p>
-        )}
       </div>
 
       <div className="sticky bottom-0 flex gap-3 border-t border-[#F4F1ED] bg-white/95 px-5 py-4 backdrop-blur sm:px-7">
@@ -677,9 +676,10 @@ function BatchAllotmentForm({
                 const draft = drafts[subscription.id]
                 return {
                   subscription,
-                  status: draft?.status ?? 'announced',
+                  status: draft?.status ?? 'applied',
                   shares: draft?.shares ?? 0,
                   lots: draft?.lots ?? 0,
+                  sellPlan: draft?.sellPlan ?? subscription.sellPlan,
                 }
               }),
             )
@@ -703,7 +703,7 @@ function BatchNumberField({
 }) {
   return (
     <label>
-      <span className="mb-1.5 block text-xs font-medium text-[#F4F1ED]0">
+      <span className="mb-1.5 block text-xs font-medium text-[#736A5C]">
         {label}
       </span>
       <input

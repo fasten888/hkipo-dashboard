@@ -196,7 +196,7 @@ export function CapitalAllocationPage() {
   if (!planner) {
     return (
       <PlannerFrame>
-        <Panel title="读取失败" subtitle="Capital Allocation Center 暂时无法载入">
+        <Panel title="读取失败" subtitle="资金分配中心暂时无法载入">
           <p className="text-sm text-rose-200">{error}</p>
         </Panel>
       </PlannerFrame>
@@ -240,18 +240,18 @@ function PlannerFrame({
       <div className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-6 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-300/80">
-            Capital Allocation Center
+            资金规划中心
           </p>
           <h1 className="mt-3 text-[34px] font-bold tracking-[-0.05em] text-white md:text-[46px]">
             资金分配中心
           </h1>
           <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-400 md:text-base">
-            从数据库读取本轮 IPO 和账户资金，先打通 Generate 数据流，下一 Sprint 接入真实算法。
+            从数据库读取本轮新股和账户资金，生成可供核对的初步资金分配方案。
           </p>
         </div>
         <div className="inline-flex w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-semibold text-slate-400">
           <Route size={15} className="text-emerald-300" />
-          Database Driven
+          数据库驱动
           {generatedAt && <span className="text-slate-600">·</span>}
           {generatedAt && <span>{formatDateTime(generatedAt)}</span>}
         </div>
@@ -265,12 +265,12 @@ function RoundOverview({ planner }: { planner: PlannerData }) {
   const overview = planner.roundOverview
 
   return (
-    <Panel title="1. Round Overview" subtitle="当前可参与的新股轮次与资金容量概览">
+    <Panel title="1. 轮次概览" subtitle="当前可参与的新股轮次与资金容量概览">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Active IPO" value={overview.ipoCount} icon={<Layers3 size={18} />} tone="blue" />
-        <MetricCard label="Accounts" value={overview.accountCount} icon={<WalletCards size={18} />} tone="purple" />
-        <MetricCard label="One-lot Cost" value={formatHKD(overview.selectedIpoCost)} icon={<CircleDollarSign size={18} />} tone="emerald" />
-        <MetricCard label="Capital Gap" value={formatHKD(overview.capitalGap)} icon={<AlertTriangle size={18} />} tone={overview.capitalGap > 0 ? 'rose' : 'emerald'} />
+        <MetricCard label="招股中新股" value={overview.ipoCount} icon={<Layers3 size={18} />} tone="blue" />
+        <MetricCard label="账户数量" value={overview.accountCount} icon={<WalletCards size={18} />} tone="purple" />
+        <MetricCard label="一手成本" value={formatHKD(overview.selectedIpoCost)} icon={<CircleDollarSign size={18} />} tone="emerald" />
+        <MetricCard label="资金缺口" value={formatHKD(overview.capitalGap)} icon={<AlertTriangle size={18} />} tone={overview.capitalGap > 0 ? 'rose' : 'emerald'} />
       </div>
     </Panel>
   )
@@ -278,7 +278,7 @@ function RoundOverview({ planner }: { planner: PlannerData }) {
 
 function IpoSelection({ ipos }: { ipos: PlannerIpo[] }) {
   return (
-    <Panel title="2. IPO Selection" subtitle="数据库中当前招股的 IPO。这里不使用手写 IPO。">
+    <Panel title="2. 新股选择" subtitle="数据库中当前正在招股的新股。">
       {ipos.length === 0 ? (
         <InlineEmpty title="暂无当前招股中的 IPO" />
       ) : (
@@ -293,7 +293,7 @@ function IpoSelection({ ipos }: { ipos: PlannerIpo[] }) {
                 <div className="min-w-0">
                   <p className="truncate text-base font-bold text-white">{ipo.name}</p>
                   <p className="mt-1 text-xs font-semibold text-slate-500">
-                    {ipo.code} · {ipo.industry || ipo.board || 'Industry N/A'}
+                    {ipo.code} · {ipo.industry || ipo.board || '行业未填写'}
                   </p>
                 </div>
                 <ArrowRight size={18} className="shrink-0 text-slate-600 transition group-hover:translate-x-1 group-hover:text-white" />
@@ -313,16 +313,16 @@ function IpoSelection({ ipos }: { ipos: PlannerIpo[] }) {
 
 function AccountAllocation({ accounts }: { accounts: PlannerAccount[] }) {
   return (
-    <Panel title="3. Account Allocation" subtitle="账户资金、冻结、融资额度。数据来自 ACCOUNT。">
+    <Panel title="3. 账户分配" subtitle="账户资金、冻结资金与融资额度。">
       {accounts.length === 0 ? (
         <InlineEmpty title="数据库暂无账户，无法生成分配方案" />
       ) : (
         <div className="overflow-hidden rounded-[24px] border border-white/10">
           <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr] gap-3 bg-white/[0.04] px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-            <span>Account</span>
-            <span>Cash</span>
-            <span>Frozen</span>
-            <span>Capacity</span>
+            <span>账户</span>
+            <span>现金</span>
+            <span>冻结资金</span>
+            <span>可用额度</span>
           </div>
           <div className="divide-y divide-white/10">
             {accounts.map((account) => (
@@ -353,10 +353,10 @@ function GeneratedPlan({
   onGenerate: () => void
 }) {
   return (
-    <Panel title="4. Generated Plan" subtitle="本 Sprint 返回基于真实账户和 IPO 的 Draft Allocation；下一 Sprint 替换成正式算法。">
+    <Panel title="4. 生成方案" subtitle="根据真实账户和新股数据生成初步分配方案。">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="text-sm leading-6 text-slate-400">
-          点击 Generate 后，后端会重新读取数据库里的 IPO 和账户，再返回一份占位分配结果。
+          点击生成方案后，系统会重新读取数据库中的新股和账户数据。
         </div>
         <button
           type="button"
@@ -365,7 +365,7 @@ function GeneratedPlan({
           className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-500 px-5 text-sm font-bold text-white shadow-[0_16px_40px_rgba(37,99,235,0.26)] transition hover:-translate-y-0.5 hover:bg-blue-400 disabled:cursor-wait disabled:opacity-70"
         >
           {generating ? <Loader2 className="animate-spin" size={17} /> : <Play size={17} />}
-          Generate
+          生成方案
         </button>
       </div>
 
@@ -389,7 +389,7 @@ function GeneratedPlan({
 
           <div className="divide-y divide-white/10 overflow-hidden rounded-[24px] border border-white/10">
             {result.allocations.length === 0 ? (
-              <InlineEmpty title="数据库 IPO 或账户为空，Draft Allocation 无法生成" />
+              <InlineEmpty title="数据库中新股或账户为空，暂时无法生成方案" />
             ) : (
               result.allocations.map((allocation) => (
                 <div key={allocation.id} className="grid gap-3 p-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
@@ -399,11 +399,11 @@ function GeneratedPlan({
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-200">{allocation.accountName}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-500">{allocation.broker || allocation.fundingSource}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{allocation.broker || fundingSourceLabel(allocation.fundingSource)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-emerald-200">{formatHKD(allocation.applyAmount)}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-500">{allocation.applyLots} 手 · {allocation.fundingSource}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">{allocation.applyLots} 手 · {fundingSourceLabel(allocation.fundingSource)}</p>
                   </div>
                 </div>
               ))
@@ -417,7 +417,7 @@ function GeneratedPlan({
 
 function TimelinePanel({ timeline }: { timeline: PlannerTimelineItem[] }) {
   return (
-    <Panel title="Timeline" subtitle="未来 30 天关键节点">
+    <Panel title="时间线" subtitle="未来 30 天关键节点">
       {timeline.length === 0 ? (
         <InlineEmpty title="暂无即将发生的 IPO 时间线" />
       ) : (
@@ -447,7 +447,7 @@ function TimelinePanel({ timeline }: { timeline: PlannerTimelineItem[] }) {
 
 function ConflictAdvisor({ advisor }: { advisor: PlannerData['conflictAdvisor'] }) {
   return (
-    <Panel title="Conflict Advisor" subtitle="资金冲突预警">
+    <Panel title="冲突建议" subtitle="资金冲突预警">
       <div className={[
         'rounded-[24px] border p-5',
         advisor.hasConflict
@@ -469,10 +469,10 @@ function ConflictAdvisor({ advisor }: { advisor: PlannerData['conflictAdvisor'] 
           </div>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <MiniFact label="Required" value={formatHKD(advisor.required)} />
-          <MiniFact label="Capacity" value={formatHKD(advisor.capacity)} />
-          <MiniFact label="Gap" value={formatHKD(advisor.gap)} />
-          <MiniFact label="Status" value={advisor.hasConflict ? 'Conflict' : 'Clear'} />
+          <MiniFact label="所需资金" value={formatHKD(advisor.required)} />
+          <MiniFact label="可用额度" value={formatHKD(advisor.capacity)} />
+          <MiniFact label="资金缺口" value={formatHKD(advisor.gap)} />
+          <MiniFact label="状态" value={advisor.hasConflict ? '有冲突' : '正常'} />
         </div>
       </div>
     </Panel>
@@ -585,4 +585,8 @@ function formatDateTime(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date(value))
+}
+
+function fundingSourceLabel(source: 'cash' | 'margin') {
+  return source === 'cash' ? '现金' : '融资'
 }

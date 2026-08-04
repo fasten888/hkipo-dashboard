@@ -648,7 +648,7 @@ function NavItem({
       />
       <span className="flex-1 leading-none">{label}</span>
       {!available && (
-        <span className="rounded-[4px] bg-[#F4F1ED] px-1.5 py-0.5 text-[9px] text-[#A8A296]">soon</span>
+        <span className="rounded-[4px] bg-[#F4F1ED] px-1.5 py-0.5 text-[9px] text-[#A8A296]">即将推出</span>
       )}
     </button>
   )
@@ -902,7 +902,7 @@ function getPageMeta(nav: NavigationKey) {
     sales:         { title: '卖出记录',   subtitle: '记录暗盘、首日和持有后卖出的净收益。' },
     statistics:    { title: '数据统计',   subtitle: '用排行、趋势和策略分析复盘打新表现。' },
     review:        { title: '月度复盘',   subtitle: '按月份回看参与、中签、收益和最佳新股。' },
-    dataCenter:    { title: '数据中心',   subtitle: '查看 IPO 同步、Provider 状态和导入入口。' },
+    dataCenter:    { title: '数据中心',   subtitle: '查看新股同步、数据来源状态和导入入口。' },
     data:          { title: '数据管理',   subtitle: '导入导出、备份恢复和迁移数据。' },
     safety:        { title: '数据安全',   subtitle: '操作日志、版本快照和数据健康检查。' },
     settings:      { title: '设置中心',   subtitle: '配置你的个人投资驾驶舱。' },

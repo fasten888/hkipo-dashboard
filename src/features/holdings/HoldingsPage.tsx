@@ -100,14 +100,14 @@ export function HoldingsPage() {
       </section>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        <HoldingInsight title="持仓结构" eyebrow="PORTFOLIO" description="观察市值、成本和抵押融资能力。">
+        <HoldingInsight title="持仓结构" eyebrow="持仓结构" description="观察市值、成本和抵押融资能力。">
           <div className="mt-4 space-y-3">
             <InsightRow label="持仓市值" value={formatHKD(totalMarketValue)} />
             <InsightRow label="持仓成本" value={formatHKD(totalCost)} />
             <InsightRow label="可融资额度" value={formatHKD(totalCollateral)} />
           </div>
         </HoldingInsight>
-        <HoldingInsight title="最近持仓" eyebrow="ACTIVITY" description="按录入时间展示最近持仓。">
+        <HoldingInsight title="最近持仓" eyebrow="最近动态" description="按录入时间展示最近持仓。">
           <div className="mt-4 space-y-3">
             {rows.slice(0, 3).map((item) => (
               <InsightRow key={item.id} label={`${item.stockName}（${item.stockCode}）`} value={formatHKD(item.marketValue)} />
@@ -115,7 +115,7 @@ export function HoldingsPage() {
             {rows.length === 0 && <p className="text-sm font-medium text-[#A8A296]">暂无持仓动态</p>}
           </div>
         </HoldingInsight>
-        <HoldingInsight title="AI 建议" eyebrow="AI" description="预留后续持仓与打新额度分析。">
+        <HoldingInsight title="智能建议" eyebrow="智能建议" description="预留后续持仓与打新额度分析。">
           <p className="mt-4 text-sm font-semibold leading-6 text-[#5A5246]">
             当前可融资额度为 {formatHKD(totalCollateral)}，后续可与申购计划联动，判断现金打新和抵押融资的资金分配。
           </p>
