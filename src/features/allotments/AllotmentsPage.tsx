@@ -445,6 +445,26 @@ function BatchAllotmentForm({
       subscriptions.filter((subscription) => subscription.ipoId === ipoId),
     [ipoId, subscriptions],
   )
+  const accountRecords = useMemo(() => {
+    const recordByAccountId = new Map<string, Subscription>()
+    records.forEach((subscription) => {
+      if (!recordByAccountId.has(subscription.accountId)) {
+        recordByAccountId.set(subscription.accountId, subscription)
+      }
+    })
+
+    return [...new Map(accounts.map((account) => [account.id, account])).values()]
+      .map((account) => ({
+        account,
+        subscription: recordByAccountId.get(account.id),
+      }))
+      .filter(
+        (
+          item,
+        ): item is { account: AppAccount; subscription: Subscription } =>
+          Boolean(item.subscription),
+      )
+  }, [accounts, records])
 
   useEffect(() => {
     setDrafts(
@@ -470,14 +490,11 @@ function BatchAllotmentForm({
 
   const query = search.trim().toLowerCase()
   const lotSize = selectedIpo?.lotSize ?? 0
-  const visibleRecords = records.filter((subscription) => {
-    const account = accounts.find(
-      (item) => item.id === subscription.accountId,
-    )
+  const visibleRecords = accountRecords.filter(({ account }) => {
     return (
       !query ||
-      account?.name.toLowerCase().includes(query) ||
-      account?.accountSuffix.includes(query)
+      account.name.toLowerCase().includes(query) ||
+      account.accountSuffix.includes(query)
     )
   })
 
@@ -505,7 +522,7 @@ function BatchAllotmentForm({
   const updateAllVisible = (changes: Partial<BatchDraft>) => {
     setDrafts((current) => {
       const next = { ...current }
-      visibleRecords.forEach((subscription) => {
+      visibleRecords.forEach(({ subscription }) => {
         const base = next[subscription.id] ?? {
           status: 'applied',
           shares: 0,
@@ -580,10 +597,7 @@ function BatchAllotmentForm({
       </div>
 
       <div className="space-y-3 px-5 py-4 sm:px-7">
-        {visibleRecords.map((subscription) => {
-          const account = accounts.find(
-            (item) => item.id === subscription.accountId,
-          )
+        {visibleRecords.map(({ account, subscription }) => {
           const draft = drafts[subscription.id]
           if (!draft) return null
           return (
